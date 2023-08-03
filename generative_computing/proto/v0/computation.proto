@@ -4,4 +4,29 @@ package generative_computing.v0;
 
 // A core data structure that represents a generative AI computation in a
 // portable, platform- and language-independent format.
-message Computation {}
+message Computation {
+  // The type signature of this computation.
+  Type type = 1;
+
+  // The specification of the generative computation to perform.
+  oneof computation {
+    // A call to a model.
+    ModelCall model_call = 2;
+  }
+}
+
+// Represents a type within a computation.
+message Type {}
+
+// Represents a single model call.
+message ModelCall {
+  ModelId model_id = 1;
+}
+
+// Represents the identity of a model.
+message ModelId {
+  // A globally unique URI that unambigously represents a single model, and
+  // a specific version of that model (with the versioning scheme assumed to
+  // be model-specific).
+  string uri = 1;
+}

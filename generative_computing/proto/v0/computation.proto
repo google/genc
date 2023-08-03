@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package generative_computing.v0;
+
+// A core data structure that represents a generative AI computation in a
+// portable, platform- and language-independent format.
+message Computation {}

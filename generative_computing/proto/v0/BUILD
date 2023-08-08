@@ -7,5 +7,4 @@ licenses(["notice"])
 proto_library(
     name = "computation_proto",
     srcs = ["computation.proto"],
-    deps = [],
 )

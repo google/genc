@@ -1,3 +1,5 @@
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
+
 py_library(
     name = "langchain",
     srcs = ["__init__.py"],
@@ -11,6 +13,10 @@ py_library(
 py_library(
     name = "create_computation",
     srcs = ["create_computation.py"],
+    deps = [
+        ":custom_model",
+        "//generative_computing/proto/v0:computation_py_pb2",
+    ],
 )
 
 py_test(
@@ -19,6 +25,7 @@ py_test(
     deps = [
         ":create_computation",
         ":custom_model",
+        "//generative_computing/proto/v0:computation_py_pb2",
     ],
 )
 

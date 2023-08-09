@@ -1,3 +1,5 @@
+load("@rules_python//python:defs.bzl", "py_library")
+
 package_group(
     name = "python_packages",
     packages = ["//generative_computing/python/..."],

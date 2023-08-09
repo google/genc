@@ -16,13 +16,24 @@
 from absl.testing import absltest
 from langchain import chains
 from langchain import prompts
+from generative_computing.proto.v0 import computation_pb2 as pb
 from generative_computing.python.interop.langchain import create_computation
 from generative_computing.python.interop.langchain import custom_model
 
 
 class CreateComputationTest(absltest.TestCase):
 
-  def test_simple(self):
+  def test_model_call(self):
+    llm = custom_model.CustomModel(uri="some_model")
+    for comp in [
+        create_computation.create_computation_from_llm(llm),
+        create_computation.create_computation(llm),
+    ]:
+      self.assertIsInstance(comp, pb.Computation)
+      self.assertEqual(comp.WhichOneof("computation"), "model_call")
+      self.assertEqual(comp.model_call.model_id.uri, "some_model")
+
+  def test_chain(self):
     my_chain = chains.LLMChain(
         llm=custom_model.CustomModel(uri="some_model"),
         prompt=prompts.PromptTemplate(
@@ -30,8 +41,8 @@ class CreateComputationTest(absltest.TestCase):
             template="Q: What should I pack for a trip to {location}? A: ",
         ),
     )
-
     create_computation.create_computation(my_chain)
+    # TODO(b/295042499): Add test code once chains are supported.
 
 
 if __name__ == "__main__":

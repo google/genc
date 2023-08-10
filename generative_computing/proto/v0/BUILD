@@ -16,3 +16,18 @@ py_proto_library(
     api_version = 2,
     deps = [":computation_proto"],
 )
+
+proto_library(
+    name = "executor_proto",
+    srcs = ["executor.proto"],
+    deps = [
+        ":computation_proto",
+        "@com_google_protobuf//:any_proto",
+    ],
+)
+
+py_proto_library(
+    name = "executor_py_pb2",
+    api_version = 2,
+    deps = [":executor_proto"],
+)

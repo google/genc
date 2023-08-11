@@ -18,8 +18,16 @@ limitations under the License
 
 namespace generative_computing {
 
+// The basic abstract interface shared among all runtime components.
+// Instances of this interface may specialize in a single atomic function,
+// e.g., just model calls, or composite processing (e.g., chains) where
+// they might delegate to other executor components, or they may represent
+// specializations for a given type of environment (e.g., the entire stack
+// of executors designed for on-device deployment).
 class Executor {
  public:
+  // TODO(b/295041601): Develop the core interfaces.
+
   virtual ~Executor() {}
 };
 

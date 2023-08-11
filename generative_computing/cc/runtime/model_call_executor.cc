@@ -13,6 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include "generative_computing/cc/runtime/executor.h"
+#include "generative_computing/cc/runtime/model_call_executor.h"
 
 namespace generative_computing {}  // namespace generative_computing

@@ -25,7 +25,7 @@ def create_computation_from_llm(llm):
     llm: An instance of `CustomModel` (the only model type currently supported).
 
   Returns:
-    An instance of `pb.Computation` with an embedded `ModelCall`.
+    An instance of `pb.Computation` with an embedded `Model`.
 
   Raises:
     TypeError: on an unrecognized type of model.
@@ -38,8 +38,30 @@ def create_computation_from_llm(llm):
 
   if not llm.uri:
     raise ValueError("Model URI is required.")
+  return pb.Computation(model=pb.Model(model_id=pb.ModelId(uri=llm.uri)))
+
+
+def create_computation_from_prompt_template(prompt_template):
+  """Creates a `Computation` proto instance from a LangChain prompt template.
+
+  Args:
+    prompt_template: An instance of `PromptTemplate`.
+
+  Returns:
+    An instance of `pb.Computation` with an embedded `PromptTemplate`.
+
+  Raises:
+    TypeError: on an unrecognized type of argument.
+  """
+  if not isinstance(prompt_template, langchain.PromptTemplate):
+    raise TypeError(
+        "Unrecognized type of argument {}.".format(type(prompt_template))
+    )
+
   return pb.Computation(
-      model_call=pb.ModelCall(model_id=pb.ModelId(uri=llm.uri))
+      prompt_template=pb.PromptTemplate(
+          template_string=prompt_template.template
+      )
   )
 
 
@@ -71,6 +93,8 @@ def create_computation(langchain_object):
   """
   if isinstance(langchain_object, langchain.llms.base.LLM):
     return create_computation_from_llm(langchain_object)
+  if isinstance(langchain_object, langchain.PromptTemplate):
+    return create_computation_from_prompt_template(langchain_object)
   if isinstance(langchain_object, langchain.chains.llm.LLMChain):
     return create_computation_from_chain(langchain_object)
   raise TypeError(

@@ -10,17 +10,83 @@ message Computation {
 
   // The specification of the generative computation to perform.
   oneof computation {
-    // A call to a model.
-    ModelCall model_call = 2;
+    // NON-COMPOSITIONAL CONSTRUCTS.
+    //
+    // The following constructs are the basic building blocks that can be
+    // composed into larger computations with the use of the compositional
+    // constructs defined below.
+
+    // A model that can be called with a dynamic argument to perform inference.
+    Model model = 9;
+
+    // A prompt template.
+    PromptTemplate prompt_template = 10;
+
+    // COMPOSITIONAL CONSTRUCTS.
+    //
+    // The following constructs can be used to combine simpler computations
+    // into more complex ones. For example, they can be used to express
+    // chains, parallel calls and joinin of their results, and other forms of
+    // orchestration logic.
+
+    // A block of computation logic, i.e., a series of one or more assignments
+    // that incrementally build upon one-another to define the final result.
+    // This mechanism is intended as a primary means of breaking down longer
+    // sequences of processing into simpler parts and organizing code. One can
+    // think of a block as equivalent to a let expression, i.e., an expression
+    // of the form `let x=..., y=..., z=..., ... in ...` where each of the
+    // subsequent values represented by `...` can refer to the labels defined
+    // earlier (see `reference` below). A block itself is not a function, i.e.,
+    // it does not accept any arguments. The value of a block is the value of
+    // the last (unlabeled) expression defined in the block (the last `...` in
+    // the example above).
+    Block block = 3;
+
+    // A reference to a name defined in a surrounding context, e.g., earlier in
+    // a block of computation logic (see the example in `block`). The value of
+    // a reference is the value of the object it refers to.
+    Reference reference = 4;
+
+    // An invocation of a given function on a given argument. The value of this
+    // computation is the result of the function call.
+    Call call = 5;
+
+    // A struct is a mapping from labels to values. Structs are used, e.g., to
+    // assemble multiple values to form an argument to a function call.
+    Struct struct = 6;
+
+    // A selection of a named element from a struct. Selections are used, e.g.,
+    // to extract a part of a result of one computation to feed as a part of an
+    // argument to a subsequent computation.
+    Selection selection = 7;
+
+    // A lambda expression defines a function that takes a single argument, and
+    // produces a single result. Either the argument or the result can be a
+    // struct (i.e., consist of multiple named elements).
+    Lambda lambda = 8;
   }
+
+  reserved 2;
+
+  // NEXT ID: 11
 }
 
 // Represents a type within a computation.
 message Type {}
 
-// Represents a single model call.
-message ModelCall {
+// Represents a model.
+message Model {
   ModelId model_id = 1;
+}
+
+// Represents a prompt template.
+message PromptTemplate {
+  // The template string, with the dynamic fields enclosed in curly braces,
+  // e.g., as in `What is a good name for {company} that makes {product}?`.
+  // The input parameter to the prompt template must be a tuple, elements
+  // of which match the dynamic fields in the template (e.g., `company` and
+  // `product` in the above example).
+  string template_string = 1;
 }
 
 // Represents the identity of a model.
@@ -29,4 +95,68 @@ message ModelId {
   // a specific version of that model (with the versioning scheme assumed to
   // be model-specific).
   string uri = 1;
+}
+
+// A representation of a block of computations.
+message Block {
+  // One or more locals defined within the block, each associating a label with
+  // a computation. Computations, whether those associated with the locals, or
+  // that associated with the result below, can contain references to names
+  // defined earlier. Self-references are prohibited. All names introduced here
+  // must be different. Since execution semantics at this level is purely
+  // functional without side effects, the ordering in which the locals are
+  // declared is not significant, as it is only the dependencies between the
+  // computations that effectively determine the causal relationships that
+  // constrain the order of execution.
+  repeated Local local = 1;
+  message Local {
+    string name = 1;
+    Computation value = 2;
+  }
+
+  // The result returned by the block (required). The result computation may
+  // refer to any of the locals defined above by name.
+  Computation result = 2;
+}
+
+// A reference by name (label) to a computation defined earlier.
+message Reference {
+  string name = 1;
+}
+
+// A representation of a function call.
+message Call {
+  // A computation that represents the function to call.
+  Computation function = 1;
+
+  // A computation that represents the argument to the function specified above.
+  // Present if and only if "function" declares a parameter.
+  Computation argument = 2;
+}
+
+// A representation of a struct.
+message Struct {
+  map<string, Computation> elements = 1;
+}
+
+// A representation of a selection from a struct.
+message Selection {
+  // The source of selection (required).
+  Computation source = 1;
+
+  // A specification of which named element to select.
+  string name = 3;
+}
+
+// A representation of a lambda expression.
+message Lambda {
+  // The name to use internally within this lambda to refer to the dynamic
+  // parameter. The parameter is mandatory. The name defined here can be
+  // subsequently referenced within the body of the `result` computation.
+  string parameter_name = 1;
+
+  // A computation that represents the result of applying the lambda to the
+  // parameter. The result may contain references to the named parameter
+  // defined above.
+  Computation result = 2;
 }

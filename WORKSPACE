@@ -43,3 +43,19 @@ http_archive(
     strip_prefix = "zlib-1.2.11",
     urls = ["https://github.com/madler/zlib/archive/v1.2.11.tar.gz"],
 )
+
+git_repository(
+    name = "com_github_grpc_grpc",
+    remote = "https://github.com/grpc/grpc.git",
+    tag = "v1.43.0",
+)
+
+load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
+
+grpc_deps()
+
+git_repository(
+    name = "com_google_googletest",
+    remote = "https://github.com/google/googletest.git",
+    tag = "release-1.11.0",
+)

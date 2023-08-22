@@ -13,23 +13,19 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include "generative_computing/cc/runtime/model_call_executor.h"
-#include "googlemock/include/gmock/gmock.h"
-#include "googletest/include/gtest/gtest.h"
+#ifndef GENERATIVE_COMPUTING_CC_RUNTIME_MODEL_EXECUTOR_H_
+#define GENERATIVE_COMPUTING_CC_RUNTIME_MODEL_EXECUTOR_H_
 
-namespace generative_computing{
+#include <memory>
 
-class ModelCallExecutorTest : public ::testing::Test {
- protected:
-  ModelCallExecutorTest() {}
-  ~ModelCallExecutorTest() override {}
+#include "absl/status/statusor.h"
+#include "generative_computing/cc/runtime/executor.h"
 
-  // TODO(b/295260921): This needs to test a setup with multiple executors that
-  // handle models for various URI prefixes, that calls are routed to an
-  // appropriate child executor depending on the model URI, and that bogus URIs
-  // result in an error.
-};
+namespace generative_computing {
 
-TEST_F(ModelCallExecutorTest, Simple) {}
+// Returns an executor that specializes in handling interactions with models.
+absl::StatusOr<std::shared_ptr<Executor>> CreateModelExecutor();
 
 }  // namespace generative_computing
+
+#endif  // GENERATIVE_COMPUTING_CC_RUNTIME_MODEL_EXECUTOR_H_

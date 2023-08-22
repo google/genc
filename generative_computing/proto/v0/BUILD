@@ -1,4 +1,5 @@
 load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_proto_library")
+load("@rules_cc//cc:defs.bzl", "cc_proto_library")
 
 package(
     default_visibility = ["//visibility:public"],
@@ -11,9 +12,13 @@ proto_library(
     srcs = ["computation.proto"],
 )
 
+cc_proto_library(
+    name = "computation_cc_proto",
+    deps = [":computation_proto"],
+)
+
 py_proto_library(
     name = "computation_py_pb2",
-    api_version = 2,
     deps = [":computation_proto"],
 )
 
@@ -26,8 +31,12 @@ proto_library(
     ],
 )
 
+cc_proto_library(
+    name = "executor_cc_proto",
+    deps = [":executor_proto"],
+)
+
 py_proto_library(
     name = "executor_py_pb2",
-    api_version = 2,
     deps = [":executor_proto"],
 )

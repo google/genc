@@ -9,19 +9,21 @@ import "generative_computing/proto/v0/computation.proto";
 // is being returned from an executor as a result of a computation.
 message Value {
   oneof value {
+    // The preferred representation for string values.
+    string str = 3;
+
     // A serialized tensor content as an instance of `tensorflow.TensorProto`,
     // as defined in `tensorflow/core/framework/tensor.proto`. This is
     // currently the only way to pass in numeric or string values, including
     // simple scalars.
     google.protobuf.Any tensor = 1;
 
-    // TODO(b/295041601): Consider something less clunky for simple strings,
-    // unless we decide to stick to a minimal set of abstractions.
-
     // A serialized `Computation`. This is the canonical (and currently only)
     // way to pass any functional constructs, but the computation included
     // here does not necessarily have to be of a functional type.
     Computation computation = 2;
+
+    // NEXT ID: 4
   }
 
   // TODO(b/295041601): Define the rest of this.

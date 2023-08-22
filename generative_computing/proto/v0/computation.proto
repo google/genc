@@ -136,7 +136,14 @@ message Call {
 
 // A representation of a struct.
 message Struct {
-  map<string, Computation> elements = 1;
+  // The ordering of elements is significant; names are optional.
+  repeated Element element = 2;
+  message Element {
+    string name = 1;
+    Computation value = 2;
+  }
+
+  reserved 1;
 }
 
 // A representation of a selection from a struct.
@@ -144,8 +151,10 @@ message Selection {
   // The source of selection (required).
   Computation source = 1;
 
-  // A specification of which named element to select.
-  string name = 3;
+  // A specification of which element to select by index.
+  int32 index = 2;
+
+  reserved 3;
 }
 
 // A representation of a lambda expression.

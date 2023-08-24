@@ -15,10 +15,9 @@
 
 from typing import Any, List, Mapping, Optional
 import langchain
-import pydantic
 
 
-class CustomModel(langchain.llms.base.LLM, pydantic.BaseModel):
+class CustomModel(langchain.llms.base.LLM):
   """Represents an arbitrary custom model for use with LangChain APIs."""
 
   uri: str = ""
@@ -27,7 +26,15 @@ class CustomModel(langchain.llms.base.LLM, pydantic.BaseModel):
   def _llm_type(self) -> str:
     return "CustomModel({})".format(self.uri)
 
-  def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
+  def _call(
+      self,
+      prompt: str,
+      stop: Optional[List[str]] = None,
+      run_manager: Optional[
+          langchain.callbacks.manager.CallbackManagerForLLMRun
+      ] = None,
+      **kwargs: Any
+  ) -> str:
     raise RuntimeError(
         "This is a model placeholder, not to be executed directly."
     )

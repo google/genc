@@ -79,7 +79,7 @@ class TestExecutor : public ExecutorBase<ExecutorValue> {
   }
 
   absl::Status Materialize(ExecutorValue value, v0::Value* val) final {
-    val->set_str(value.value());
+    val->set_str(std::string(value.value()));
     return absl::OkStatus();
   }
 };

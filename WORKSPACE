@@ -1,6 +1,6 @@
 workspace(name = "org_generative_computing")
 
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 git_repository(
@@ -36,14 +36,6 @@ http_archive(
     ],
 )
 
-http_archive(
-    name = "zlib",
-    build_file = "@com_google_protobuf//:third_party/zlib.BUILD",
-    sha256 = "629380c90a77b964d896ed37163f5c3a34f6e6d897311f1df2a7016355c45eff",
-    strip_prefix = "zlib-1.2.11",
-    urls = ["https://github.com/madler/zlib/archive/v1.2.11.tar.gz"],
-)
-
 git_repository(
     name = "com_github_grpc_grpc",
     remote = "https://github.com/grpc/grpc.git",
@@ -65,4 +57,34 @@ http_archive(
     sha256 = "3ea49a7d97421b88a8c48a0de16c16048e17725c7ec0f1d3ea2683a2a75adc21",
     strip_prefix = "abseil-cpp-20230125.0",
     url = "https://github.com/abseil/abseil-cpp/archive/refs/tags/20230125.0.tar.gz",
+)
+
+http_archive(
+    name = "pybind11_bazel",
+    strip_prefix = "pybind11_bazel-203508e14aab7309892a1c5f7dd05debda22d9a5",
+    urls = ["https://github.com/pybind/pybind11_bazel/archive/203508e14aab7309892a1c5f7dd05debda22d9a5.zip"],
+    sha256 = "75922da3a1bdb417d820398eb03d4e9bd067c4905a4246d35a44c01d62154d91",
+)
+
+new_git_repository(
+    name = "pybind11",
+    build_file = "@pybind11_bazel//:pybind11.BUILD",
+    remote = "https://github.com/pybind/pybind11.git",
+    tag = "v2.9.2",
+)
+
+load("@pybind11_bazel//:python_configure.bzl", "python_configure")
+
+python_configure(name = "local_config_python")
+
+git_repository(
+    name = "pybind11_abseil",
+    commit = "38111ef06d426f75bb335a3b58aa0342f6ce0ce3",
+    remote = "https://github.com/pybind/pybind11_abseil.git",
+)
+
+git_repository(
+    name = "pybind11_protobuf",
+    commit = "80f3440cd8fee124e077e2e47a8a17b78b451363",
+    remote = "https://github.com/pybind/pybind11_protobuf.git",
 )

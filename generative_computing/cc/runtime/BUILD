@@ -1,3 +1,5 @@
+load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
+
 package(
     default_visibility = ["//visibility:public"],
 )
@@ -34,6 +36,48 @@ cc_test(
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/types:span",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+pybind_extension(
+    name = "executor_bindings",
+    srcs = ["executor_bindings.cc"],
+    tags = ["generated_py_module=generative_computing.runtime"],
+    deps = [
+        ":executor",
+        ":executor_stacks",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "//generative_computing/proto/v0:executor_cc_proto",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@pybind11_abseil//pybind11_abseil:absl_casters",
+        "@pybind11_abseil//pybind11_abseil:status_casters",
+        "@pybind11_protobuf//pybind11_protobuf:native_proto_caster",
+    ],
+)
+
+cc_library(
+    name = "executor_stacks",
+    srcs = ["executor_stacks.cc"],
+    hdrs = ["executor_stacks.h"],
+    deps = [
+        ":executor",
+        ":model_executor",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+    ],
+)
+
+cc_test(
+    name = "executor_stacks_test",
+    timeout = "short",
+    srcs = ["executor_stacks_test.cc"],
+    deps = [
+        ":executor",
+        ":executor_stacks",
+        "@com_google_absl//absl/status:statusor",
         "@com_google_googletest//:gtest_main",
     ],
 )

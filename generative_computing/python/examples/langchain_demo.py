@@ -18,6 +18,7 @@ from absl import app
 from langchain import chains
 from langchain import prompts
 from generative_computing.python import interop
+from generative_computing.python import runtime
 
 
 def main(argv: Sequence[str]) -> None:
@@ -32,11 +33,11 @@ def main(argv: Sequence[str]) -> None:
       ),
   )
 
-  comp = interop.langchain.create_computation(my_chain)
+  comp_pb = interop.langchain.create_computation(my_chain)
+  comp = runtime.Runner(comp_pb)
 
-  # Here we will create a runtime instance, and pass `comp` to it along
-  # with the "location" argument to execute.
-  del comp
+  result = comp()
+  del result
 
 
 if __name__ == "__main__":

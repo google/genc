@@ -16,39 +16,82 @@ limitations under the License
 #include "generative_computing/cc/runtime/model_executor.h"
 
 #include <cstdint>
+#include <future> // NOLINT
 #include <memory>
 #include <optional>
+#include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
+#include "absl/strings/string_view.h"
 #include "generative_computing/cc/runtime/executor.h"
+#include "generative_computing/cc/runtime/status_macros.h"
+#include "generative_computing/cc/runtime/threading.h"
+#include "generative_computing/proto/v0/computation.pb.h"
+#include "generative_computing/proto/v0/executor.pb.h"
 
 namespace generative_computing {
 namespace {
 
+absl::Status Generate(const v0::Model& model, const absl::string_view arg,
+                      std::string* output) {
+  if (model.model_id().uri() == "test_model") {
+    output->assign(absl::StrCat(
+        "This is an output from a test model in response to \"", arg, "\"."));
+    return absl::OkStatus();
+  }
+
+  // TODO(b/295260921): Based on a prefix of the URI embedded in the `Model`,
+  // route calls to an appropriate child executor or child component that
+  // specializes in handling calls for the corresponding class of models.
+  // The set of supported models and child executors is something that should
+  // come in as a parameter (since we want it to be a point of flexibility we
+  // offer to whoever is handling runtime deployment and configuration).
+  // In particular, we shoul be able to effectively route the calls to either
+  // an on-device or a Cloud executor (and in general, there could be multiple
+  // of each suported here within the same runtime stack).
+  return absl::UnimplementedError(
+      absl::StrCat("Unsupported model: ", model.model_id().uri()));
+}
+
 class ExecutorValue {
  public:
-  ExecutorValue() {}
+  explicit ExecutorValue(const std::shared_ptr<v0::Value>& value_pb)
+      : value_(value_pb) {}
 
-  // TODO(b/295260921): Implement this. The values to be managed by this
-  // executor would include arguments and results of model calls, as well as
-  // model calls themselves.
+  ExecutorValue(const ExecutorValue& other) = default;
+  ExecutorValue(ExecutorValue&& other) : value_(std::move(other.value_)) {}
+  ExecutorValue& operator=(ExecutorValue&& other) {
+    this->value_ = std::move(other.value_);
+    return *this;
+  }
+
+  const v0::Value& value() const { return *value_; }
+
+ private:
+  ExecutorValue() = delete;
+
+  std::shared_ptr<v0::Value> value_;
 };
+
+using ValueFuture = std::shared_future<absl::StatusOr<ExecutorValue>>;
 
 // Executor that specializes in handling interactions with a model calls (i.e.,
 // that only handles the `Model` computations as defined in the
 // `computation.proto`, and routes to the appropriate model backends depending
 // on the model declared).
-class ModelExecutor : public ExecutorBase<ExecutorValue> {
+class ModelExecutor : public ExecutorBase<ValueFuture> {
  public:
-  explicit ModelExecutor() {
-    // TODO(b/295260921): Implement this. The executor needs to be able to take
-    // some arguments to enable it to be configured to support some class of
-    // model backends, some of which could be baked-in, but most of which would
-    // need to be provisioned by the caller as a part of the runtime setup to
-    // match the environment in which this runtime will be hosted.
+  explicit ModelExecutor() : thread_pool_(nullptr) {
+    // TODO(b/295260921): The executor needs to be able to take some arguments
+    // to enable it to be configured to support some class of model backends,
+    // some of which could be baked-in, but most of which would need to be
+    // provisioned by the caller as a part of the runtime setup to match the
+    // environment in which this runtime will be hosted.
   }
 
   ~ModelExecutor() override { ClearTracked(); }
@@ -58,57 +101,68 @@ class ModelExecutor : public ExecutorBase<ExecutorValue> {
     return kExecutorName;
   }
 
-  absl::StatusOr<ExecutorValue> CreateExecutorValue(
-      const v0::Value& val) final {
-    // TODO(b/295260921): Implement this; the two types of values that would
-    // be manually created include arguments to model inference calls as well
-    // as model configurations themselves.
-    return ExecutorValue();
+  absl::StatusOr<ValueFuture> CreateExecutorValue(
+      const v0::Value& val_pb) final {
+    return ThreadRun(
+        [val_pb]() -> absl::StatusOr<ExecutorValue> {
+          return ExecutorValue(std::make_shared<v0::Value>(val_pb));
+        },
+        thread_pool_);
   }
 
-  absl::StatusOr<ExecutorValue> CreateCall(
-      ExecutorValue function, std::optional<ExecutorValue> argument) final {
-    // TODO(b/295260921): Implement this; the value shoudl represent a future
-    // result of the model inference call;
-    return ExecutorValue();
-  }
-
-  absl::StatusOr<ExecutorValue> CreateStruct(
-      std::vector<ExecutorValue> members) final {
-    // TODO(b/295260921): Implement this (for holding a set of call arguments).
-    return ExecutorValue();
-  }
-
-  absl::StatusOr<ExecutorValue> CreateSelection(ExecutorValue value,
-                                                const uint32_t index) final {
-    // TODO(b/295260921): Implement this (for accessing a piece of the result).
-    return ExecutorValue();
-  }
-
-  absl::Status Materialize(ExecutorValue value, v0::Value* val) final {
-    // TODO(b/295260921): Implement this.
+  absl::Status Materialize(ValueFuture value_future, v0::Value* val_pb) final {
+    ExecutorValue value = GENC_TRY(Wait(std::move(value_future)));
+    val_pb->CopyFrom(value.value());
     return absl::OkStatus();
   }
 
-  // TODO(b/295041601): Inherit the rest of core interfaces here, once defined.
+  absl::StatusOr<ValueFuture> CreateCall(
+      ValueFuture func_future, std::optional<ValueFuture> arg_future) final {
+    if (!arg_future.has_value()) {
+      return absl::InvalidArgumentError("Model calls require an argument.");
+    }
+    return ThreadRun(
+        [function = std::move(func_future),
+         argument = std::move(arg_future)]() -> absl::StatusOr<ExecutorValue> {
+          ExecutorValue fn = GENC_TRY(Wait(function));
+          ExecutorValue arg = GENC_TRY(Wait(argument.value()));
+          if (!fn.value().has_computation()) {
+            return absl::InvalidArgumentError("Function is not a computation.");
+          }
+          if (!fn.value().computation().has_model()) {
+            return absl::InvalidArgumentError("Function is not a a model.");
+          }
+          if (!arg.value().has_str()) {
+            return absl::InvalidArgumentError("Argument is not a string.");
+          }
+          std::shared_ptr<v0::Value> result = std::make_shared<v0::Value>();
+          GENC_TRY(Generate(fn.value().computation().model(), arg.value().str(),
+                            result->mutable_str()));
+          return ExecutorValue(result);
+        },
+        thread_pool_);
+  }
 
-  // TODO(b/295260921): Based on a prefix of the URI embedded in the `Model`,
-  // route calls to an appropriate child executor or child component that
-  // specializes in handling model calls for the corresponding class of models.
-  // The set of supported models and child executors is something that should
-  // come in as a parameter (since we want it to be a point of flexibility we
-  // offer to whoever is handling runtime deployment and configuration).
-  // In particular, we shoul be able to effectively route the calls to either
-  // an on-device or a Cloud executor (and in general, there could be multiple
-  // of each suported here within the same runtime stack).
+  absl::StatusOr<ValueFuture> CreateStruct(
+      std::vector<ValueFuture> member_futures) final {
+    return absl::UnimplementedError("Unimplemented");
+  }
+
+  absl::StatusOr<ValueFuture> CreateSelection(ValueFuture value_future,
+                                              const uint32_t index) final {
+    return absl::UnimplementedError("Unimplemented");
+  }
+
+ private:
+  ThreadPool* const thread_pool_;
 };
 
 }  // namespace
 
 absl::StatusOr<std::shared_ptr<Executor>> CreateModelExecutor() {
-  // TODO(b/295260921): Implement this; eventually this needs to take some
-  // parameters to hook up this executor to the environment to enable it to
-  // direct model calls to the appropriate backends.
+  // TODO(b/295260921): Eventually this needs to take some parameters to hook
+  // up this executor to the environment to enable it to direct model calls to
+  // the appropriate backends.
   return std::make_shared<ModelExecutor>();
 }
 

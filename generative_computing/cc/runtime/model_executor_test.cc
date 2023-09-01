@@ -18,8 +18,11 @@ limitations under the License
 #include <memory>
 
 #include "googletest/include/gtest/gtest.h"
+#include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "generative_computing/cc/runtime/executor.h"
+#include "generative_computing/proto/v0/computation.pb.h"
+#include "generative_computing/proto/v0/executor.pb.h"
 
 namespace generative_computing{
 
@@ -35,11 +38,31 @@ class ModelExecutorTest : public ::testing::Test {
 };
 
 TEST_F(ModelExecutorTest, Simple) {
-  // TODO(b/295260921): Test something more meaningful here once this component
-  // has actually been implemented.
   absl::StatusOr<std::shared_ptr<Executor>> executor =
       generative_computing::CreateModelExecutor();
   EXPECT_TRUE(executor.ok());
+
+  v0::Value fn_pb;
+  fn_pb.mutable_computation()->mutable_model()->mutable_model_id()->set_uri(
+      "test_model");
+  absl::StatusOr<OwnedValueId> fn_val = executor.value()->CreateValue(fn_pb);
+  EXPECT_TRUE(fn_val.ok());
+
+  v0::Value arg_pb;
+  arg_pb.set_str("Boo!");
+  absl::StatusOr<OwnedValueId> arg_val = executor.value()->CreateValue(arg_pb);
+  EXPECT_TRUE(arg_val.ok());
+
+  absl::StatusOr<OwnedValueId> result_val =
+      executor.value()->CreateCall(fn_val->ref(), arg_val->ref());
+  EXPECT_TRUE(result_val.ok());
+
+  v0::Value result;
+  absl::Status status =
+      executor.value()->Materialize(result_val->ref(), &result);
+  EXPECT_TRUE(status.ok());
+  EXPECT_EQ(result.str(),
+            "This is an output from a test model in response to \"Boo!\".");
 }
 
 }  // namespace generative_computing

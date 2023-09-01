@@ -88,8 +88,13 @@ cc_library(
     hdrs = ["model_executor.h"],
     deps = [
         ":executor",
+        ":status_macros",
+        ":threading",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "//generative_computing/proto/v0:executor_cc_proto",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
     ],
 )
 
@@ -100,7 +105,11 @@ cc_test(
     deps = [
         ":executor",
         ":model_executor",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "//generative_computing/proto/v0:executor_cc_proto",
+        "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -112,5 +121,20 @@ cc_library(
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_library(
+    name = "threading",
+    srcs = ["threading.cc"],
+    hdrs = ["threading.h"],
+    deps = [
+        ":status_macros",
+        "@com_google_absl//absl/base:core_headers",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/types:span",
     ],
 )

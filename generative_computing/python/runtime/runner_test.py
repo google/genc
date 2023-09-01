@@ -20,12 +20,15 @@ from generative_computing.python.runtime import runner
 
 class RunnerTest(absltest.TestCase):
 
-  def test_something(self):
-    # TODO(b/295042075): Implement this test once the underlyign code works.
-    comp_pb = pb.Computation()
+  def test_model(self):
+    comp_pb = pb.Computation(
+        model=pb.Model(model_id=pb.ModelId(uri='test_model'))
+    )
     comp = runner.Runner(comp_pb)
-    result = comp()
-    del result
+    result = comp('Boo!')
+    self.assertEqual(
+        result, 'This is an output from a test model in response to "Boo!".'
+    )
 
 
 if __name__ == '__main__':

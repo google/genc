@@ -30,6 +30,20 @@ class RunnerTest(absltest.TestCase):
         result, 'This is an output from a test model in response to "Boo!".'
     )
 
+  def test_prompt_template(self):
+    comp_pb = pb.Computation(
+        prompt_template=pb.PromptTemplate(
+            template_string=(
+                'Q: What should I pack for a trip to {location}? A: '
+            )
+        )
+    )
+    comp = runner.Runner(comp_pb)
+    result = comp('a grocery store')
+    self.assertEqual(
+        result, 'Q: What should I pack for a trip to a grocery store? A: '
+    )
+
 
 if __name__ == '__main__':
   absltest.main()

@@ -88,3 +88,13 @@ git_repository(
     commit = "80f3440cd8fee124e077e2e47a8a17b78b451363",
     remote = "https://github.com/pybind/pybind11_protobuf.git",
 )
+
+http_archive(
+    name = "com_github_google_re2",
+    sha256 = "8b4a8175da7205df2ad02e405a950a02eaa3e3e0840947cd598e92dca453199b",
+    strip_prefix = "re2-2023-06-01",
+    urls = [
+        "https://github.com/google/re2/archive/refs/tags/2023-06-01.tar.gz",
+        "https://storage.googleapis.com/mirror.tensorflow.org/github.com/google/re2/archive/refs/tags/2023-06-01.tar.gz",
+    ],
+)

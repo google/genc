@@ -27,12 +27,14 @@ limitations under the License
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_replace.h"
 #include "absl/strings/string_view.h"
 #include "generative_computing/cc/runtime/executor.h"
 #include "generative_computing/cc/runtime/status_macros.h"
 #include "generative_computing/cc/runtime/threading.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 #include "generative_computing/proto/v0/executor.pb.h"
+#include "re2/re2.h"
 
 namespace generative_computing {
 namespace {
@@ -56,6 +58,26 @@ absl::Status Generate(const v0::Model& model, const absl::string_view arg,
   // of each suported here within the same runtime stack).
   return absl::UnimplementedError(
       absl::StrCat("Unsupported model: ", model.model_id().uri()));
+}
+
+absl::Status CreatePromptFromTemplate(const v0::PromptTemplate& prompt_template,
+                                      const absl::string_view arg,
+                                      std::string* output) {
+  absl::string_view input(prompt_template.template_string());
+  std::string parameter_re = "(\\{[a-z]*\\})";
+  std::string parameter;
+  if (!RE2::FindAndConsume(&input, parameter_re, &parameter)) {
+    return absl::InvalidArgumentError("No parameter found in the template.");
+  }
+  std::string other_parameter;
+  while (RE2::FindAndConsume(&input, parameter_re, &other_parameter)) {
+    if (other_parameter != parameter) {
+      return absl::InvalidArgumentError("Multiple parameters not supported.");
+    }
+  }
+  output->assign(absl::StrReplaceAll(prompt_template.template_string(),
+                                     {{parameter, arg}}));
+  return absl::OkStatus();
 }
 
 class ExecutorValue {
@@ -129,15 +151,29 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
           if (!fn.value().has_computation()) {
             return absl::InvalidArgumentError("Function is not a computation.");
           }
-          if (!fn.value().computation().has_model()) {
-            return absl::InvalidArgumentError("Function is not a a model.");
+          if (!fn.value().computation().has_model() &&
+              !fn.value().computation().has_prompt_template()) {
+            return absl::InvalidArgumentError(
+                "Function is not a a model or a prompt template.");
           }
           if (!arg.value().has_str()) {
             return absl::InvalidArgumentError("Argument is not a string.");
           }
+
+          // TODO(b/295041950): Add support for handling prompt templates with
+          // multiple arguments, not just a single string (so the argument can
+          // in general be a struct wiht multiple values, not just one).
+
           std::shared_ptr<v0::Value> result = std::make_shared<v0::Value>();
-          GENC_TRY(Generate(fn.value().computation().model(), arg.value().str(),
-                            result->mutable_str()));
+          if (fn.value().computation().has_model()) {
+            GENC_TRY(Generate(fn.value().computation().model(),
+                              arg.value().str(), result->mutable_str()));
+          } else {
+            // Must therefore be a prompt template as per the above.
+            GENC_TRY(CreatePromptFromTemplate(
+                fn.value().computation().prompt_template(), arg.value().str(),
+                result->mutable_str()));
+          }
           return ExecutorValue(result);
         },
         thread_pool_);

@@ -37,7 +37,7 @@ class ModelExecutorTest : public ::testing::Test {
   // result in an error.
 };
 
-TEST_F(ModelExecutorTest, Simple) {
+TEST_F(ModelExecutorTest, TestModel) {
   absl::StatusOr<std::shared_ptr<Executor>> executor =
       generative_computing::CreateModelExecutor();
   EXPECT_TRUE(executor.ok());
@@ -63,6 +63,34 @@ TEST_F(ModelExecutorTest, Simple) {
   EXPECT_TRUE(status.ok());
   EXPECT_EQ(result.str(),
             "This is an output from a test model in response to \"Boo!\".");
+}
+
+TEST_F(ModelExecutorTest, PromptTemplate) {
+  absl::StatusOr<std::shared_ptr<Executor>> executor =
+      generative_computing::CreateModelExecutor();
+  EXPECT_TRUE(executor.ok());
+
+  v0::Value fn_pb;
+  fn_pb.mutable_computation()->mutable_prompt_template()->set_template_string(
+      "Q: What should I pack for a trip to {location}? A: ");
+  absl::StatusOr<OwnedValueId> fn_val = executor.value()->CreateValue(fn_pb);
+  EXPECT_TRUE(fn_val.ok());
+
+  v0::Value arg_pb;
+  arg_pb.set_str("a grocery store");
+  absl::StatusOr<OwnedValueId> arg_val = executor.value()->CreateValue(arg_pb);
+  EXPECT_TRUE(arg_val.ok());
+
+  absl::StatusOr<OwnedValueId> result_val =
+      executor.value()->CreateCall(fn_val->ref(), arg_val->ref());
+  EXPECT_TRUE(result_val.ok());
+
+  v0::Value result;
+  absl::Status status =
+      executor.value()->Materialize(result_val->ref(), &result);
+  EXPECT_TRUE(status.ok());
+  EXPECT_EQ(result.str(),
+            "Q: What should I pack for a trip to a grocery store? A: ");
 }
 
 }  // namespace generative_computing

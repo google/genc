@@ -26,7 +26,7 @@ def main(argv: Sequence[str]) -> None:
     raise app.UsageError("Too many command-line arguments.")
 
   my_chain = chains.LLMChain(
-      llm=interop.langchain.CustomModel(uri="some_model"),
+      llm=interop.langchain.CustomModel(uri="test_model"),
       prompt=prompts.PromptTemplate(
           input_variables=["location"],
           template="Q: What should I pack for a trip to {location}? A: ",
@@ -35,9 +35,8 @@ def main(argv: Sequence[str]) -> None:
 
   comp_pb = interop.langchain.create_computation(my_chain)
   comp = runtime.Runner(comp_pb)
-
-  result = comp()
-  del result
+  result = comp("a grocery store")
+  print(result)
 
 
 if __name__ == "__main__":

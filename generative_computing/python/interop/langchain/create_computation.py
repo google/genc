@@ -14,7 +14,7 @@
 """Utility function for creating `Computation` protos from LangChain objects."""
 
 import langchain
-from generative_computing.proto.v0 import computation_pb2 as pb
+from generative_computing.python import authoring
 from generative_computing.python.interop.langchain import custom_model
 
 
@@ -38,7 +38,8 @@ def create_computation_from_llm(llm):
 
   if not llm.uri:
     raise ValueError("Model URI is required.")
-  return pb.Computation(model=pb.Model(model_id=pb.ModelId(uri=llm.uri)))
+
+  return authoring.create_model(llm.uri)
 
 
 def create_computation_from_prompt_template(prompt_template):
@@ -58,11 +59,7 @@ def create_computation_from_prompt_template(prompt_template):
         "Unrecognized type of argument {}.".format(type(prompt_template))
     )
 
-  return pb.Computation(
-      prompt_template=pb.PromptTemplate(
-          template_string=prompt_template.template
-      )
-  )
+  return authoring.create_prompt_template(prompt_template.template)
 
 
 def create_computation_from_chain(chain):
@@ -74,9 +71,12 @@ def create_computation_from_chain(chain):
   Returns:
     A corresponding instance of `pb.Computation`.
   """
-  del chain
-  # TODO(b/295042499): Implement this.
-  return pb.Computation()
+  comp = create_computation_from_llm(chain.llm)
+  if chain.prompt:
+    comp = authoring.create_chain(
+        [comp, create_computation_from_prompt_template(chain.prompt)]
+    )
+  return comp
 
 
 def create_computation(langchain_object):

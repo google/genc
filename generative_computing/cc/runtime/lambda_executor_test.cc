@@ -13,21 +13,30 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include "generative_computing/cc/runtime/executor_stacks.h"
+#include "generative_computing/cc/runtime/lambda_executor.h"
 
 #include <memory>
 
+#include "googletest/include/gtest/gtest.h"
 #include "absl/status/statusor.h"
 #include "generative_computing/cc/runtime/executor.h"
-#include "generative_computing/cc/runtime/lambda_executor.h"
 #include "generative_computing/cc/runtime/model_executor.h"
-#include "generative_computing/cc/runtime/status_macros.h"
 
 namespace generative_computing {
 
-absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultLocalExecutor() {
-  return generative_computing::CreateLambdaExecutor(
-      GENC_TRY(generative_computing::CreateModelExecutor()));
+class LambdaExecutorTest : public ::testing::Test {
+ protected:
+  LambdaExecutorTest() {}
+  ~LambdaExecutorTest() override {}
+};
+
+TEST_F(LambdaExecutorTest, Simple) {
+  absl::StatusOr<std::shared_ptr<Executor>> executor =
+      generative_computing::CreateLambdaExecutor(
+          generative_computing::CreateModelExecutor().value());
+  EXPECT_TRUE(executor.ok());
+
+  // TODO(b/295041821): Pull in the tests.
 }
 
 }  // namespace generative_computing

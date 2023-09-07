@@ -16,6 +16,7 @@ py_library(
     deps = [
         ":custom_model",
         "//generative_computing/proto/v0:computation_py_pb2",
+        "//generative_computing/python/authoring",
     ],
 )
 
@@ -26,6 +27,7 @@ py_test(
         ":create_computation",
         ":custom_model",
         "//generative_computing/proto/v0:computation_py_pb2",
+        "//generative_computing/python/authoring",
     ],
 )
 

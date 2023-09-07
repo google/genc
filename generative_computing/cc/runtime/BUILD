@@ -64,7 +64,9 @@ cc_library(
     hdrs = ["executor_stacks.h"],
     deps = [
         ":executor",
+        ":lambda_executor",
         ":model_executor",
+        ":status_macros",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
     ],
@@ -77,6 +79,35 @@ cc_test(
     deps = [
         ":executor",
         ":executor_stacks",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "lambda_executor",
+    srcs = ["lambda_executor.cc"],
+    hdrs = ["lambda_executor.h"],
+    deps = [
+        ":executor",
+        ":status_macros",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "//generative_computing/proto/v0:executor_cc_proto",
+        "@com_github_google_re2//:re2",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_test(
+    name = "lambda_executor_test",
+    timeout = "short",
+    srcs = ["lambda_executor_test.cc"],
+    deps = [
+        ":executor",
+        ":lambda_executor",
+        ":model_executor",
         "@com_google_absl//absl/status:statusor",
         "@com_google_googletest//:gtest_main",
     ],

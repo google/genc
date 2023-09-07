@@ -13,21 +13,21 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include "generative_computing/cc/runtime/executor_stacks.h"
+#ifndef GENERATIVE_COMPUTING_CC_RUNTIME_LAMBDA_EXECUTOR_H_
+#define GENERATIVE_COMPUTING_CC_RUNTIME_LAMBDA_EXECUTOR_H_
 
 #include <memory>
 
 #include "absl/status/statusor.h"
 #include "generative_computing/cc/runtime/executor.h"
-#include "generative_computing/cc/runtime/lambda_executor.h"
-#include "generative_computing/cc/runtime/model_executor.h"
-#include "generative_computing/cc/runtime/status_macros.h"
 
 namespace generative_computing {
 
-absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultLocalExecutor() {
-  return generative_computing::CreateLambdaExecutor(
-      GENC_TRY(generative_computing::CreateModelExecutor()));
-}
+// Returns an executor that specializes in handling lambda expressions, and
+// otherwise delegates all processing to the specified child executor.
+absl::StatusOr<std::shared_ptr<Executor>> CreateLambdaExecutor(
+    std::shared_ptr<Executor> child_executor);
 
 }  // namespace generative_computing
+
+#endif  // GENERATIVE_COMPUTING_CC_RUNTIME_LAMBDA_EXECUTOR_H_

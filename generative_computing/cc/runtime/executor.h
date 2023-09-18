@@ -20,7 +20,6 @@ limitations under the License
 #include <limits>
 #include <memory>
 #include <optional>
-#include <string_view>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -217,7 +216,7 @@ class ExecutorBase : public Executor,
   }
 
   // Returns the string name of the current executor.
-  virtual std::string_view ExecutorName() = 0;
+  virtual absl::string_view ExecutorName() = 0;
 
   virtual absl::StatusOr<ExecutorValue> CreateExecutorValue(
       const v0::Value& val) = 0;

@@ -19,7 +19,6 @@ limitations under the License
 #include <memory>
 #include <optional>
 #include <string>
-#include <string_view>
 #include <vector>
 
 #include "googletest/include/gtest/gtest.h"
@@ -27,6 +26,7 @@ limitations under the License
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
+#include "absl/strings/string_view.h"
 #include "absl/types/span.h"
 #include "generative_computing/proto/v0/executor.pb.h"
 
@@ -35,8 +35,8 @@ namespace {
 
 class ExecutorValue {
  public:
-  ExecutorValue(std::string_view x) { x_ = x; }
-  std::string_view value() const { return x_; }
+  ExecutorValue(absl::string_view x) { x_ = x; }
+  absl::string_view value() const { return x_; }
 
  private:
   std::string x_;
@@ -48,8 +48,8 @@ class TestExecutor : public ExecutorBase<ExecutorValue> {
 
   ~TestExecutor() override { ClearTracked(); }
 
-  std::string_view ExecutorName() final {
-    static constexpr std::string_view kExecutorName = "TestExecutor";
+  absl::string_view ExecutorName() final {
+    static constexpr absl::string_view kExecutorName = "TestExecutor";
     return kExecutorName;
   }
 
@@ -65,7 +65,7 @@ class TestExecutor : public ExecutorBase<ExecutorValue> {
 
   absl::StatusOr<ExecutorValue> CreateStruct(
       std::vector<ExecutorValue> members) final {
-    std::vector<std::string_view> member_strings;
+    std::vector<absl::string_view> member_strings;
     for (const auto& member : members) {
       member_strings.push_back(member.value());
     }

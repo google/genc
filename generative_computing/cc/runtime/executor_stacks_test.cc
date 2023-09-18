@@ -22,17 +22,19 @@ limitations under the License
 #include "generative_computing/cc/runtime/executor.h"
 
 namespace generative_computing {
+namespace {
 
-class EecutorStacksTest : public ::testing::Test {
+class ExecutorStacksTest : public ::testing::Test {
  protected:
-  EecutorStacksTest() {}
-  ~EecutorStacksTest() override {}
+  ExecutorStacksTest() {}
+  ~ExecutorStacksTest() override {}
 };
 
-TEST_F(EecutorStacksTest, Simple) {
+TEST_F(ExecutorStacksTest, Simple) {
   absl::StatusOr<std::shared_ptr<Executor>> executor =
       generative_computing::CreateDefaultLocalExecutor();
   EXPECT_TRUE(executor.ok());
 }
 
+}  // namespace
 }  // namespace generative_computing

@@ -64,11 +64,17 @@ message Computation {
     // produces a single result. Either the argument or the result can be a
     // struct (i.e., consist of multiple named elements).
     Lambda lambda = 8;
+
+    // Fallback expression.
+    Fallback fallback = 11;
+
+    // Conditional expression.
+    Conditional conditional = 12;
   }
 
   reserved 2;
 
-  // NEXT ID: 11
+  // NEXT ID: 13
 }
 
 // Represents a type within a computation.
@@ -168,4 +174,29 @@ message Lambda {
   // parameter. The result may contain references to the named parameter
   // defined above.
   Computation result = 2;
+}
+
+// A representation of a fallback expression.
+message Fallback {
+  // Computations to attempt in the order listed. Return the first successfully
+  // computed result. Move on to attempt the next computation down the list in
+  // case of failure. Fail only if all candidate computations have failed.
+  repeated Computation candidate = 1;
+}
+
+// A representation of a conditional expression.
+message Conditional {
+  // The condition to test; must have a Boolean result, or a result that can
+  // be interpreted as such. Always evaluated first. Depending on the result,
+  // only one of the branches below is being evaluated and returned as the
+  // result of the conditional.
+  Computation condition = 1;
+
+  // Computation that is evaluated and returned as a result of the conditional
+  // only if the condition, after evaluation, turns out to be positive.
+  Computation positive_branch = 2;
+
+  // Computation that is evaluated and returned as a result of the conditional
+  // only if the condition, after evaluation, turns out to be negative.
+  Computation negative_branch = 3;
 }

@@ -16,14 +16,14 @@ limitations under the License
 #include "generative_computing/cc/runtime/model_executor.h"
 
 #include <cstdint>
-#include <future> // NOLINT
+#include <future>  // NOLINT
 #include <memory>
 #include <optional>
 #include <string>
-#include <string_view>
 #include <utility>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
@@ -38,27 +38,6 @@ limitations under the License
 
 namespace generative_computing {
 namespace {
-
-absl::Status Generate(const v0::Model& model, const absl::string_view arg,
-                      std::string* output) {
-  if (model.model_id().uri() == "test_model") {
-    output->assign(absl::StrCat(
-        "This is an output from a test model in response to \"", arg, "\"."));
-    return absl::OkStatus();
-  }
-
-  // TODO(b/295260921): Based on a prefix of the URI embedded in the `Model`,
-  // route calls to an appropriate child executor or child component that
-  // specializes in handling calls for the corresponding class of models.
-  // The set of supported models and child executors is something that should
-  // come in as a parameter (since we want it to be a point of flexibility we
-  // offer to whoever is handling runtime deployment and configuration).
-  // In particular, we shoul be able to effectively route the calls to either
-  // an on-device or a Cloud executor (and in general, there could be multiple
-  // of each suported here within the same runtime stack).
-  return absl::UnimplementedError(
-      absl::StrCat("Unsupported model: ", model.model_id().uri()));
-}
 
 absl::Status CreatePromptFromTemplate(const v0::PromptTemplate& prompt_template,
                                       const absl::string_view arg,
@@ -108,7 +87,9 @@ using ValueFuture = std::shared_future<absl::StatusOr<ExecutorValue>>;
 // on the model declared).
 class ModelExecutor : public ExecutorBase<ValueFuture> {
  public:
-  explicit ModelExecutor() : thread_pool_(nullptr) {
+  explicit ModelExecutor(
+      const absl::flat_hash_map<std::string, InferenceFn>& inference_map)
+      : inference_map_(inference_map), thread_pool_(nullptr) {
     // TODO(b/295260921): The executor needs to be able to take some arguments
     // to enable it to be configured to support some class of model backends,
     // some of which could be baked-in, but most of which would need to be
@@ -118,8 +99,8 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
 
   ~ModelExecutor() override { ClearTracked(); }
 
-  std::string_view ExecutorName() final {
-    static constexpr std::string_view kExecutorName = "ModelExecutor";
+  absl::string_view ExecutorName() final {
+    static constexpr absl::string_view kExecutorName = "ModelExecutor";
     return kExecutorName;
   }
 
@@ -144,8 +125,8 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
       return absl::InvalidArgumentError("Model calls require an argument.");
     }
     return ThreadRun(
-        [function = std::move(func_future),
-         argument = std::move(arg_future)]() -> absl::StatusOr<ExecutorValue> {
+        [function = std::move(func_future), argument = std::move(arg_future),
+         this]() -> absl::StatusOr<ExecutorValue> {
           ExecutorValue fn = GENC_TRY(Wait(function));
           ExecutorValue arg = GENC_TRY(Wait(argument.value()));
           if (!fn.value().has_computation()) {
@@ -162,7 +143,7 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
 
           // TODO(b/295041950): Add support for handling prompt templates with
           // multiple arguments, not just a single string (so the argument can
-          // in general be a struct wiht multiple values, not just one).
+          // in general be a struct with multiple values, not just one).
 
           std::shared_ptr<v0::Value> result = std::make_shared<v0::Value>();
           if (fn.value().computation().has_model()) {
@@ -190,6 +171,32 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
   }
 
  private:
+  absl::Status Generate(const v0::Model& model, const absl::string_view arg,
+                        std::string* output) {
+    if (model.model_id().uri() == "test_model") {
+      output->assign(absl::StrCat(
+          "This is an output from a test model in response to \"", arg, "\"."));
+      return absl::OkStatus();
+    }
+    if (inference_map_.contains(model.model_id().uri())) {
+      *output = GENC_TRY(inference_map_.at(model.model_id().uri())(arg));
+      return absl::OkStatus();
+    }
+
+    // TODO(b/295260921): Based on a prefix of the URI embedded in the `Model`,
+    // route calls to an appropriate child executor or child component that
+    // specializes in handling calls for the corresponding class of models.
+    // The set of supported models and child executors is something that should
+    // come in as a parameter (since we want it to be a point of flexibility we
+    // offer to whoever is handling runtime deployment and configuration).
+    // In particular, we should be able to effectively route the calls to either
+    // an on-device or a Cloud executor (and in general, there could be multiple
+    // of each supported here within the same runtime stack).
+    return absl::UnimplementedError(
+        absl::StrCat("Unsupported model: ", model.model_id().uri()));
+  }
+
+  const absl::flat_hash_map<std::string, InferenceFn> inference_map_;
   ThreadPool* const thread_pool_;
 };
 
@@ -199,7 +206,13 @@ absl::StatusOr<std::shared_ptr<Executor>> CreateModelExecutor() {
   // TODO(b/295260921): Eventually this needs to take some parameters to hook
   // up this executor to the environment to enable it to direct model calls to
   // the appropriate backends.
-  return std::make_shared<ModelExecutor>();
+  return std::make_shared<ModelExecutor>(
+      absl::flat_hash_map<std::string, InferenceFn>({}));
+}
+
+absl::StatusOr<std::shared_ptr<Executor>> CreateModelExecutorWithInferenceMap(
+    const absl::flat_hash_map<std::string, InferenceFn>& inference_map) {
+  return std::make_shared<ModelExecutor>(inference_map);
 }
 
 }  // namespace generative_computing

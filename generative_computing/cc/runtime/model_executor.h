@@ -16,15 +16,28 @@ limitations under the License
 #ifndef GENERATIVE_COMPUTING_CC_RUNTIME_MODEL_EXECUTOR_H_
 #define GENERATIVE_COMPUTING_CC_RUNTIME_MODEL_EXECUTOR_H_
 
+#include <functional>
 #include <memory>
+#include <string>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/string_view.h"
 #include "generative_computing/cc/runtime/executor.h"
 
 namespace generative_computing {
 
 // Returns an executor that specializes in handling interactions with models.
 absl::StatusOr<std::shared_ptr<Executor>> CreateModelExecutor();
+
+// Returns an executor that handles interaction with models, but also accepts
+// a mapping from model_uri to a function that does the model inference. Use
+// this method to inject support for additional models, beyond the base models
+// that are supported at runtime.
+typedef std::function<absl::StatusOr<std::string>(absl::string_view)>
+    InferenceFn;
+absl::StatusOr<std::shared_ptr<Executor>> CreateModelExecutorWithInferenceMap(
+    const absl::flat_hash_map<std::string, InferenceFn>& inference_map);
 
 }  // namespace generative_computing
 

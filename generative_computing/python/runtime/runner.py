@@ -34,6 +34,8 @@ def _to_value_proto(arg):
     return executor_pb2.Value(computation=arg)
   if isinstance(arg, str):
     return executor_pb2.Value(**{'str': arg})
+  if isinstance(arg, bool):
+    return executor_pb2.Value(boolean=arg)
   raise TypeError('Unsupported Python argument type {}.'.format(type(arg)))
 
 
@@ -54,6 +56,8 @@ def _from_value_proto(result_pb):
     return None
   if which_result == 'str':
     return result_pb.str
+  if which_result == 'boolean':
+    return result_pb.boolean
   raise TypeError('Unsupported value proto type {}.'.format(which_result))
 
 

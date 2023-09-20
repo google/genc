@@ -42,6 +42,76 @@ def create_prompt_template(template_str):
   )
 
 
+def create_reference(name):
+  """Contructs a reference to `name`.
+
+  Args:
+    name: The name of the referenced parameter.
+
+  Returns:
+    A computation that represents the reference; this computation can only be
+    correctly evaluated as a part of a lambda expression or similar construct
+    in which this name is well-defined.
+  """
+  return pb.Computation(reference=pb.Reference(name=name))
+
+
+def create_lambda(name, body):
+  """Contructs a lambda expression with parameter `name` and body `body`.
+
+  Args:
+    name: The name of the parameter.
+    body: The body of the lambda (with a reference to this parameter).
+
+  Returns:
+    A computation that represents the lambda expression.
+  """
+  return pb.Computation(
+      **{'lambda': pb.Lambda(parameter_name=name, result=body)}
+  )
+
+
+def create_call(fn, arg):
+  """Contructs a function call.
+
+  Args:
+    fn: The function.
+    arg: The argument.
+
+  Returns:
+    A computation that represents the function call.
+  """
+  return pb.Computation(call=pb.Call(function=fn, argument=arg))
+
+
+def create_struct(comp_list):
+  """Contructs a struct.
+
+  Args:
+    comp_list: The list of elements.
+
+  Returns:
+    A computation that represents the struct.
+  """
+  elements = []
+  for comp_pb in comp_list:
+    elements.append(pb.Struct.Element(value=comp_pb))
+  return pb.Computation(struct=pb.Struct(element=elements))
+
+
+def create_selection(source, index):
+  """Contructs a selection.
+
+  Args:
+    source: The source struct to select from.
+    index: The index of the selected element.
+
+  Returns:
+    A computation that represents the selection.
+  """
+  return pb.Computation(selection=pb.Selection(source=source, index=index))
+
+
 def create_chain(function_list):
   """Assembles the given list of functions [f, g, ....] into a chain f(g(...)).
 
@@ -54,12 +124,10 @@ def create_chain(function_list):
     to the input in the order opposite to the order on the supplied list.
   """
   parameter_name = 'arg'
-  arg = pb.Computation(reference=pb.Reference(name=parameter_name))
+  arg = create_reference(parameter_name)
   for fn_pb in reversed(function_list):
-    arg = pb.Computation(call=pb.Call(function=fn_pb, argument=arg))
-  return pb.Computation(
-      **{'lambda': pb.Lambda(parameter_name=parameter_name, result=arg)}
-  )
+    arg = create_call(fn_pb, arg)
+  return create_lambda(parameter_name, arg)
 
 
 def create_fallback(function_list):
@@ -74,19 +142,31 @@ def create_fallback(function_list):
     A computation that represents a fallback expression.
   """
   parameter_name = 'arg'
-  arg = pb.Computation(reference=pb.Reference(name=parameter_name))
+  arg = create_reference(parameter_name)
   candidate_list = []
   for fn_pb in function_list:
-    candidate_list.append(
-        pb.Computation(call=pb.Call(function=fn_pb, argument=arg))
-    )
+    candidate_list.append(create_call(fn_pb, arg))
+  return create_lambda(
+      parameter_name,
+      pb.Computation(fallback=pb.Fallback(candidate=candidate_list)),
+  )
+
+
+def create_conditional(condition, positive_branch, negative_branch):
+  """Contructs a conditional expression.
+
+  Args:
+    condition: Computation that evalutes to a Boolean result.
+    positive_branch: Computation to be evaluated if the condition is true.
+    negative_branch: Computation to be evaluated if the condition is false.
+
+  Returns:
+    A computation that represents the conditional expression.
+  """
   return pb.Computation(
-      **{
-          'lambda': pb.Lambda(
-              parameter_name=parameter_name,
-              result=pb.Computation(
-                  fallback=pb.Fallback(candidate=candidate_list)
-              ),
-          )
-      }
+      conditional=pb.Conditional(
+          condition=condition,
+          positive_branch=positive_branch,
+          negative_branch=negative_branch,
+      )
   )

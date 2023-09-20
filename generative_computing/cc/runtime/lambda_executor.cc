@@ -223,6 +223,10 @@ class LambdaExecutor : public ExecutorBase<std::shared_ptr<ExecutorValue>> {
   absl::StatusOr<std::shared_ptr<ExecutorValue>> EvaluateFallback(
       const v0::Fallback& fallback_pb,
       const std::shared_ptr<Scope>& scope) const;
+
+  absl::StatusOr<std::shared_ptr<ExecutorValue>> EvaluateConditional(
+      const v0::Conditional& conditional_pb,
+      const std::shared_ptr<Scope>& scope) const;
 };
 
 absl::StatusOr<std::shared_ptr<ExecutorValue>> ScopedLambda::Call(
@@ -281,7 +285,8 @@ std::string ExecutorValue::DebugString() const {
 absl::StatusOr<std::shared_ptr<ExecutorValue>>
 LambdaExecutor::CreateExecutorValue(const v0::Value& value_pb) {
   switch (value_pb.value_case()) {
-    case v0::Value::kStr: {
+    case v0::Value::kStr:
+    case v0::Value::kBoolean: {
       return std::make_shared<ExecutorValue>(
           GENC_TRY(child_executor_->CreateValue(value_pb)));
     }
@@ -448,6 +453,9 @@ absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::Evaluate(
     case v0::Computation::kFallback: {
       return EvaluateFallback(computation_pb.fallback(), scope);
     }
+    case v0::Computation::kConditional: {
+      return EvaluateConditional(computation_pb.conditional(), scope);
+    }
     default: {
       v0::Value child_value_pb;
       *child_value_pb.mutable_computation() = computation_pb;
@@ -543,6 +551,23 @@ absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::EvaluateFallback(
     }
   }
   return error_status;
+}
+
+absl::StatusOr<std::shared_ptr<ExecutorValue>>
+LambdaExecutor::EvaluateConditional(const v0::Conditional& conditional_pb,
+                                    const std::shared_ptr<Scope>& scope) const {
+  std::shared_ptr<ExecutorValue> condition_result =
+      GENC_TRY(Evaluate(conditional_pb.condition(), scope));
+  v0::Value condition_result_pb;
+  GENC_TRY(MaterializeInternal(condition_result, &condition_result_pb));
+  if (!condition_result_pb.has_boolean()) {
+    return absl::InvalidArgumentError(absl::StrCat(
+        "Condition is not a Boolean: ", condition_result_pb.DebugString()));
+  }
+  const v0::Computation& chosen_branch_pb =
+      condition_result_pb.boolean() ? conditional_pb.positive_branch()
+                                    : conditional_pb.negative_branch();
+  return Evaluate(chosen_branch_pb, scope);
 }
 
 }  // namespace

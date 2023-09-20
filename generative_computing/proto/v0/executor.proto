@@ -12,6 +12,9 @@ message Value {
     // The preferred representation for string values.
     string str = 3;
 
+    // The preferred representation for Boolean values.
+    bool boolean = 4;
+
     // A serialized tensor content as an instance of `tensorflow.TensorProto`,
     // as defined in `tensorflow/core/framework/tensor.proto`. This is
     // currently the only way to pass in numeric or string values, including
@@ -23,7 +26,7 @@ message Value {
     // here does not necessarily have to be of a functional type.
     Computation computation = 2;
 
-    // NEXT ID: 4
+    // NEXT ID: 5
   }
 
   // TODO(b/295041601): Define the rest of this.

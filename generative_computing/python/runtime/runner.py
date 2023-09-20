@@ -84,15 +84,20 @@ class Runner(object):
     """
     if kwargs:
       raise ValueError('Keyword arguments are not currently supported.')
-    if not args:
-      arg_val = None
-    elif len(args) > 1:
-      elements = [self._executor.create_value(_to_value_proto(x)) for x in args]
-      arg_val = self._executor.create_struct([x.ref for x in elements])
-    else:
-      arg_val = self._executor.create_value(_to_value_proto(args[0]))
-    result_val = self._executor.create_call(
-        self._comp_val.ref, arg_val.ref if arg_val else None
-    )
-    result_pb = self._executor.materialize(result_val.ref)
-    return _from_value_proto(result_pb)
+    try:
+      if not args:
+        arg_val = None
+      elif len(args) > 1:
+        elements = [
+            self._executor.create_value(_to_value_proto(x)) for x in args
+        ]
+        arg_val = self._executor.create_struct([x.ref for x in elements])
+      else:
+        arg_val = self._executor.create_value(_to_value_proto(args[0]))
+      result_val = self._executor.create_call(
+          self._comp_val.ref, arg_val.ref if arg_val else None
+      )
+      result_pb = self._executor.materialize(result_val.ref)
+      return _from_value_proto(result_pb)
+    except Exception as err:
+      raise RuntimeError(str(err)) from err

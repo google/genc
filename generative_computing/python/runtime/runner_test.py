@@ -53,6 +53,49 @@ class RunnerTest(absltest.TestCase):
         ' pack for a trip to a grocery store? A: ".',
     )
 
+  def test_fallback(self):
+    arg = 'a grocery store'
+    good_model = authoring.create_model('test_model')
+    good_model_output = (
+        'This is an output from a test model in response to "{}".'.format(arg)
+    )
+    bad_model = authoring.create_model('ftp://nonexistent.model:000000')
+    good_chain = authoring.create_chain([
+        authoring.create_model('test_model'),
+        authoring.create_prompt_template('Q: Tell me about {topic}. A: '),
+    ])
+    good_chain_output = (
+        'This is an output from a test model in response to "Q: Tell me about'
+        ' {}. A: ".'.format(arg)
+    )
+    test_cases = [
+        (authoring.create_fallback([bad_model, good_model]), good_model_output),
+        (authoring.create_fallback([]), None),
+        (authoring.create_fallback([bad_model]), None),
+        (authoring.create_fallback([bad_model, bad_model]), None),
+        (authoring.create_fallback([good_model]), good_model_output),
+        (authoring.create_fallback([good_chain]), good_chain_output),
+        (authoring.create_fallback([good_model, bad_model]), good_model_output),
+        (
+            authoring.create_fallback([good_model, good_chain]),
+            good_model_output,
+        ),
+        (
+            authoring.create_fallback([good_chain, good_model]),
+            good_chain_output,
+        ),
+        (authoring.create_fallback([good_chain, bad_model]), good_chain_output),
+        (authoring.create_fallback([bad_model, good_chain]), good_chain_output),
+    ]
+    for comp_pb, expected_result in test_cases:
+      comp = runner.Runner(comp_pb)
+      if expected_result:
+        result = comp(arg)
+        self.assertEqual(result, expected_result)
+      else:
+        with self.assertRaises(RuntimeError):
+          comp(arg)
+
 
 if __name__ == '__main__':
   absltest.main()

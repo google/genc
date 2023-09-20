@@ -100,6 +100,7 @@ class Executor {
   //
   // This method is blocking: it may synchronously wait for the result of
   // complex computations or IO-bound work.
+  // If the argument `value_pb` is not null, populates the value.
   virtual absl::Status Materialize(const ValueId value,
                                    v0::Value* value_pb) = 0;
 

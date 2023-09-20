@@ -115,7 +115,9 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
 
   absl::Status Materialize(ValueFuture value_future, v0::Value* val_pb) final {
     ExecutorValue value = GENC_TRY(Wait(std::move(value_future)));
-    val_pb->CopyFrom(value.value());
+    if (val_pb != nullptr) {
+      val_pb->CopyFrom(value.value());
+    }
     return absl::OkStatus();
   }
 

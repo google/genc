@@ -14,5 +14,6 @@
 """Python wrappers for authoring computations."""
 
 from generative_computing.python.authoring.constructors import create_chain
+from generative_computing.python.authoring.constructors import create_fallback
 from generative_computing.python.authoring.constructors import create_model
 from generative_computing.python.authoring.constructors import create_prompt_template

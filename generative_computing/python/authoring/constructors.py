@@ -60,3 +60,33 @@ def create_chain(function_list):
   return pb.Computation(
       **{'lambda': pb.Lambda(parameter_name=parameter_name, result=arg)}
   )
+
+
+def create_fallback(function_list):
+  """Contructs a fallback expression from a given list of functions.
+
+  Args:
+    function_list: Candidate functions to attempt to apply to the argument in
+      the order listed. The first successful one is the result; if failed, keep
+      going down the list. All functions must be of type `pb.Computation`.
+
+  Returns:
+    A computation that represents a fallback expression.
+  """
+  parameter_name = 'arg'
+  arg = pb.Computation(reference=pb.Reference(name=parameter_name))
+  candidate_list = []
+  for fn_pb in function_list:
+    candidate_list.append(
+        pb.Computation(call=pb.Call(function=fn_pb, argument=arg))
+    )
+  return pb.Computation(
+      **{
+          'lambda': pb.Lambda(
+              parameter_name=parameter_name,
+              result=pb.Computation(
+                  fallback=pb.Fallback(candidate=candidate_list)
+              ),
+          )
+      }
+  )

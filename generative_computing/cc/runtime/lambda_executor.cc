@@ -193,6 +193,9 @@ class LambdaExecutor : public ExecutorBase<std::shared_ptr<ExecutorValue>> {
  private:
   const std::shared_ptr<Executor> child_executor_;
 
+  absl::Status MaterializeInternal(std::shared_ptr<ExecutorValue> value,
+                                   v0::Value* value_pb) const;
+
   // Converts an `ExecutorValue` into a child executor value.
   absl::StatusOr<ValueId> Embed(const ExecutorValue& value,
                                 std::optional<OwnedValueId>* slot) const;
@@ -215,6 +218,10 @@ class LambdaExecutor : public ExecutorBase<std::shared_ptr<ExecutorValue>> {
 
   absl::StatusOr<std::shared_ptr<ExecutorValue>> EvaluateSelection(
       const v0::Selection& selection_pb,
+      const std::shared_ptr<Scope>& scope) const;
+
+  absl::StatusOr<std::shared_ptr<ExecutorValue>> EvaluateFallback(
+      const v0::Fallback& fallback_pb,
       const std::shared_ptr<Scope>& scope) const;
 };
 
@@ -368,6 +375,11 @@ LambdaExecutor::CreateSelectionInternal(std::shared_ptr<ExecutorValue> source,
 
 absl::Status LambdaExecutor::Materialize(std::shared_ptr<ExecutorValue> value,
                                          v0::Value* value_pb) {
+  return MaterializeInternal(std::move(value), value_pb);
+}
+
+absl::Status LambdaExecutor::MaterializeInternal(
+    std::shared_ptr<ExecutorValue> value, v0::Value* value_pb) const {
   std::optional<OwnedValueId> slot;
   ValueId child_value_id = GENC_TRY(Embed(*value, &slot));
   return child_executor_->Materialize(child_value_id, value_pb);
@@ -432,6 +444,9 @@ absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::Evaluate(
     }
     case v0::Computation::kLambda: {
       return EvaluateLambda(computation_pb.lambda(), scope);
+    }
+    case v0::Computation::kFallback: {
+      return EvaluateFallback(computation_pb.fallback(), scope);
     }
     default: {
       v0::Value child_value_pb;
@@ -508,6 +523,26 @@ LambdaExecutor::EvaluateSelection(const v0::Selection& selection_pb,
 absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::EvaluateLambda(
     const v0::Lambda& lambda_pb, const std::shared_ptr<Scope>& scope) const {
   return std::make_shared<ExecutorValue>(ScopedLambda{lambda_pb, scope});
+}
+
+absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::EvaluateFallback(
+    const v0::Fallback& fallback_pb,
+    const std::shared_ptr<Scope>& scope) const {
+  absl::Status error_status =
+      absl::UnavailableError("No candidate computations unavailable.");
+  for (const v0::Computation& comp_pb : fallback_pb.candidate()) {
+    absl::StatusOr<std::shared_ptr<ExecutorValue>> result =
+        Evaluate(comp_pb, scope);
+    if (result.ok()) {
+      error_status = MaterializeInternal(result.value(), nullptr);
+      if (error_status.ok()) {
+        return result;
+      }
+    } else {
+      error_status = result.status();
+    }
+  }
+  return error_status;
 }
 
 }  // namespace

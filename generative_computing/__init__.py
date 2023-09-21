@@ -11,4 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Python libraries for authoring generative computations."""
+"""Top-level API for Python."""
+
+# pylint: disable=g-importing-member
+from generative_computing.python import authoring
+from generative_computing.python import interop
+from generative_computing.python import runtime
+# pylint: enable=g-importing-member
+
+del examples  # pylint: disable=undefined-variable
+del proto  # pylint: disable=undefined-variable
+del python  # pylint: disable=undefined-variable

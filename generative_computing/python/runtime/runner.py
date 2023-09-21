@@ -64,13 +64,20 @@ def _from_value_proto(result_pb):
 class Runner(object):
   """Represents a runner."""
 
-  def __init__(self, comp_pb: pb.Computation):
+  def __init__(
+      self, comp_pb: pb.Computation, executor: executor_bindings.Executor = None
+  ):
     """Construct a runner for the given computation proto.
 
     Args:
       comp_pb: The computation proto to contruct the runner for.
+      executor: The executor to use for the computation. If not set, a new
+        default local executor will be created.
     """
-    self._executor = executor_bindings.create_default_local_executor()
+    if executor is None:
+      self._executor = executor_bindings.create_default_local_executor()
+    else:
+      self._executor = executor
     self._comp_pb = comp_pb
     self._comp_val = self._executor.create_value(_to_value_proto(self._comp_pb))
 

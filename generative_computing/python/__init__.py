@@ -13,4 +13,6 @@
 # limitations under the License.
 """Python libraries for authoring generative computations."""
 
+from generative_computing.python import authoring
 from generative_computing.python import interop
+from generative_computing.python import runtime

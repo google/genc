@@ -19,6 +19,4 @@ from generative_computing.python import interop
 from generative_computing.python import runtime
 # pylint: enable=g-importing-member
 
-del examples  # pylint: disable=undefined-variable
-del proto  # pylint: disable=undefined-variable
 del python  # pylint: disable=undefined-variable

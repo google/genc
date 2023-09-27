@@ -7,6 +7,7 @@ py_library(
     deps = [
         ":create_computation",
         ":custom_model",
+        ":model_cascade",
     ],
 )
 
@@ -15,6 +16,7 @@ py_library(
     srcs = ["create_computation.py"],
     deps = [
         ":custom_model",
+        ":model_cascade",
         "//generative_computing/proto/v0:computation_py_pb2",
         "//generative_computing/python/authoring",
     ],
@@ -26,6 +28,7 @@ py_test(
     deps = [
         ":create_computation",
         ":custom_model",
+        ":model_cascade",
         "//generative_computing/proto/v0:computation_py_pb2",
         "//generative_computing/python/authoring",
     ],
@@ -40,4 +43,18 @@ py_test(
     name = "custom_model_test",
     srcs = ["custom_model_test.py"],
     deps = [":custom_model"],
+)
+
+py_library(
+    name = "model_cascade",
+    srcs = ["model_cascade.py"],
+)
+
+py_test(
+    name = "model_cascade_test",
+    srcs = ["model_cascade_test.py"],
+    deps = [
+        ":custom_model",
+        ":model_cascade",
+    ],
 )

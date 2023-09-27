@@ -29,6 +29,7 @@ limitations under the License
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
+#include "absl/strings/string_view.h"
 #include "generative_computing/cc/runtime/executor.h"
 #include "generative_computing/cc/runtime/status_macros.h"
 #include "generative_computing/proto/v0/computation.pb.h"
@@ -81,7 +82,7 @@ class Scope {
   // Otherwise, returns a `NotFound` error if the `name` is not present in any
   // ancestor scope.
   absl::StatusOr<std::shared_ptr<ExecutorValue>> Resolve(
-      std::string_view name) const;
+      absl::string_view name) const;
 
   // Returns a human readable string for debugging the current scope.
   std::string DebugString() const;
@@ -162,8 +163,8 @@ class LambdaExecutor : public ExecutorBase<std::shared_ptr<ExecutorValue>> {
       const std::shared_ptr<Scope>& scope) const;
 
  protected:
-  std::string_view ExecutorName() final {
-    static constexpr std::string_view kExecutorName = "LambdaExecutor";
+  absl::string_view ExecutorName() final {
+    static constexpr absl::string_view kExecutorName = "LambdaExecutor";
     return kExecutorName;
   }
 
@@ -243,7 +244,7 @@ absl::StatusOr<std::shared_ptr<ExecutorValue>> ScopedLambda::Call(
 }
 
 absl::StatusOr<std::shared_ptr<ExecutorValue>> Scope::Resolve(
-    std::string_view name) const {
+    absl::string_view name) const {
   if (binding_.has_value()) {
     if (std::get<0>(*binding_) == name) {
       return std::get<1>(*binding_);

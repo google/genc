@@ -20,6 +20,7 @@ from generative_computing.proto.v0 import computation_pb2 as pb
 from generative_computing.python import authoring
 from generative_computing.python.interop.langchain import create_computation
 from generative_computing.python.interop.langchain import custom_model
+from generative_computing.python.interop.langchain import model_cascade
 
 
 class CreateComputationTest(absltest.TestCase):
@@ -67,6 +68,18 @@ class CreateComputationTest(absltest.TestCase):
         ),
     ])
     self.assertEqual(str(comp), str(expected_comp))
+
+  def test_cascade(self):
+    llm1 = custom_model.CustomModel(uri="some_model")
+    llm2 = custom_model.CustomModel(uri="some_other_model")
+    llm3 = model_cascade.ModelCascade(models=[llm1, llm2])
+    comp3 = create_computation.create_computation(llm3)
+    self.assertIsInstance(comp3, pb.Computation)
+    comp4 = authoring.create_fallback([
+        authoring.create_model("some_model"),
+        authoring.create_model("some_other_model"),
+    ])
+    self.assertEqual(str(comp3), str(comp4))
 
 
 if __name__ == "__main__":

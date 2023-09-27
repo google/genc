@@ -16,6 +16,7 @@
 import langchain
 from generative_computing.python import authoring
 from generative_computing.python.interop.langchain import custom_model
+from generative_computing.python.interop.langchain import model_cascade
 
 
 def create_computation_from_llm(llm):
@@ -31,15 +32,17 @@ def create_computation_from_llm(llm):
     TypeError: on an unrecognized type of model.
     ValueError: if the model URI or other key parameters are not defined.
   """
-  if not isinstance(llm, custom_model.CustomModel):
+  if isinstance(llm, custom_model.CustomModel):
+    if not llm.uri:
+      raise ValueError("Model URI is required.")
+    return authoring.create_model(llm.uri)
+  elif isinstance(llm, model_cascade.ModelCascade):
+    return authoring.create_fallback(
+        [create_computation(x) for x in llm.models]
+    )
+  else:
+    # TODO(b/295042550): Add support other types of models native to LangChain.
     raise TypeError("Unrecognized type of model.")
-
-  # TODO(b/295042550): Add support other types of models (native to LangChain).
-
-  if not llm.uri:
-    raise ValueError("Model URI is required.")
-
-  return authoring.create_model(llm.uri)
 
 
 def create_computation_from_prompt_template(prompt_template):

@@ -15,3 +15,4 @@
 
 from generative_computing.python.interop.langchain.create_computation import create_computation
 from generative_computing.python.interop.langchain.custom_model import CustomModel
+from generative_computing.python.interop.langchain.model_cascade import ModelCascade

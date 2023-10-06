@@ -47,6 +47,7 @@ pybind_extension(
     deps = [
         ":executor",
         ":executor_stacks",
+        ":intrinsics",
         "//generative_computing/proto/v0:computation_cc_proto",
         "//generative_computing/proto/v0:executor_cc_proto",
         "@com_google_absl//absl/status",
@@ -85,6 +86,13 @@ cc_test(
 )
 
 cc_library(
+    name = "intrinsics",
+    srcs = [],
+    hdrs = ["intrinsics.h"],
+    deps = ["@com_google_absl//absl/strings"],
+)
+
+cc_library(
     name = "lambda_executor",
     srcs = ["lambda_executor.cc"],
     hdrs = ["lambda_executor.h"],
@@ -119,6 +127,7 @@ cc_library(
     hdrs = ["model_executor.h"],
     deps = [
         ":executor",
+        ":intrinsics",
         ":status_macros",
         ":threading",
         "//generative_computing/proto/v0:computation_cc_proto",

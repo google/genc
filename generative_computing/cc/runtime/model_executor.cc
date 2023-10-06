@@ -30,6 +30,7 @@ limitations under the License
 #include "absl/strings/str_replace.h"
 #include "absl/strings/string_view.h"
 #include "generative_computing/cc/runtime/executor.h"
+#include "generative_computing/cc/runtime/intrinsics.h"
 #include "generative_computing/cc/runtime/status_macros.h"
 #include "generative_computing/cc/runtime/threading.h"
 #include "generative_computing/proto/v0/computation.pb.h"
@@ -39,10 +40,10 @@ limitations under the License
 namespace generative_computing {
 namespace {
 
-absl::Status CreatePromptFromTemplate(const v0::PromptTemplate& prompt_template,
+absl::Status CreatePromptFromTemplate(const absl::string_view& template_string,
                                       const absl::string_view arg,
                                       std::string* output) {
-  absl::string_view input(prompt_template.template_string());
+  absl::string_view input(template_string);
   std::string parameter_re = "(\\{[a-zA-Z0-9_]*\\})";
   std::string parameter;
   if (!RE2::FindAndConsume(&input, parameter_re, &parameter)) {
@@ -54,8 +55,7 @@ absl::Status CreatePromptFromTemplate(const v0::PromptTemplate& prompt_template,
       return absl::InvalidArgumentError("Multiple parameters not supported.");
     }
   }
-  output->assign(absl::StrReplaceAll(prompt_template.template_string(),
-                                     {{parameter, arg}}));
+  output->assign(absl::StrReplaceAll(template_string, {{parameter, arg}}));
   return absl::OkStatus();
 }
 
@@ -135,9 +135,11 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
             return absl::InvalidArgumentError("Function is not a computation.");
           }
           if (!fn.value().computation().has_model() &&
-              !fn.value().computation().has_prompt_template()) {
+              !fn.value().computation().has_prompt_template() &&
+              !fn.value().computation().has_intrinsic()) {
             return absl::InvalidArgumentError(
-                "Function is not a a model or a prompt template.");
+                absl::StrCat("Unsupported function type: ",
+                    fn.value().computation().DebugString()));
           }
           if (!arg.value().has_str()) {
             return absl::InvalidArgumentError("Argument is not a string.");
@@ -151,11 +153,17 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
           if (fn.value().computation().has_model()) {
             GENC_TRY(Generate(fn.value().computation().model(),
                               arg.value().str(), result->mutable_str()));
-          } else {
-            // Must therefore be a prompt template as per the above.
+          } else if (fn.value().computation().has_prompt_template()) {
             GENC_TRY(CreatePromptFromTemplate(
-                fn.value().computation().prompt_template(), arg.value().str(),
+                fn.value().computation().prompt_template().template_string(),
+                arg.value().str(),
                 result->mutable_str()));
+          } else {
+            // Must therefore be an intrinsic.
+            GENC_TRY(CallIntrinsic(
+                fn.value().computation().intrinsic(),
+                arg.value(),
+                result.get()));
           }
           return ExecutorValue(result);
         },
@@ -173,6 +181,28 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
   }
 
  private:
+  absl::Status CallIntrinsic(
+      const v0::Intrinsic& intrinsic, const v0::Value& arg, v0::Value* result) {
+    if (intrinsic.uri() == intrinsics::kPromptTemplate) {
+      return CallIntrinsicPromptTemplate(intrinsic, arg, result);
+    } else {
+      return absl::UnimplementedError(absl::StrCat(
+          "Unimplemented intrinsic: ", intrinsic.uri()));
+    }
+  }
+
+  absl::Status CallIntrinsicPromptTemplate(
+      const v0::Intrinsic& intrinsic, const v0::Value& arg, v0::Value* result) {
+    if (intrinsic.static_parameter_size() != 1) {
+      return absl::InvalidArgumentError("Wrong number of arguments.");
+    } else {
+      return CreatePromptFromTemplate(
+          intrinsic.static_parameter(0).value().str(),
+          arg.str(),
+          result->mutable_str());
+    }
+  }
+
   // TODO(b/299566821): generalize for repeated multimodal response.
   absl::Status Generate(const v0::Model& model, const absl::string_view arg,
                         std::string* output) {

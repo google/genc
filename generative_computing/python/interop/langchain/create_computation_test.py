@@ -46,11 +46,8 @@ class CreateComputationTest(absltest.TestCase):
         ),
         create_computation.create_computation(prompt_template),
     ]:
-      self.assertIsInstance(comp, pb.Computation)
-      self.assertEqual(comp.WhichOneof("computation"), "prompt_template")
-      self.assertEqual(
-          comp.prompt_template.template_string, prompt_template.template
-      )
+      expected_comp = authoring.create_prompt_template(prompt_template.template)
+      self.assertEqual(str(comp), str(expected_comp))
 
   def test_chain(self):
     my_chain = chains.LLMChain(

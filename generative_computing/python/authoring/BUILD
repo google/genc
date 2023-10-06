@@ -1,4 +1,4 @@
-load("@rules_python//python:defs.bzl", "py_library")
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
 
 py_library(
     name = "authoring",
@@ -11,6 +11,16 @@ py_library(
     name = "constructors",
     srcs = ["constructors.py"],
     deps = [
+        "//generative_computing/cc/runtime:executor_bindings",
+        "//generative_computing/proto/v0:computation_py_pb2",
+    ],
+)
+
+py_test(
+    name = "constructors_test",
+    srcs = ["constructors_test.py"],
+    deps = [
+        ":constructors",
         "//generative_computing/proto/v0:computation_py_pb2",
     ],
 )

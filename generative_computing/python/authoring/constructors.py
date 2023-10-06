@@ -13,6 +13,7 @@
 # limitations under the License.
 """Libraries for constructing computations."""
 
+from generative_computing.cc.runtime.executor_bindings import intrinsics
 from generative_computing.proto.v0 import computation_pb2 as pb
 
 
@@ -38,8 +39,12 @@ def create_prompt_template(template_str):
     A computation that represents the prompt template.
   """
   return pb.Computation(
-      prompt_template=pb.PromptTemplate(template_string=template_str)
-  )
+      intrinsic=pb.Intrinsic(
+          uri=intrinsics.PROMPT_TEMPLATE,
+          static_parameter=[
+              pb.Intrinsic.StaticParameter(
+                  name='template_string',
+                  value=pb.Value(str=template_str))]))
 
 
 def create_reference(name):

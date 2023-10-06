@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package generative_computing.v0;
 
+import "google/protobuf/any.proto";
+
 option java_outer_classname = "ComputationProto";
 option java_multiple_files = true;
 option java_package = "org.generativecomputing";
@@ -9,129 +11,135 @@ option java_package = "org.generativecomputing";
 // A core data structure that represents a generative AI computation in a
 // portable, platform- and language-independent format.
 message Computation {
-  // The type signature of this computation.
+  // The type signature of this computation (currently optional, eventually
+  // required if it cannot be automatically inferred).
   Type type = 1;
 
   // The specification of the generative computation to perform.
   oneof computation {
-    // NON-COMPOSITIONAL CONSTRUCTS.
-    //
-    // The following constructs are the basic building blocks that can be
-    // composed into larger computations with the use of the compositional
-    // constructs defined below.
-
-    // A model that can be called with a dynamic argument to perform inference.
-    Model model = 9;
-
-    // A prompt template.
-    PromptTemplate prompt_template = 10;
-
-    // COMPOSITIONAL CONSTRUCTS.
-    //
-    // The following constructs can be used to combine simpler computations
-    // into more complex ones. For example, they can be used to express
-    // chains, parallel calls and joinin of their results, and other forms of
-    // orchestration logic.
-
-    // A block of computation logic, i.e., a series of one or more assignments
-    // that incrementally build upon one-another to define the final result.
-    // This mechanism is intended as a primary means of breaking down longer
-    // sequences of processing into simpler parts and organizing code. One can
-    // think of a block as equivalent to a let expression, i.e., an expression
-    // of the form `let x=..., y=..., z=..., ... in ...` where each of the
-    // subsequent values represented by `...` can refer to the labels defined
-    // earlier (see `reference` below). A block itself is not a function, i.e.,
-    // it does not accept any arguments. The value of a block is the value of
-    // the last (unlabeled) expression defined in the block (the last `...` in
-    // the example above).
-    Block block = 3;
-
-    // A reference to a name defined in a surrounding context, e.g., earlier in
-    // a block of computation logic (see the example in `block`). The value of
-    // a reference is the value of the object it refers to.
-    Reference reference = 4;
-
-    // An invocation of a given function on a given argument. The value of this
-    // computation is the result of the function call.
+    // An invocation of a given function on a given argument. The function
+    // being invoked can be any object of a functional type (e.g., a model
+    // inference function, a prompt template constructor, an output parser,
+    // a safety checker, or a lambda expression explicitly defined in this
+    // proto, etc.), as long as its type signature matches the type of the
+    // argument passed as input. The value of the computation is the result
+    // returned by the function being called.
     Call call = 5;
 
-    // A struct is a mapping from labels to values. Structs are used, e.g., to
-    // assemble multiple values to form an argument to a function call.
-    Struct struct = 6;
-
-    // A selection of a named element from a struct. Selections are used, e.g.,
-    // to extract a part of a result of one computation to feed as a part of an
-    // argument to a subsequent computation.
-    Selection selection = 7;
-
-    // A lambda expression defines a function that takes a single argument, and
-    // produces a single result. Either the argument or the result can be a
-    // struct (i.e., consist of multiple named elements).
+    // A lambda expression defines a function that takes a single formal
+    // parameter, and produces a single result (either potentially a struct,
+    // a function, etc.). Lambdas can be nested.
     Lambda lambda = 8;
 
-    // Fallback expression.
-    Fallback fallback = 11;
+    // A reference to a name defined in a surrounding context, such as the
+    // parameter within a lambda expression. The value of the reference is
+    // the value of the object it refers to.
+    Reference reference = 4;
 
-    // Conditional expression.
+    // A tuple that consists of orderded, and optionally named, elements.
+    // Structs are used, e.g., to assemble multiple values to form a complex
+    // argument to a function call, or to represent a complex results. They
+    // can be nested to model complex data structures.
+    Struct struct = 6;
+
+    // A selection of an element from a struct. Selections are used, e.g.,
+    // to extract a part of a result of one computation to feed as a part of
+    // an argument to a subsequent computation.
+    Selection selection = 7;
+
+    // A block of computation logic that consists of a series of assignments,
+    // followed by a computation that produces the final result. The named
+    // values produced by the assignments can appear in the result, and/or in
+    // assignments further down the list.
+    Block block = 3;
+
+    // An intrinsic. Intrinsics are functions with well-defined semantics that
+    // are supported by the framework, natively understood by the reference set
+    // of runtime components, and used to support the core functionality,
+    // including interoperability with popular types of frontend SDKs, model
+    // cascading and other types of hybrid computing patterns, etc. Intrinsics
+    // range from simple transformations on data (e.g., a prompt template, an
+    // output parser, or a model inference function) to operators that accept
+    // functions as arguments (e.g., conditionals, loops, fallback, and other
+    // control flow or higher-level functional operators).
+    // TODO(b/295013978): Document here where the supported types of intrinsics
+    // are listed, and where to add new ones.
+    Intrinsic intrinsic = 13;
+
+    // DEPRECATED CONSTRUCTS, TO BE REMOVED SHORTLY AS A PART OF CLEANUP
+    // TODO(b/295013978): Replace all below with the newly added more generic
+    // set of simpler abstractions.
+    Model model = 9;
+    PromptTemplate prompt_template = 10;
+    Fallback fallback = 11;
     Conditional conditional = 12;
+    // END OF DEPRECATED CONSTRUCTS
   }
 
   reserved 2;
 
-  // NEXT ID: 13
+  // NEXT ID: 15
 }
 
 // Represents a type within a computation.
-message Type {}
+message Type {
+  oneof type {
+    FunctionType function = 1;
+    StructType struct = 2;
+    SequenceType sequence = 3;
+    ScalarType scalar = 4;
+    TensorType tensor = 5;
 
-// Represents a model.
-message Model {
-  ModelId model_id = 1;
-}
-
-// Represents a prompt template.
-message PromptTemplate {
-  // The template string, with the dynamic fields enclosed in curly braces,
-  // e.g., as in `What is a good name for {company} that makes {product}?`.
-  // The input parameter to the prompt template must be a tuple, elements
-  // of which match the dynamic fields in the template (e.g., `company` and
-  // `product` in the above example).
-  string template_string = 1;
-}
-
-// Represents the identity of a model.
-message ModelId {
-  // A globally unique URI that unambigously represents a single model, and
-  // a specific version of that model (with the versioning scheme assumed to
-  // be model-specific).
-  string uri = 1;
-}
-
-// A representation of a block of computations.
-message Block {
-  // One or more locals defined within the block, each associating a label with
-  // a computation. Computations, whether those associated with the locals, or
-  // that associated with the result below, can contain references to names
-  // defined earlier. Self-references are prohibited. All names introduced here
-  // must be different. Since execution semantics at this level is purely
-  // functional without side effects, the ordering in which the locals are
-  // declared is not significant, as it is only the dependencies between the
-  // computations that effectively determine the causal relationships that
-  // constrain the order of execution.
-  repeated Local local = 1;
-  message Local {
-    string name = 1;
-    Computation value = 2;
+    // NEXT ID: 6
   }
-
-  // The result returned by the block (required). The result computation may
-  // refer to any of the locals defined above by name.
-  Computation result = 2;
 }
 
-// A reference by name (label) to a computation defined earlier.
-message Reference {
-  string name = 1;
+message FunctionType {
+  Type parameter = 1;
+  Type result = 2;
+}
+
+message StructType {
+  repeated Element element = 1;
+  message Element {
+    string name = 1;
+    Type value = 2;
+  }
+}
+
+message SequenceType {
+  Type element = 1;
+}
+
+enum ScalarType {
+  SCALAR_TYPE_INVALID = 0;
+  SCALAR_TYPE_FLOAT = 1;
+  SCALAR_TYPE_DOUBLE = 2;
+  SCALAR_TYPE_INT32 = 3;
+  SCALAR_TYPE_UINT8 = 4;
+  SCALAR_TYPE_INT16 = 5;
+  SCALAR_TYPE_INT8 = 6;
+  SCALAR_TYPE_STRING = 7;
+  SCALAR_TYPE_COMPLEX64 = 8;
+  SCALAR_TYPE_INT64 = 9;
+  SCALAR_TYPE_BOOL = 10;
+  SCALAR_TYPE_QINT8 = 11;
+  SCALAR_TYPE_QUINT8 = 12;
+  SCALAR_TYPE_QINT32 = 13;
+  SCALAR_TYPE_BFLOAT16 = 14;
+  SCALAR_TYPE_QINT16 = 15;
+  SCALAR_TYPE_QUINT16 = 16;
+  SCALAR_TYPE_UINT16 = 17;
+  SCALAR_TYPE_COMPLEX128 = 18;
+  SCALAR_TYPE_HALF = 19;
+  SCALAR_TYPE_UINT32 = 22;
+  SCALAR_TYPE_UINT64 = 23;
+}
+
+message TensorType {
+  ScalarType scalar = 1;
+  repeated int64 dims = 2;
+  bool unknown_rank = 3;
 }
 
 // A representation of a function call.
@@ -142,6 +150,24 @@ message Call {
   // A computation that represents the argument to the function specified above.
   // Present if and only if "function" declares a parameter.
   Computation argument = 2;
+}
+
+// A representation of a lambda expression.
+message Lambda {
+  // The name to use internally within this lambda to refer to the dynamic
+  // parameter. The parameter is mandatory. The name defined here can be
+  // subsequently referenced within the body of the `result` computation.
+  string parameter_name = 1;
+
+  // A computation that represents the result of applying the lambda to the
+  // parameter. The result may contain references to the named parameter
+  // defined above.
+  Computation result = 2;
+}
+
+// A reference by name (label) to a computation defined earlier.
+message Reference {
+  string name = 1;
 }
 
 // A representation of a struct.
@@ -167,40 +193,101 @@ message Selection {
   reserved 3;
 }
 
-// A representation of a lambda expression.
-message Lambda {
-  // The name to use internally within this lambda to refer to the dynamic
-  // parameter. The parameter is mandatory. The name defined here can be
-  // subsequently referenced within the body of the `result` computation.
-  string parameter_name = 1;
+// A representation of a block of computations.
+message Block {
+  // One or more locals defined within the block, each associating a label with
+  // a computation. Computations, whether those associated with the locals, or
+  // that associated with the result below, can contain references to names
+  // defined earlier. Self-references are prohibited. All names introduced here
+  // must be different. Since execution semantics at this level is purely
+  // functional without side effects, the ordering in which the locals are
+  // declared is not significant, as it is only the dependencies between the
+  // computations that effectively determine the causal relationships that
+  // constrain the order of execution.
+  repeated Local local = 1;
+  message Local {
+    string name = 1;
+    Computation value = 2;
+  }
 
-  // A computation that represents the result of applying the lambda to the
-  // parameter. The result may contain references to the named parameter
-  // defined above.
+  // The result returned by the block (required). The result computation may
+  // refer to any of the locals defined above by name.
   Computation result = 2;
 }
 
-// A representation of a fallback expression.
+// A representation of an intrinsic.
+message Intrinsic {
+  // The URI that uniquely identifies the intrinsic within the set of operators
+  // built into the framework.
+  string uri = 1;
+
+  // A set of zero or more static parameters for the intrinsic that are defined
+  // as a part of the computation (as opposed to being dynamically computed at
+  // runtime). The set of parameters that are accepted depends on the intrinsic.
+  // Ordering is significant; names are optional. Note that intrinsics can, and
+  // typically do also accept dynamic parameters (supplied via function calls,
+  // as defined above), and it is only the types of the dynamic parameters that
+  // are reflected in a given intrinsic's functional type signature.
+  repeated StaticParameter static_parameter = 2;
+  message StaticParameter {
+    string name = 1;
+    Value value = 2;
+  }
+}
+
+// A representation of a materialized value. These can be defined statically
+// (e.g., as a static parameter to an intrinsic), they can materialize in a
+// dynamic manner as the comoputation is being executed by the runtime, as a
+// result returned to the caller, or as an argument supplied by the caller.
+message Value {
+  oneof value {
+    // The preferred representation for string values.
+    string str = 3;
+
+    // The preferred representation for Boolean values.
+    bool boolean = 4;
+
+    // The preferred representation for media values, e.g. image/audio.
+    bytes media = 5;
+
+    // A serialized tensor content as an instance of `tensorflow.TensorProto`,
+    // as defined in `tensorflow/core/framework/tensor.proto`. This is
+    // currently the only way to pass in numeric or string values, including
+    // simple scalars.
+    google.protobuf.Any tensor = 1;
+
+    // A value of a functional type, represented here as a computation.
+    Computation computation = 2;
+
+    // NEXT ID: 6
+  }
+
+  // TODO(b/295041601): Define the rest of this.
+}
+
+// DEPRECATED CONSTRUCTS, TO BE REMOVED SHORTLY AS A PART OF CLEANUP
+
+// TODO(b/295013978): Replace all below with the newly added more generic
+// set of simpler abstractions.
+
+message Model {
+  ModelId model_id = 1;
+}
+
+message ModelId {
+  string uri = 1;
+}
+
+message PromptTemplate {
+  string template_string = 1;
+}
+
 message Fallback {
-  // Computations to attempt in the order listed. Return the first successfully
-  // computed result. Move on to attempt the next computation down the list in
-  // case of failure. Fail only if all candidate computations have failed.
   repeated Computation candidate = 1;
 }
 
-// A representation of a conditional expression.
 message Conditional {
-  // The condition to test; must have a Boolean result, or a result that can
-  // be interpreted as such. Always evaluated first. Depending on the result,
-  // only one of the branches below is being evaluated and returned as the
-  // result of the conditional.
   Computation condition = 1;
-
-  // Computation that is evaluated and returned as a result of the conditional
-  // only if the condition, after evaluation, turns out to be positive.
   Computation positive_branch = 2;
-
-  // Computation that is evaluated and returned as a result of the conditional
-  // only if the condition, after evaluation, turns out to be negative.
   Computation negative_branch = 3;
 }

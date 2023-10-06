@@ -29,7 +29,7 @@ limitations under the License
 #include "generative_computing/c/runtime/gc_buffer.h"
 #include "generative_computing/cc/runtime/executor.h"
 #include "generative_computing/cc/runtime/executor_stacks.h"
-#include "generative_computing/proto/v0/executor.pb.h"
+#include "generative_computing/proto/v0/computation.pb.h"
 
 // TODO(b/295041820): Generalize this to all protobufs by fixing copybara issues
 void MessageToBuffer(const generative_computing::v0::Value& in,

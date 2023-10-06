@@ -17,6 +17,7 @@ limitations under the License
 
 #include "generative_computing/c/runtime/c_api.h"
 #include "generative_computing/cc/runtime/executor.h"
+#include "generative_computing/proto/v0/computation.pb.h"
 #include "generative_computing/proto/v0/executor.pb.h"
 
 namespace {

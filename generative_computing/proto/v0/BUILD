@@ -10,6 +10,9 @@ licenses(["notice"])
 proto_library(
     name = "computation_proto",
     srcs = ["computation.proto"],
+    deps = [
+        "@com_google_protobuf//:any_proto",
+    ],
 )
 
 cc_proto_library(
@@ -25,10 +28,7 @@ py_proto_library(
 proto_library(
     name = "executor_proto",
     srcs = ["executor.proto"],
-    deps = [
-        ":computation_proto",
-        "@com_google_protobuf//:any_proto",
-    ],
+    deps = [":computation_proto"],
 )
 
 cc_proto_library(

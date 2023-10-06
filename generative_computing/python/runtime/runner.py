@@ -15,7 +15,6 @@
 
 from generative_computing.cc.runtime import executor_bindings
 from generative_computing.proto.v0 import computation_pb2 as pb
-from generative_computing.proto.v0 import executor_pb2
 
 
 def _to_value_proto(arg):
@@ -25,17 +24,17 @@ def _to_value_proto(arg):
     arg: A regular Python argument.
 
   Returns:
-    A corresponding instance of `executor_pb2.Value`.
+    A corresponding instance of `pb.Value`.
 
   Raises:
     TypeError: if the argument is of an unsupported type.
   """
   if isinstance(arg, pb.Computation):
-    return executor_pb2.Value(computation=arg)
+    return pb.Value(computation=arg)
   if isinstance(arg, str):
-    return executor_pb2.Value(**{'str': arg})
+    return pb.Value(**{'str': arg})
   if isinstance(arg, bool):
-    return executor_pb2.Value(boolean=arg)
+    return pb.Value(boolean=arg)
   raise TypeError('Unsupported Python argument type {}.'.format(type(arg)))
 
 
@@ -43,7 +42,7 @@ def _from_value_proto(result_pb):
   """Creates a Python value object that corresponds to the given value proto.
 
   Args:
-    result_pb: An instance of `executor_pb2.Value`.
+    result_pb: An instance of `pb.Value`.
 
   Returns:
     A corresponding Python object.

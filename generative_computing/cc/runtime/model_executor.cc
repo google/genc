@@ -43,7 +43,7 @@ absl::Status CreatePromptFromTemplate(const v0::PromptTemplate& prompt_template,
                                       const absl::string_view arg,
                                       std::string* output) {
   absl::string_view input(prompt_template.template_string());
-  std::string parameter_re = "(\\{[a-z]*\\})";
+  std::string parameter_re = "(\\{[a-zA-Z0-9_]*\\})";
   std::string parameter;
   if (!RE2::FindAndConsume(&input, parameter_re, &parameter)) {
     return absl::InvalidArgumentError("No parameter found in the template.");
@@ -173,6 +173,7 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
   }
 
  private:
+  // TODO(b/299566821): generalize for repeated multimodal response.
   absl::Status Generate(const v0::Model& model, const absl::string_view arg,
                         std::string* output) {
     if (model.model_id().uri() == "test_model") {
@@ -205,9 +206,8 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
 }  // namespace
 
 absl::StatusOr<std::shared_ptr<Executor>> CreateModelExecutor() {
-  // TODO(b/295260921): Eventually this needs to take some parameters to hook
-  // up this executor to the environment to enable it to direct model calls to
-  // the appropriate backends.
+  // TODO(b/295260921): Rename this to CreateEmptyModelExecutor or delete.
+  // Reduce factory fns to eliminate complexity.
   return std::make_shared<ModelExecutor>(
       absl::flat_hash_map<std::string, InferenceFn>({}));
 }

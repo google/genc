@@ -33,6 +33,7 @@ limitations under the License
 #include "absl/synchronization/mutex.h"
 #include "absl/types/span.h"
 #include "generative_computing/cc/runtime/status_macros.h"
+#include "generative_computing/proto/v0/computation.pb.h"
 #include "generative_computing/proto/v0/executor.pb.h"
 
 namespace generative_computing {

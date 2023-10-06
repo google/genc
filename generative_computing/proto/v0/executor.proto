@@ -2,39 +2,8 @@ syntax = "proto3";
 
 package generative_computing.v0;
 
-import "google/protobuf/any.proto";
 import "generative_computing/proto/v0/computation.proto";
 
 option java_outer_classname = "ExecutorProto";
 option java_multiple_files = true;
 option java_package = "org.generativecomputing";
-
-// A representation of a value that's to be embedded in an executor, or that
-// is being returned from an executor as a result of a computation.
-message Value {
-  oneof value {
-    // The preferred representation for string values.
-    string str = 3;
-
-    // The preferred representation for Boolean values.
-    bool boolean = 4;
-
-    // The preferred representation for media values, e.g. image/audio.
-    bytes media = 5;
-
-    // A serialized tensor content as an instance of `tensorflow.TensorProto`,
-    // as defined in `tensorflow/core/framework/tensor.proto`. This is
-    // currently the only way to pass in numeric or string values, including
-    // simple scalars.
-    google.protobuf.Any tensor = 1;
-
-    // A serialized `Computation`. This is the canonical (and currently only)
-    // way to pass any functional constructs, but the computation included
-    // here does not necessarily have to be of a functional type.
-    Computation computation = 2;
-
-    // NEXT ID: 6
-  }
-
-  // TODO(b/295041601): Define the rest of this.
-}

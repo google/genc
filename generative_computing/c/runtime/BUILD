@@ -18,6 +18,7 @@ cc_library(
         ":gc_buffer",
         "//generative_computing/cc/runtime:executor",
         "//generative_computing/cc/runtime:executor_stacks",
+        "//generative_computing/proto/v0:computation_cc_proto",
         "//generative_computing/proto/v0:executor_cc_proto",
         "@com_google_absl//absl/status:statusor",
     ],

@@ -34,6 +34,7 @@ absl::StatusOr<std::shared_ptr<Executor>> CreateModelExecutor();
 // a mapping from model_uri to a function that does the model inference. Use
 // this method to inject support for additional models, beyond the base models
 // that are supported at runtime.
+// TODO(b/299566821): generalize for repeated multimodal response.
 typedef std::function<absl::StatusOr<std::string>(absl::string_view)>
     InferenceFn;
 absl::StatusOr<std::shared_ptr<Executor>> CreateModelExecutorWithInferenceMap(

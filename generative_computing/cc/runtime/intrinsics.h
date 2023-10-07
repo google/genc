@@ -21,6 +21,13 @@ limitations under the License
 namespace generative_computing {
 namespace intrinsics {
 
+// Performs a fallback across a list of candidate computations.
+// Takes any number of function-typed static parameters named "candidate_fn"
+// that represent functions to attempt to invoke in the order listed.
+// Takes exactly one dynamic parameter, which serves as the input to each of
+// the candidate functions (all of which must have matching type signatures).
+inline constexpr absl::string_view kFallback = "fallback";
+
 // Calls a model for inference.
 // Takes one static parameter "model_uri" of a string type.
 // Takes one dynamic string parameter, which serves as the input to the model.

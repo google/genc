@@ -155,15 +155,15 @@ def create_fallback(function_list):
   Returns:
     A computation that represents a fallback expression.
   """
-  parameter_name = 'arg'
-  arg = create_reference(parameter_name)
-  candidate_list = []
-  for fn_pb in function_list:
-    candidate_list.append(create_call(fn_pb, arg))
-  return create_lambda(
-      parameter_name,
-      pb.Computation(fallback=pb.Fallback(candidate=candidate_list)),
-  )
+  static_parameters = []
+  for comp in function_list:
+    static_parameters.append(
+        pb.Intrinsic.StaticParameter(
+            name='candidate_fn', value=pb.Value(computation=comp)))
+  return pb.Computation(
+      intrinsic=pb.Intrinsic(
+          uri=intrinsics.FALLBACK,
+          static_parameter=static_parameters))
 
 
 def create_conditional(condition, positive_branch, negative_branch):

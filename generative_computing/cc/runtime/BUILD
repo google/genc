@@ -98,10 +98,12 @@ cc_library(
     hdrs = ["lambda_executor.h"],
     deps = [
         ":executor",
+        ":intrinsics",
         ":status_macros",
         "//generative_computing/proto/v0:computation_cc_proto",
         "//generative_computing/proto/v0:executor_cc_proto",
         "@com_github_google_re2//:re2",
+        "@com_google_absl//absl/base:core_headers",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",

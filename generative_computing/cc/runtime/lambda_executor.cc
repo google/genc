@@ -25,12 +25,14 @@ limitations under the License
 #include <variant>
 #include <vector>
 
+#include "absl/base/attributes.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
 #include "generative_computing/cc/runtime/executor.h"
+#include "generative_computing/cc/runtime/intrinsics.h"
 #include "generative_computing/cc/runtime/status_macros.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 #include "generative_computing/proto/v0/executor.pb.h"
@@ -68,6 +70,29 @@ class ScopedLambda {
   std::shared_ptr<Scope> scope_;
 };
 
+// An object for tracking an intrinsic that was created in a specific scope.
+class ScopedIntrinsic {
+ public:
+  explicit ScopedIntrinsic(
+      v0::Intrinsic intrinsic_pb, std::shared_ptr<Scope> scope)
+      : intrinsic_pb_(std::move(intrinsic_pb)), scope_(std::move(scope)) {}
+  ScopedIntrinsic(ScopedIntrinsic&& other)
+      : intrinsic_pb_(std::move(other.intrinsic_pb_)),
+        scope_(std::move(other.scope_)) {}
+
+  absl::StatusOr<std::shared_ptr<ExecutorValue>> Call(
+      const LambdaExecutor& executor,
+      std::optional<std::shared_ptr<ExecutorValue>> arg) const;
+
+  const v0::Intrinsic& intrinsic_pb() const {
+    return intrinsic_pb_;
+  }
+
+ private:
+  v0::Intrinsic intrinsic_pb_;
+  std::shared_ptr<Scope> scope_;
+};
+
 // An object for tracking computaton evalution scopes.
 class Scope {
  public:
@@ -100,7 +125,7 @@ class Scope {
 // A value object for the LambdaExecutor.
 class ExecutorValue {
  public:
-  enum ValueType { UNKNOWN, EMBEDDED, STRUCTURE, LAMBDA };
+  enum ValueType { UNKNOWN, EMBEDDED, STRUCTURE, LAMBDA, INTRINSIC };
 
   explicit ExecutorValue(OwnedValueId&& child_value_id)
       : value_(std::move(child_value_id)) {}
@@ -108,6 +133,8 @@ class ExecutorValue {
       : value_(std::move(elements)) {}
   explicit ExecutorValue(ScopedLambda&& scoped_lambda)
       : value_(std::move(scoped_lambda)) {}
+  explicit ExecutorValue(ScopedIntrinsic&& scoped_intrinsic)
+      : value_(std::move(scoped_intrinsic)) {}
 
   ValueType type() const {
     if (std::holds_alternative<OwnedValueId>(value_)) {
@@ -117,6 +144,8 @@ class ExecutorValue {
       return STRUCTURE;
     } else if (std::holds_alternative<ScopedLambda>(value_)) {
       return LAMBDA;
+    } else if (std::holds_alternative<ScopedIntrinsic>(value_)) {
+      return INTRINSIC;
     } else {
       return UNKNOWN;
     }
@@ -132,6 +161,10 @@ class ExecutorValue {
 
   const ScopedLambda& lambda() const { return std::get<ScopedLambda>(value_); }
 
+  const ScopedIntrinsic& intrinsic() const {
+    return std::get<ScopedIntrinsic>(value_);
+  }
+
   std::string DebugString() const;
 
   // Move-only.
@@ -143,8 +176,10 @@ class ExecutorValue {
  private:
   ExecutorValue() = delete;
 
-  std::variant<OwnedValueId, std::vector<std::shared_ptr<ExecutorValue>>,
-               ScopedLambda>
+  std::variant<OwnedValueId,
+               std::vector<std::shared_ptr<ExecutorValue>>,
+               ScopedLambda,
+               ScopedIntrinsic>
       value_;
 };
 
@@ -162,6 +197,14 @@ class LambdaExecutor : public ExecutorBase<std::shared_ptr<ExecutorValue>> {
       const v0::Computation& computation_pb,
       const std::shared_ptr<Scope>& scope) const;
 
+  absl::StatusOr<std::shared_ptr<ExecutorValue>> ConstCreateCall(
+      std::shared_ptr<ExecutorValue> function,
+      std::optional<std::shared_ptr<ExecutorValue>> argument) const;
+
+  absl::Status ConstMaterialize(
+      std::shared_ptr<ExecutorValue> value,
+      v0::Value* value_pb) const;
+
  protected:
   absl::string_view ExecutorName() final {
     static constexpr absl::string_view kExecutorName = "LambdaExecutor";
@@ -174,10 +217,6 @@ class LambdaExecutor : public ExecutorBase<std::shared_ptr<ExecutorValue>> {
   absl::StatusOr<std::shared_ptr<ExecutorValue>> CreateCall(
       std::shared_ptr<ExecutorValue> function,
       std::optional<std::shared_ptr<ExecutorValue>> argument) final;
-
-  absl::StatusOr<std::shared_ptr<ExecutorValue>> CreateCallInternal(
-      std::shared_ptr<ExecutorValue> function,
-      std::optional<std::shared_ptr<ExecutorValue>> argument) const;
 
   absl::StatusOr<std::shared_ptr<ExecutorValue>> CreateStruct(
       std::vector<std::shared_ptr<ExecutorValue>> members) final;
@@ -193,9 +232,6 @@ class LambdaExecutor : public ExecutorBase<std::shared_ptr<ExecutorValue>> {
 
  private:
   const std::shared_ptr<Executor> child_executor_;
-
-  absl::Status MaterializeInternal(std::shared_ptr<ExecutorValue> value,
-                                   v0::Value* value_pb) const;
 
   // Converts an `ExecutorValue` into a child executor value.
   absl::StatusOr<ValueId> Embed(const ExecutorValue& value,
@@ -219,6 +255,10 @@ class LambdaExecutor : public ExecutorBase<std::shared_ptr<ExecutorValue>> {
 
   absl::StatusOr<std::shared_ptr<ExecutorValue>> EvaluateSelection(
       const v0::Selection& selection_pb,
+      const std::shared_ptr<Scope>& scope) const;
+
+  absl::StatusOr<std::shared_ptr<ExecutorValue>> EvaluateIntrinsic(
+      const v0::Intrinsic& intrinsic_pb,
       const std::shared_ptr<Scope>& scope) const;
 
   absl::StatusOr<std::shared_ptr<ExecutorValue>> EvaluateFallback(
@@ -307,11 +347,11 @@ LambdaExecutor::CreateExecutorValue(const v0::Value& value_pb) {
 absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::CreateCall(
     std::shared_ptr<ExecutorValue> function,
     std::optional<std::shared_ptr<ExecutorValue>> argument) {
-  return CreateCallInternal(std::move(function), std::move(argument));
+  return ConstCreateCall(std::move(function), std::move(argument));
 }
 
 absl::StatusOr<std::shared_ptr<ExecutorValue>>
-LambdaExecutor::CreateCallInternal(
+LambdaExecutor::ConstCreateCall(
     std::shared_ptr<ExecutorValue> function,
     std::optional<std::shared_ptr<ExecutorValue>> argument) const {
   switch (function->type()) {
@@ -330,6 +370,9 @@ LambdaExecutor::CreateCallInternal(
     case ExecutorValue::STRUCTURE: {
       return absl::InvalidArgumentError(
           "Received value type [STRUCTURE] which is not a function.");
+    }
+    case ExecutorValue::INTRINSIC: {
+      return function->intrinsic().Call(*this, std::move(argument));
     }
     case ExecutorValue::UNKNOWN: {
       return absl::InternalError(
@@ -368,9 +411,10 @@ LambdaExecutor::CreateSelectionInternal(std::shared_ptr<ExecutorValue> source,
       }
       return elements[index];
     }
+    case ExecutorValue::ValueType::INTRINSIC:
     case ExecutorValue::ValueType::LAMBDA: {
       return absl::InvalidArgumentError(
-          "Cannot perform selection on Lambda value");
+          "Cannot perform selection on a Lambda or Intrinsic value");
     }
     case ExecutorValue::ValueType::UNKNOWN: {
       return absl::InvalidArgumentError(
@@ -381,10 +425,10 @@ LambdaExecutor::CreateSelectionInternal(std::shared_ptr<ExecutorValue> source,
 
 absl::Status LambdaExecutor::Materialize(std::shared_ptr<ExecutorValue> value,
                                          v0::Value* value_pb) {
-  return MaterializeInternal(std::move(value), value_pb);
+  return ConstMaterialize(std::move(value), value_pb);
 }
 
-absl::Status LambdaExecutor::MaterializeInternal(
+absl::Status LambdaExecutor::ConstMaterialize(
     std::shared_ptr<ExecutorValue> value, v0::Value* value_pb) const {
   std::optional<OwnedValueId> slot;
   ValueId child_value_id = GENC_TRY(Embed(*value, &slot));
@@ -423,8 +467,9 @@ absl::StatusOr<ValueId> LambdaExecutor::Embed(
       slot->emplace(std::move(embedded_value_id));
       return value_id;
     }
+    case ExecutorValue::ValueType::INTRINSIC:
     case ExecutorValue::ValueType::UNKNOWN: {
-      return absl::InternalError("Tried to embed unknown ValueType [UNKNOWN]");
+      return absl::InternalError("Tried to embed an unsupported value type.");
     }
   }
 }
@@ -456,6 +501,12 @@ absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::Evaluate(
     }
     case v0::Computation::kConditional: {
       return EvaluateConditional(computation_pb.conditional(), scope);
+    }
+    case v0::Computation::kIntrinsic: {
+      if (computation_pb.intrinsic().uri() == intrinsics::kFallback) {
+        return EvaluateIntrinsic(computation_pb.intrinsic(), scope);
+      }
+      ABSL_FALLTHROUGH_INTENDED;
     }
     default: {
       v0::Value child_value_pb;
@@ -509,7 +560,7 @@ absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::EvaluateCall(
   if (call_pb.has_argument()) {
     argument = GENC_TRY(Evaluate(call_pb.argument(), scope));
   }
-  return CreateCallInternal(std::move(function), std::move(argument));
+  return ConstCreateCall(std::move(function), std::move(argument));
 }
 
 absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::EvaluateStruct(
@@ -534,6 +585,50 @@ absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::EvaluateLambda(
   return std::make_shared<ExecutorValue>(ScopedLambda{lambda_pb, scope});
 }
 
+absl::StatusOr<std::shared_ptr<ExecutorValue>>
+LambdaExecutor::EvaluateIntrinsic(
+    const v0::Intrinsic& intrinsic_pb,
+    const std::shared_ptr<Scope>& scope) const {
+  return std::make_shared<ExecutorValue>(ScopedIntrinsic{intrinsic_pb, scope});
+}
+
+absl::StatusOr<std::shared_ptr<ExecutorValue>> ScopedIntrinsic::Call(
+    const LambdaExecutor& executor,
+    std::optional<std::shared_ptr<ExecutorValue>> arg) const {
+  if (intrinsic_pb_.uri() == intrinsics::kFallback) {
+    absl::Status error_status =
+        absl::UnavailableError("No candidate computations unavailable.");
+    for (const v0::Intrinsic::StaticParameter& static_parameter_pb
+             : intrinsic_pb_.static_parameter()) {
+      if (static_parameter_pb.name() != "candidate_fn") {
+        return absl::InvalidArgumentError(
+            absl::StrCat("Bad parameter name: ", static_parameter_pb.name()));
+      }
+      if (!static_parameter_pb.value().has_computation()) {
+        return absl::InvalidArgumentError("Bad parameter type.");
+      }
+      absl::StatusOr<std::shared_ptr<ExecutorValue>> result =
+          executor.Evaluate(static_parameter_pb.value().computation(), scope_);
+      if (result.ok()) {
+        result = executor.ConstCreateCall(std::move(result.value()), arg);
+        if (result.ok()) {
+          error_status = executor.ConstMaterialize(result.value(), nullptr);
+          if (error_status.ok()) {
+            return result;
+          }
+        } else {
+          error_status = result.status();
+        }
+      } else {
+        error_status = result.status();
+      }
+    }
+    return error_status;
+  } else {
+    return absl::UnimplementedError("Unsupported type of an intrinsic.");
+  }
+}
+
 absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::EvaluateFallback(
     const v0::Fallback& fallback_pb,
     const std::shared_ptr<Scope>& scope) const {
@@ -543,7 +638,7 @@ absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::EvaluateFallback(
     absl::StatusOr<std::shared_ptr<ExecutorValue>> result =
         Evaluate(comp_pb, scope);
     if (result.ok()) {
-      error_status = MaterializeInternal(result.value(), nullptr);
+      error_status = ConstMaterialize(result.value(), nullptr);
       if (error_status.ok()) {
         return result;
       }
@@ -560,7 +655,7 @@ LambdaExecutor::EvaluateConditional(const v0::Conditional& conditional_pb,
   std::shared_ptr<ExecutorValue> condition_result =
       GENC_TRY(Evaluate(conditional_pb.condition(), scope));
   v0::Value condition_result_pb;
-  GENC_TRY(MaterializeInternal(condition_result, &condition_result_pb));
+  GENC_TRY(ConstMaterialize(condition_result, &condition_result_pb));
   if (!condition_result_pb.has_boolean()) {
     return absl::InvalidArgumentError(absl::StrCat(
         "Condition is not a Boolean: ", condition_result_pb.DebugString()));

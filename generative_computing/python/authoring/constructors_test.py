@@ -36,6 +36,19 @@ class ConstructorsTest(absltest.TestCase):
     self.assertEqual(comp_pb.intrinsic.static_parameter[0].name, 'model_uri')
     self.assertEqual(comp_pb.intrinsic.static_parameter[0].value.str, 'foo')
 
+  def test_fallback(self):
+    comp_pb = constructors.create_fallback([
+        constructors.create_model('a'), constructors.create_model('b')])
+    self.assertEqual(comp_pb.WhichOneof('computation'), 'intrinsic')
+    self.assertEqual(comp_pb.intrinsic.uri, 'fallback')
+    self.assertLen(comp_pb.intrinsic.static_parameter, 2)
+    for idx, model_name in enumerate(['a', 'b']):
+      self.assertEqual(
+          comp_pb.intrinsic.static_parameter[idx].name, 'candidate_fn')
+      self.assertEqual(
+          str(comp_pb.intrinsic.static_parameter[idx].value.computation),
+          str(constructors.create_model(model_name)))
+
 
 if __name__ == '__main__':
   absltest.main()

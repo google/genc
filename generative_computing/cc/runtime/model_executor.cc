@@ -134,6 +134,8 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
           if (!fn.value().has_computation()) {
             return absl::InvalidArgumentError("Function is not a computation.");
           }
+          // TODO(b/295015950): Delete non-intrinsic branches as a part of the
+          // intrinsic support-based cleanup.
           if (!fn.value().computation().has_model() &&
               !fn.value().computation().has_prompt_template() &&
               !fn.value().computation().has_intrinsic()) {
@@ -149,6 +151,8 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
           // multiple arguments, not just a single string (so the argument can
           // in general be a struct with multiple values, not just one).
 
+          // TODO(b/295015950): Delete non-intrinsic branches as a part of the
+          // intrinsic support-based cleanup.
           std::shared_ptr<v0::Value> result = std::make_shared<v0::Value>();
           if (fn.value().computation().has_model()) {
             GENC_TRY(Generate(fn.value().computation().model().model_id().uri(),

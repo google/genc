@@ -169,6 +169,9 @@ def create_fallback(function_list):
 def create_conditional(condition, positive_branch, negative_branch):
   """Contructs a conditional expression.
 
+  Conditional epxression picks among two alternatives based on a Boolean
+  input, and only lazily evaluates of the two.
+
   Args:
     condition: Computation that evalutes to a Boolean result.
     positive_branch: Computation to be evaluated if the condition is true.
@@ -177,10 +180,17 @@ def create_conditional(condition, positive_branch, negative_branch):
   Returns:
     A computation that represents the conditional expression.
   """
-  return pb.Computation(
-      conditional=pb.Conditional(
-          condition=condition,
-          positive_branch=positive_branch,
-          negative_branch=negative_branch,
+  conditional = pb.Computation(
+      intrinsic=pb.Intrinsic(
+          uri=intrinsics.CONDITIONAL,
+          static_parameter=[
+              pb.Intrinsic.StaticParameter(
+                  name='then', value=pb.Value(computation=positive_branch)
+              ),
+              pb.Intrinsic.StaticParameter(
+                  name='else', value=pb.Value(computation=negative_branch)
+              ),
+          ],
       )
   )
+  return create_call(conditional, condition)

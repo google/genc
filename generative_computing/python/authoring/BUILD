@@ -10,10 +10,8 @@ py_library(
 py_library(
     name = "constructors",
     srcs = ["constructors.py"],
-    deps = [
-        "//generative_computing/cc/runtime:executor_bindings",
-        "//generative_computing/proto/v0:computation_py_pb2",
-    ],
+    data = ["//generative_computing/cc/runtime:executor_bindings.so"],
+    deps = ["//generative_computing/proto/v0:computation_py_pb2"],
 )
 
 py_test(

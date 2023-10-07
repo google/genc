@@ -96,7 +96,7 @@ class RunnerTest(absltest.TestCase):
         with self.assertRaises(RuntimeError):
           comp(arg)
 
-  def test_conditional(self):
+  def test_conditional_with_valid_inputs(self):
     arg = authoring.create_reference('x')
     model = authoring.create_model('test_model')
     comp_pb = authoring.create_lambda(
@@ -116,6 +116,26 @@ class RunnerTest(absltest.TestCase):
     self.assertEqual(
         result2, 'This is an output from a test model in response to "bubba".'
     )
+
+  def test_conditional_is_lazy(self):
+    arg = authoring.create_reference('x')
+    comp_pb = authoring.create_lambda(
+        arg.reference.name,
+        authoring.create_conditional(
+            authoring.create_selection(arg, 0),
+            authoring.create_call(
+                authoring.create_model('test_model'),
+                authoring.create_selection(arg, 1)),
+            authoring.create_reference('broken_undefined_variable_will_fail')
+        ),
+    )
+    comp = runner.Runner(comp_pb)
+    result1 = comp(True, 'kiki')
+    self.assertEqual(
+        result1, 'This is an output from a test model in response to "kiki".'
+    )
+    with self.assertRaises(RuntimeError):
+      comp(False, 'kiki')
 
 
 if __name__ == '__main__':

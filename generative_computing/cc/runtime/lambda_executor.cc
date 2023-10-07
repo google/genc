@@ -197,13 +197,18 @@ class LambdaExecutor : public ExecutorBase<std::shared_ptr<ExecutorValue>> {
       const v0::Computation& computation_pb,
       const std::shared_ptr<Scope>& scope) const;
 
+  // TODO(b/295015950): Clean these up by consolidating intrinsic handling
+  // in one place behind an interop API, and removing these calls from a public
+  // interface exposed by this executor (in favor of an API that specifically
+  // targets intrinsics, and that is separately provided to their handlers).
   absl::StatusOr<std::shared_ptr<ExecutorValue>> ConstCreateCall(
       std::shared_ptr<ExecutorValue> function,
       std::optional<std::shared_ptr<ExecutorValue>> argument) const;
-
   absl::Status ConstMaterialize(
       std::shared_ptr<ExecutorValue> value,
       v0::Value* value_pb) const;
+  absl::StatusOr<std::shared_ptr<ExecutorValue>> ConstCreateExecutorValue(
+      const v0::Value& value_pb) const;
 
  protected:
   absl::string_view ExecutorName() final {
@@ -324,7 +329,7 @@ std::string ExecutorValue::DebugString() const {
 }
 
 absl::StatusOr<std::shared_ptr<ExecutorValue>>
-LambdaExecutor::CreateExecutorValue(const v0::Value& value_pb) {
+LambdaExecutor::ConstCreateExecutorValue(const v0::Value& value_pb) const {
   switch (value_pb.value_case()) {
     case v0::Value::kStr:
     case v0::Value::kBoolean: {
@@ -342,6 +347,11 @@ LambdaExecutor::CreateExecutorValue(const v0::Value& value_pb) {
       return absl::UnimplementedError(absl::StrCat(
           "Cannot create value of type [", value_pb.value_case(), "]"));
   }
+}
+
+absl::StatusOr<std::shared_ptr<ExecutorValue>>
+LambdaExecutor::CreateExecutorValue(const v0::Value& value_pb) {
+  return ConstCreateExecutorValue(value_pb);
 }
 
 absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::CreateCall(
@@ -503,7 +513,10 @@ absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::Evaluate(
       return EvaluateConditional(computation_pb.conditional(), scope);
     }
     case v0::Computation::kIntrinsic: {
-      if (computation_pb.intrinsic().uri() == intrinsics::kFallback) {
+      // TODO(b/295015950): Clean this up by consolidating intrinsic handling
+      // in one place behind an interop API.
+      if ((computation_pb.intrinsic().uri() == intrinsics::kConditional) ||
+          (computation_pb.intrinsic().uri() == intrinsics::kFallback)) {
         return EvaluateIntrinsic(computation_pb.intrinsic(), scope);
       }
       ABSL_FALLTHROUGH_INTENDED;
@@ -592,43 +605,89 @@ LambdaExecutor::EvaluateIntrinsic(
   return std::make_shared<ExecutorValue>(ScopedIntrinsic{intrinsic_pb, scope});
 }
 
-absl::StatusOr<std::shared_ptr<ExecutorValue>> ScopedIntrinsic::Call(
-    const LambdaExecutor& executor,
-    std::optional<std::shared_ptr<ExecutorValue>> arg) const {
-  if (intrinsic_pb_.uri() == intrinsics::kFallback) {
-    absl::Status error_status =
-        absl::UnavailableError("No candidate computations unavailable.");
-    for (const v0::Intrinsic::StaticParameter& static_parameter_pb
-             : intrinsic_pb_.static_parameter()) {
-      if (static_parameter_pb.name() != "candidate_fn") {
-        return absl::InvalidArgumentError(
-            absl::StrCat("Bad parameter name: ", static_parameter_pb.name()));
-      }
-      if (!static_parameter_pb.value().has_computation()) {
-        return absl::InvalidArgumentError("Bad parameter type.");
-      }
-      absl::StatusOr<std::shared_ptr<ExecutorValue>> result =
-          executor.Evaluate(static_parameter_pb.value().computation(), scope_);
+absl::StatusOr<std::shared_ptr<ExecutorValue>> CallIntrinsicConditional(
+    const LambdaExecutor& executor, const v0::Intrinsic& intrinsic_pb,
+    std::optional<std::shared_ptr<ExecutorValue>> arg,
+    const std::shared_ptr<Scope>& scope) {
+  // TODO(b/295015950): Clean this up by consolidating intrinsic handling
+  // in one place behind an interop API.
+  if (!arg.has_value()) {
+    return absl::InvalidArgumentError("Missing condition.");
+  }
+  v0::Value cond_pb;
+  GENC_TRY(executor.ConstMaterialize(arg.value(), &cond_pb));
+  if (!cond_pb.has_boolean()) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Condition is not a Boolean: ", cond_pb.DebugString()));
+  }
+  if (intrinsic_pb.static_parameter_size() != 2) {
+    return absl::InvalidArgumentError("Missing a pair of static parameters.");
+  }
+  if ((intrinsic_pb.static_parameter(0).name() != "then") ||
+      (intrinsic_pb.static_parameter(1).name() != "else")) {
+    return absl::InvalidArgumentError("Wrong static parameter names.");
+  }
+  const v0::Value& selected_val_pb =
+      cond_pb.boolean() ? intrinsic_pb.static_parameter(0).value()
+                        : intrinsic_pb.static_parameter(1).value();
+  if (selected_val_pb.has_computation()) {
+    return executor.Evaluate(selected_val_pb.computation(), scope);
+  } else {
+    return executor.ConstCreateExecutorValue(selected_val_pb);
+  }
+}
+
+absl::StatusOr<std::shared_ptr<ExecutorValue>> CallIntrinsicFallback(
+    const LambdaExecutor& executor, const v0::Intrinsic& intrinsic_pb,
+    std::optional<std::shared_ptr<ExecutorValue>> arg,
+    const std::shared_ptr<Scope>& scope) {
+  // TODO(b/295015950): Clean this up by consolidating intrinsic handling
+  // in one place behind an interop API.
+  absl::Status error_status =
+      absl::UnavailableError("No candidate computations unavailable.");
+  for (const v0::Intrinsic::StaticParameter& static_parameter_pb :
+       intrinsic_pb.static_parameter()) {
+    if (static_parameter_pb.name() != "candidate_fn") {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Bad parameter name: ", static_parameter_pb.name()));
+    }
+    if (!static_parameter_pb.value().has_computation()) {
+      return absl::InvalidArgumentError("Bad parameter type.");
+    }
+    absl::StatusOr<std::shared_ptr<ExecutorValue>> result =
+        executor.Evaluate(static_parameter_pb.value().computation(), scope);
+    if (result.ok()) {
+      result = executor.ConstCreateCall(std::move(result.value()), arg);
       if (result.ok()) {
-        result = executor.ConstCreateCall(std::move(result.value()), arg);
-        if (result.ok()) {
-          error_status = executor.ConstMaterialize(result.value(), nullptr);
-          if (error_status.ok()) {
-            return result;
-          }
-        } else {
-          error_status = result.status();
+        error_status = executor.ConstMaterialize(result.value(), nullptr);
+        if (error_status.ok()) {
+          return result;
         }
       } else {
         error_status = result.status();
       }
+    } else {
+      error_status = result.status();
     }
-    return error_status;
+  }
+  return error_status;
+}
+
+absl::StatusOr<std::shared_ptr<ExecutorValue>> ScopedIntrinsic::Call(
+    const LambdaExecutor& executor,
+    std::optional<std::shared_ptr<ExecutorValue>> arg) const {
+  // TODO(b/295015950): Clean this up by consolidating intrinsic handling
+  // in one place behind an interop API.
+  if (intrinsic_pb_.uri() == intrinsics::kConditional) {
+    return CallIntrinsicConditional(executor, intrinsic_pb_, arg, scope_);
+  } else if (intrinsic_pb_.uri() == intrinsics::kFallback) {
+    return CallIntrinsicFallback(executor, intrinsic_pb_, arg, scope_);
   } else {
     return absl::UnimplementedError("Unsupported type of an intrinsic.");
   }
 }
 
+// TODO(b/295015950): Delete this as a part of intrinsic support-based cleanup.
 absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::EvaluateFallback(
     const v0::Fallback& fallback_pb,
     const std::shared_ptr<Scope>& scope) const {
@@ -649,6 +708,7 @@ absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::EvaluateFallback(
   return error_status;
 }
 
+// TODO(b/295015950): Delete this as a part of intrinsic support-based cleanup.
 absl::StatusOr<std::shared_ptr<ExecutorValue>>
 LambdaExecutor::EvaluateConditional(const v0::Conditional& conditional_pb,
                                     const std::shared_ptr<Scope>& scope) const {

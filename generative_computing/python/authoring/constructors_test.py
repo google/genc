@@ -49,6 +49,28 @@ class ConstructorsTest(absltest.TestCase):
           str(comp_pb.intrinsic.static_parameter[idx].value.computation),
           str(constructors.create_model(model_name)))
 
+  def test_conditional(self):
+    condition = constructors.create_reference('some_bool_condition')
+    comp_pb = constructors.create_conditional(
+        condition,
+        constructors.create_model('a'),
+        constructors.create_model('b'),
+    )
+    self.assertEqual(comp_pb.WhichOneof('computation'), 'call')
+    self.assertEqual(str(comp_pb.call.argument), str(condition))
+    conditional_pb = comp_pb.call.function
+    self.assertEqual(conditional_pb.WhichOneof('computation'), 'intrinsic')
+    self.assertEqual(conditional_pb.intrinsic.uri, 'conditional')
+    self.assertLen(conditional_pb.intrinsic.static_parameter, 2)
+    for idx, param_name, model_name in [(0, 'then', 'a'), (1, 'else', 'b')]:
+      self.assertEqual(
+          conditional_pb.intrinsic.static_parameter[idx].name, param_name
+      )
+      self.assertEqual(
+          str(conditional_pb.intrinsic.static_parameter[idx].value.computation),
+          str(constructors.create_model(model_name)),
+      )
+
 
 if __name__ == '__main__':
   absltest.main()

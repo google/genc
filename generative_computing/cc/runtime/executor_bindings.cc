@@ -119,6 +119,7 @@ PYBIND11_MODULE(executor_bindings, m) {
 
   // Intrinsics.
   auto intrinsics = m.def_submodule("intrinsics");
+  intrinsics.attr("CONDITIONAL") = py::str(intrinsics::kConditional);
   intrinsics.attr("FALLBACK") = py::str(intrinsics::kFallback);
   intrinsics.attr("MODEL_INFERENCE") = py::str(intrinsics::kModelInference);
   intrinsics.attr("PROMPT_TEMPLATE") = py::str(intrinsics::kPromptTemplate);

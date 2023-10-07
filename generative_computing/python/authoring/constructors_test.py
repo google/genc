@@ -28,6 +28,14 @@ class ConstructorsTest(absltest.TestCase):
         comp_pb.intrinsic.static_parameter[0].name, 'template_string')
     self.assertEqual(comp_pb.intrinsic.static_parameter[0].value.str, 'foo')
 
+  def test_model_inference(self):
+    comp_pb = constructors.create_model('foo')
+    self.assertEqual(comp_pb.WhichOneof('computation'), 'intrinsic')
+    self.assertEqual(comp_pb.intrinsic.uri, 'model_inference')
+    self.assertLen(comp_pb.intrinsic.static_parameter, 1)
+    self.assertEqual(comp_pb.intrinsic.static_parameter[0].name, 'model_uri')
+    self.assertEqual(comp_pb.intrinsic.static_parameter[0].value.str, 'foo')
+
 
 if __name__ == '__main__':
   absltest.main()

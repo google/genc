@@ -26,7 +26,16 @@ def create_model(model_uri):
   Returns:
     A computation that represents the model.
   """
-  return pb.Computation(model=pb.Model(model_id=pb.ModelId(uri=model_uri)))
+  return pb.Computation(
+      intrinsic=pb.Intrinsic(
+          uri=intrinsics.MODEL_INFERENCE,
+          static_parameter=[
+              pb.Intrinsic.StaticParameter(
+                  name='model_uri', value=pb.Value(str=model_uri)
+              )
+          ],
+      )
+  )
 
 
 def create_prompt_template(template_str):

@@ -21,6 +21,11 @@ limitations under the License
 namespace generative_computing {
 namespace intrinsics {
 
+// Calls a model for inference.
+// Takes one static parameter "model_uri" of a string type.
+// Takes one dynamic string parameter, which serves as the input to the model.
+inline constexpr absl::string_view kModelInference = "model_inference";
+
 // Constructs a prompt.
 // Takes one static parameter "template_string" of a string type.
 // Takes (currently just) one dynamic string parameter, which serves as the

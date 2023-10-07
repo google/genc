@@ -31,9 +31,8 @@ class CreateComputationTest(absltest.TestCase):
         create_computation.create_computation_from_llm(llm),
         create_computation.create_computation(llm),
     ]:
-      self.assertIsInstance(comp, pb.Computation)
-      self.assertEqual(comp.WhichOneof("computation"), "model")
-      self.assertEqual(comp.model.model_id.uri, "some_model")
+      expected_comp = authoring.create_model("some_model")
+      self.assertEqual(str(comp), str(expected_comp))
 
   def test_prompt_template(self):
     prompt_template = prompts.PromptTemplate(

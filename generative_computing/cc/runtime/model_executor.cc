@@ -151,7 +151,7 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
 
           std::shared_ptr<v0::Value> result = std::make_shared<v0::Value>();
           if (fn.value().computation().has_model()) {
-            GENC_TRY(Generate(fn.value().computation().model(),
+            GENC_TRY(Generate(fn.value().computation().model().model_id().uri(),
                               arg.value().str(), result->mutable_str()));
           } else if (fn.value().computation().has_prompt_template()) {
             GENC_TRY(CreatePromptFromTemplate(
@@ -185,6 +185,8 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
       const v0::Intrinsic& intrinsic, const v0::Value& arg, v0::Value* result) {
     if (intrinsic.uri() == intrinsics::kPromptTemplate) {
       return CallIntrinsicPromptTemplate(intrinsic, arg, result);
+    } else if (intrinsic.uri() == intrinsics::kModelInference) {
+      return CallIntrinsicModelInference(intrinsic, arg, result);
     } else {
       return absl::UnimplementedError(absl::StrCat(
           "Unimplemented intrinsic: ", intrinsic.uri()));
@@ -203,16 +205,27 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
     }
   }
 
+  absl::Status CallIntrinsicModelInference(const v0::Intrinsic& intrinsic,
+                                           const v0::Value& arg,
+                                           v0::Value* result) {
+    if (intrinsic.static_parameter_size() != 1) {
+      return absl::InvalidArgumentError("Wrong number of arguments.");
+    } else {
+      return Generate(intrinsic.static_parameter(0).value().str(), arg.str(),
+                      result->mutable_str());
+    }
+  }
+
   // TODO(b/299566821): generalize for repeated multimodal response.
-  absl::Status Generate(const v0::Model& model, const absl::string_view arg,
-                        std::string* output) {
-    if (model.model_id().uri() == "test_model") {
+  absl::Status Generate(const absl::string_view& model_uri,
+                        const absl::string_view arg, std::string* output) {
+    if (model_uri == "test_model") {
       output->assign(absl::StrCat(
           "This is an output from a test model in response to \"", arg, "\"."));
       return absl::OkStatus();
     }
-    if (inference_map_.contains(model.model_id().uri())) {
-      *output = GENC_TRY(inference_map_.at(model.model_id().uri())(arg));
+    if (inference_map_.contains(model_uri)) {
+      *output = GENC_TRY(inference_map_.at(model_uri)(arg));
       return absl::OkStatus();
     }
 
@@ -226,7 +239,7 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
     // an on-device or a Cloud executor (and in general, there could be multiple
     // of each supported here within the same runtime stack).
     return absl::UnimplementedError(
-        absl::StrCat("Unsupported model: ", model.model_id().uri()));
+        absl::StrCat("Unsupported model: ", model_uri));
   }
 
   const absl::flat_hash_map<std::string, InferenceFn> inference_map_;

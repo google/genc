@@ -71,6 +71,14 @@ class ConstructorsTest(absltest.TestCase):
           str(constructors.create_model(model_name)),
       )
 
+  def test_regex_partial_match(self):
+    comp_pb = constructors.create_regex_partial_match('A: True')
+    self.assertEqual(comp_pb.WhichOneof('computation'), 'intrinsic')
+    self.assertEqual(comp_pb.intrinsic.uri, 'regex_partial_match')
+    self.assertLen(comp_pb.intrinsic.static_parameter, 1)
+    self.assertEqual(
+        comp_pb.intrinsic.static_parameter[0].name, 'pattern_string')
+    self.assertEqual(comp_pb.intrinsic.static_parameter[0].value.str, 'A: True')
 
 if __name__ == '__main__':
   absltest.main()

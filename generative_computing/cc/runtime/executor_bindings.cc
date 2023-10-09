@@ -123,6 +123,8 @@ PYBIND11_MODULE(executor_bindings, m) {
   intrinsics.attr("FALLBACK") = py::str(intrinsics::kFallback);
   intrinsics.attr("MODEL_INFERENCE") = py::str(intrinsics::kModelInference);
   intrinsics.attr("PROMPT_TEMPLATE") = py::str(intrinsics::kPromptTemplate);
+  intrinsics.attr("REGEX_PARTIAL_MATCH") =
+      py::str(intrinsics::kRegexPartialMatch);
 }
 
 }  // namespace

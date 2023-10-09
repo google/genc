@@ -54,6 +54,16 @@ inline constexpr absl::string_view kModelInference = "model_inference";
 // parameter for the template).
 inline constexpr absl::string_view kPromptTemplate = "prompt_template";
 
+// Represents regex partial match function.
+// Takes one static parameter named "regex_pattern" of a string type,
+// representing the pattern to match.
+// Takes one dynamic string parameter, which is the input string matched against
+// the supplied pattern.
+// Returns a boolean scalar. The returned values is True if partial match found
+// a match, False otherwise.
+inline constexpr absl::string_view kRegexPartialMatch =
+          "regex_partial_match";
+
 }  // namespace intrinsics
 }  // namespace generative_computing
 

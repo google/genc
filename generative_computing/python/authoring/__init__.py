@@ -21,5 +21,6 @@ from generative_computing.python.authoring.constructors import create_lambda
 from generative_computing.python.authoring.constructors import create_model
 from generative_computing.python.authoring.constructors import create_prompt_template
 from generative_computing.python.authoring.constructors import create_reference
+from generative_computing.python.authoring.constructors import create_regex_partial_match
 from generative_computing.python.authoring.constructors import create_selection
 from generative_computing.python.authoring.constructors import create_struct

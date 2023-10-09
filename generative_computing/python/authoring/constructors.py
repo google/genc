@@ -56,6 +56,24 @@ def create_prompt_template(template_str):
                   value=pb.Value(str=template_str))]))
 
 
+def create_regex_partial_match(pattern_string):
+  """Creates a regular expression partial match with the given pattern.
+
+  Args:
+    pattern_string: Pattern to search for in the input string.
+
+  Returns:
+    A computation that represents the regex partial match intrinsic.
+  """
+  return pb.Computation(
+      intrinsic=pb.Intrinsic(
+          uri=intrinsics.REGEX_PARTIAL_MATCH,
+          static_parameter=[
+              pb.Intrinsic.StaticParameter(
+                  name='pattern_string',
+                  value=pb.Value(str=pattern_string))]))
+
+
 def create_reference(name):
   """Contructs a reference to `name`.
 

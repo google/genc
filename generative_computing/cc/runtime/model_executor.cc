@@ -191,6 +191,8 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
       return CallIntrinsicPromptTemplate(intrinsic, arg, result);
     } else if (intrinsic.uri() == intrinsics::kModelInference) {
       return CallIntrinsicModelInference(intrinsic, arg, result);
+    } else if (intrinsic.uri() == intrinsics::kRegexPartialMatch) {
+      return CallIntrinsicPartialMatch(intrinsic, arg, result);
     } else {
       return absl::UnimplementedError(absl::StrCat(
           "Unimplemented intrinsic: ", intrinsic.uri()));
@@ -217,6 +219,17 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
     } else {
       return Generate(intrinsic.static_parameter(0).value().str(), arg.str(),
                       result->mutable_str());
+    }
+  }
+
+  absl::Status CallIntrinsicPartialMatch(
+      const v0::Intrinsic& intrinsic, const v0::Value& arg, v0::Value* result) {
+    if (intrinsic.static_parameter_size() != 1) {
+      return absl::InvalidArgumentError("Wrong number of arguments.");
+    } else {
+      result->set_boolean(RE2::PartialMatch(
+           arg.str(), intrinsic.static_parameter(0).value().str()));
+      return absl::OkStatus();
     }
   }
 

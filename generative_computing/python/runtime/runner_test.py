@@ -137,6 +137,47 @@ class RunnerTest(absltest.TestCase):
     with self.assertRaises(RuntimeError):
       comp(False, 'kiki')
 
+  def test_regex_partial_match(self):
+    comp_pb = authoring.create_regex_partial_match(
+        'A: True|true')
+    comp = runner.Runner(comp_pb)
+    result = comp('A: True. Explanation for true.')
+    self.assertTrue(result)
+    result2 = comp('The statement appears to be true.')
+    self.assertTrue(result2)
+    result3 = comp('A: False. Explanation for false.')
+    self.assertFalse(result3)
+
+  def test_partial_match_with_conditional(self):
+    arg = authoring.create_reference('x')
+    scorer_chain = authoring.create_chain([
+        authoring.create_regex_partial_match('A: True|A: true|true|True'),
+        authoring.create_model('test_model'),
+        authoring.create_prompt_template(
+            'Q: Is following sentence political or sensitive? Who is going'
+            ' to be the next president? A: {answer}'
+        ),  # supply true or false in answer
+    ])
+    model = authoring.create_model('test_model')
+    comp_pb = authoring.create_lambda(
+        arg.reference.name,
+        authoring.create_conditional(
+            authoring.create_call(scorer_chain,
+                                  authoring.create_selection(arg, 0)),
+            authoring.create_call(model, authoring.create_selection(arg, 1)),
+            authoring.create_call(model, authoring.create_selection(arg, 2)),
+        ),
+    )
+    comp = runner.Runner(comp_pb)
+    result1 = comp('True', 'kiki', 'bubba')
+    self.assertEqual(
+        result1, 'This is an output from a test model in response to "kiki".'
+    )
+    result2 = comp('False', 'kiki', 'bubba')
+    self.assertEqual(
+        result2, 'This is an output from a test model in response to "bubba".'
+    )
+
 
 if __name__ == '__main__':
   absltest.main()

@@ -161,6 +161,7 @@ cc_test(
     deps = [
         ":executor",
         ":model_executor",
+        "//generative_computing/cc/authoring:computation_utils",
         "//generative_computing/cc/runtime/intrinsics",
         "//generative_computing/proto/v0:computation_cc_proto",
         "//generative_computing/proto/v0:executor_cc_proto",

@@ -24,6 +24,7 @@ limitations under the License
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
+#include "generative_computing/cc/authoring/computation_utils.h"
 #include "generative_computing/cc/runtime/executor.h"
 #include "generative_computing/cc/runtime/intrinsics/intrinsics.h"
 #include "generative_computing/proto/v0/computation.pb.h"
@@ -49,8 +50,7 @@ TEST_F(ModelExecutorTest, TestModel) {
   EXPECT_TRUE(executor.ok());
 
   v0::Value fn_pb;
-  fn_pb.mutable_computation()->mutable_model()->mutable_model_id()->set_uri(
-      "test_model");
+  SetModelInference(fn_pb.mutable_computation(), "test_model");
   absl::StatusOr<OwnedValueId> fn_val = executor.value()->CreateValue(fn_pb);
   EXPECT_TRUE(fn_val.ok());
 
@@ -81,8 +81,7 @@ TEST_F(ModelExecutorTest, TestModelWithInferenceFn) {
   EXPECT_TRUE(executor.ok());
 
   v0::Value fn_pb;
-  fn_pb.mutable_computation()->mutable_model()->mutable_model_id()->set_uri(
-      "test_inference_fn");
+  SetModelInference(fn_pb.mutable_computation(), "test_inference_fn");
   absl::StatusOr<OwnedValueId> fn_val = executor.value()->CreateValue(fn_pb);
   EXPECT_TRUE(fn_val.ok());
 

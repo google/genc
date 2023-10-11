@@ -27,37 +27,19 @@ limitations under the License
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
-#include "absl/strings/str_replace.h"
 #include "absl/strings/string_view.h"
 #include "generative_computing/cc/runtime/executor.h"
-#include "generative_computing/cc/runtime/intrinsics.h"
+#include "generative_computing/cc/runtime/intrinsic_handler.h"
+#include "generative_computing/cc/runtime/intrinsics/intrinsics.h"
+#include "generative_computing/cc/runtime/intrinsics/prompt_template.h"
+#include "generative_computing/cc/runtime/intrinsics/regex_partial_match.h"
 #include "generative_computing/cc/runtime/status_macros.h"
 #include "generative_computing/cc/runtime/threading.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 #include "generative_computing/proto/v0/executor.pb.h"
-#include "re2/re2.h"
 
 namespace generative_computing {
 namespace {
-
-absl::Status CreatePromptFromTemplate(const absl::string_view& template_string,
-                                      const absl::string_view arg,
-                                      std::string* output) {
-  absl::string_view input(template_string);
-  std::string parameter_re = "(\\{[a-zA-Z0-9_]*\\})";
-  std::string parameter;
-  if (!RE2::FindAndConsume(&input, parameter_re, &parameter)) {
-    return absl::InvalidArgumentError("No parameter found in the template.");
-  }
-  std::string other_parameter;
-  while (RE2::FindAndConsume(&input, parameter_re, &other_parameter)) {
-    if (other_parameter != parameter) {
-      return absl::InvalidArgumentError("Multiple parameters not supported.");
-    }
-  }
-  output->assign(absl::StrReplaceAll(template_string, {{parameter, arg}}));
-  return absl::OkStatus();
-}
 
 class ExecutorValue {
  public:
@@ -89,12 +71,11 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
  public:
   explicit ModelExecutor(
       const absl::flat_hash_map<std::string, InferenceFn>& inference_map)
-      : inference_map_(inference_map), thread_pool_(nullptr) {
-    // TODO(b/295260921): The executor needs to be able to take some arguments
-    // to enable it to be configured to support some class of model backends,
-    // some of which could be baked-in, but most of which would need to be
-    // provisioned by the caller as a part of the runtime setup to match the
-    // environment in which this runtime will be hosted.
+      : inference_map_(inference_map),
+        thread_pool_(nullptr),
+        intrinsic_handlers_() {
+    intrinsic_handlers_.AddHandler(new intrinsics::PromptTemplate());
+    intrinsic_handlers_.AddHandler(new intrinsics::RegexPartialMatch());
   }
 
   ~ModelExecutor() override { ClearTracked(); }
@@ -137,7 +118,6 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
           // TODO(b/295015950): Delete non-intrinsic branches as a part of the
           // intrinsic support-based cleanup.
           if (!fn.value().computation().has_model() &&
-              !fn.value().computation().has_prompt_template() &&
               !fn.value().computation().has_intrinsic()) {
             return absl::InvalidArgumentError(
                 absl::StrCat("Unsupported function type: ",
@@ -147,21 +127,12 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
             return absl::InvalidArgumentError("Argument is not a string.");
           }
 
-          // TODO(b/295041950): Add support for handling prompt templates with
-          // multiple arguments, not just a single string (so the argument can
-          // in general be a struct with multiple values, not just one).
-
           // TODO(b/295015950): Delete non-intrinsic branches as a part of the
           // intrinsic support-based cleanup.
           std::shared_ptr<v0::Value> result = std::make_shared<v0::Value>();
           if (fn.value().computation().has_model()) {
             GENC_TRY(Generate(fn.value().computation().model().model_id().uri(),
                               arg.value().str(), result->mutable_str()));
-          } else if (fn.value().computation().has_prompt_template()) {
-            GENC_TRY(CreatePromptFromTemplate(
-                fn.value().computation().prompt_template().template_string(),
-                arg.value().str(),
-                result->mutable_str()));
           } else {
             // Must therefore be an intrinsic.
             GENC_TRY(CallIntrinsic(
@@ -187,27 +158,12 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
  private:
   absl::Status CallIntrinsic(
       const v0::Intrinsic& intrinsic, const v0::Value& arg, v0::Value* result) {
-    if (intrinsic.uri() == intrinsics::kPromptTemplate) {
-      return CallIntrinsicPromptTemplate(intrinsic, arg, result);
-    } else if (intrinsic.uri() == intrinsics::kModelInference) {
+    // TODO(b/295015950): Eventually delete all the special-casing here.
+    // intrinsic support-based cleanup.
+    if (intrinsic.uri() == intrinsics::kModelInference) {
       return CallIntrinsicModelInference(intrinsic, arg, result);
-    } else if (intrinsic.uri() == intrinsics::kRegexPartialMatch) {
-      return CallIntrinsicPartialMatch(intrinsic, arg, result);
     } else {
-      return absl::UnimplementedError(absl::StrCat(
-          "Unimplemented intrinsic: ", intrinsic.uri()));
-    }
-  }
-
-  absl::Status CallIntrinsicPromptTemplate(
-      const v0::Intrinsic& intrinsic, const v0::Value& arg, v0::Value* result) {
-    if (intrinsic.static_parameter_size() != 1) {
-      return absl::InvalidArgumentError("Wrong number of arguments.");
-    } else {
-      return CreatePromptFromTemplate(
-          intrinsic.static_parameter(0).value().str(),
-          arg.str(),
-          result->mutable_str());
+      return intrinsic_handlers_.ExecuteCall(intrinsic, arg, nullptr, result);
     }
   }
 
@@ -219,17 +175,6 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
     } else {
       return Generate(intrinsic.static_parameter(0).value().str(), arg.str(),
                       result->mutable_str());
-    }
-  }
-
-  absl::Status CallIntrinsicPartialMatch(
-      const v0::Intrinsic& intrinsic, const v0::Value& arg, v0::Value* result) {
-    if (intrinsic.static_parameter_size() != 1) {
-      return absl::InvalidArgumentError("Wrong number of arguments.");
-    } else {
-      result->set_boolean(RE2::PartialMatch(
-           arg.str(), intrinsic.static_parameter(0).value().str()));
-      return absl::OkStatus();
     }
   }
 
@@ -261,6 +206,7 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
 
   const absl::flat_hash_map<std::string, InferenceFn> inference_map_;
   ThreadPool* const thread_pool_;
+  IntrinsicHandlerSet intrinsic_handlers_;
 };
 
 }  // namespace

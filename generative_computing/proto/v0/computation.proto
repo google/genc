@@ -70,13 +70,12 @@ message Computation {
     // TODO(b/295013978): Replace all below with the newly added more generic
     // set of simpler abstractions.
     Model model = 9;
-    PromptTemplate prompt_template = 10;
     Fallback fallback = 11;
     Conditional conditional = 12;
     // END OF DEPRECATED CONSTRUCTS
   }
 
-  reserved 2;
+  reserved 2, 10;
 
   // NEXT ID: 15
 }
@@ -276,10 +275,6 @@ message Model {
 
 message ModelId {
   string uri = 1;
-}
-
-message PromptTemplate {
-  string template_string = 1;
 }
 
 message Fallback {

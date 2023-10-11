@@ -25,6 +25,7 @@ limitations under the License
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "generative_computing/cc/runtime/executor.h"
+#include "generative_computing/cc/runtime/intrinsics/intrinsics.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 #include "generative_computing/proto/v0/executor.pb.h"
 
@@ -107,7 +108,14 @@ TEST_F(ModelExecutorTest, PromptTemplate) {
   EXPECT_TRUE(executor.ok());
 
   v0::Value fn_pb;
-  fn_pb.mutable_computation()->mutable_prompt_template()->set_template_string(
+  v0::Intrinsic* const intrinsic_pb =
+      fn_pb.mutable_computation()->mutable_intrinsic();
+  intrinsic_pb->set_uri(
+      std::string(::generative_computing::intrinsics::kPromptTemplate));
+  v0::Intrinsic::StaticParameter* const static_param_pb =
+      intrinsic_pb->add_static_parameter();
+  static_param_pb->set_name("template_string");
+  static_param_pb->mutable_value()->set_str(
       "Q: What should I pack for a trip to {location}? A: ");
   absl::StatusOr<OwnedValueId> fn_val = executor.value()->CreateValue(fn_pb);
   EXPECT_TRUE(fn_val.ok());

@@ -61,8 +61,7 @@ inline constexpr absl::string_view kPromptTemplate = "prompt_template";
 // the supplied pattern.
 // Returns a boolean scalar. The returned values is True if partial match found
 // a match, False otherwise.
-inline constexpr absl::string_view kRegexPartialMatch =
-          "regex_partial_match";
+inline constexpr absl::string_view kRegexPartialMatch = "regex_partial_match";
 
 }  // namespace intrinsics
 }  // namespace generative_computing

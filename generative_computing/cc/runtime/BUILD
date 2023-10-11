@@ -47,7 +47,7 @@ pybind_extension(
     deps = [
         ":executor",
         ":executor_stacks",
-        ":intrinsics",
+        "//generative_computing/cc/runtime/intrinsics",
         "//generative_computing/proto/v0:computation_cc_proto",
         "//generative_computing/proto/v0:executor_cc_proto",
         "@com_google_absl//absl/status",
@@ -86,10 +86,19 @@ cc_test(
 )
 
 cc_library(
-    name = "intrinsics",
-    srcs = [],
-    hdrs = ["intrinsics.h"],
-    deps = ["@com_google_absl//absl/strings"],
+    name = "intrinsic_handler",
+    srcs = ["intrinsic_handler.cc"],
+    hdrs = ["intrinsic_handler.h"],
+    deps = [
+        ":status_macros",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/base:core_headers",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+    ],
 )
 
 cc_library(
@@ -98,8 +107,8 @@ cc_library(
     hdrs = ["lambda_executor.h"],
     deps = [
         ":executor",
-        ":intrinsics",
         ":status_macros",
+        "//generative_computing/cc/runtime/intrinsics",
         "//generative_computing/proto/v0:computation_cc_proto",
         "//generative_computing/proto/v0:executor_cc_proto",
         "@com_github_google_re2//:re2",
@@ -129,9 +138,12 @@ cc_library(
     hdrs = ["model_executor.h"],
     deps = [
         ":executor",
-        ":intrinsics",
+        ":intrinsic_handler",
         ":status_macros",
         ":threading",
+        "//generative_computing/cc/runtime/intrinsics",
+        "//generative_computing/cc/runtime/intrinsics:prompt_template",
+        "//generative_computing/cc/runtime/intrinsics:regex_partial_match",
         "//generative_computing/proto/v0:computation_cc_proto",
         "//generative_computing/proto/v0:executor_cc_proto",
         "@com_github_google_re2//:re2",
@@ -149,6 +161,7 @@ cc_test(
     deps = [
         ":executor",
         ":model_executor",
+        "//generative_computing/cc/runtime/intrinsics",
         "//generative_computing/proto/v0:computation_cc_proto",
         "//generative_computing/proto/v0:executor_cc_proto",
         "@com_google_absl//absl/container:flat_hash_map",

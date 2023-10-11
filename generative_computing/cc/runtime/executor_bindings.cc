@@ -34,7 +34,7 @@ limitations under the License
 #include "absl/strings/str_cat.h"
 #include "generative_computing/cc/runtime/executor.h"
 #include "generative_computing/cc/runtime/executor_stacks.h"
-#include "generative_computing/cc/runtime/intrinsics.h"
+#include "generative_computing/cc/runtime/intrinsics/intrinsics.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 #include "generative_computing/proto/v0/executor.pb.h"
 #include "include/pybind11/cast.h"

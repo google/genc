@@ -19,14 +19,14 @@ limitations under the License
 #include <string>
 
 #include "googletest/include/gtest/gtest.h"
-#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "generative_computing/cc/authoring/computation_utils.h"
+#include "generative_computing/cc/intrinsics/intrinsics.h"
+#include "generative_computing/cc/intrinsics/model_inference.h"
 #include "generative_computing/cc/runtime/executor.h"
-#include "generative_computing/cc/runtime/intrinsics/intrinsics.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 #include "generative_computing/proto/v0/executor.pb.h"
 
@@ -72,7 +72,7 @@ TEST_F(ModelExecutorTest, TestModel) {
 }
 
 TEST_F(ModelExecutorTest, TestModelWithInferenceFn) {
-  absl::flat_hash_map<std::string, InferenceFn> inference_map;
+  intrinsics::ModelInference::InferenceMap inference_map;
   inference_map["test_inference_fn"] = [](absl::string_view arg) {
     return absl::StrCat("Testing inference fn with arg: ", arg);
   };

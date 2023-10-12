@@ -13,9 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include "generative_computing/cc/runtime/intrinsics/regex_partial_match.h"
+#include "generative_computing/cc/intrinsics/prompt_template.h"
+
+#include <string>
 
 #include "absl/status/status.h"
+#include "absl/strings/str_replace.h"
 #include "absl/strings/string_view.h"
 #include "generative_computing/cc/runtime/intrinsic_handler.h"
 #include "generative_computing/proto/v0/computation.pb.h"
@@ -23,9 +26,8 @@ limitations under the License
 
 namespace generative_computing {
 namespace intrinsics {
-namespace {}  // namespace
 
-absl::Status RegexPartialMatch::CheckWellFormed(
+absl::Status PromptTemplate::CheckWellFormed(
     const v0::Intrinsic& intrinsic_pb) const {
   if (intrinsic_pb.static_parameter_size() != 1) {
     return absl::InvalidArgumentError("Wrong number of arguments.");
@@ -33,12 +35,29 @@ absl::Status RegexPartialMatch::CheckWellFormed(
   return absl::OkStatus();
 }
 
-absl::Status RegexPartialMatch::ExecuteCall(
+absl::Status PromptTemplate::ExecuteCall(
     const v0::Intrinsic& intrinsic_pb, const v0::Value& arg,
     const IntrinsicCallContext* call_context_or_nullptr,
     v0::Value* result) const {
-  result->set_boolean(RE2::PartialMatch(
-      arg.str(), intrinsic_pb.static_parameter(0).value().str()));
+  // TODO(b/295041950): Add support for handling prompt templates with
+  // multiple arguments, not just a single string (so the argument can
+  // in general be a struct with multiple values, not just one).
+  const absl::string_view template_string(
+      intrinsic_pb.static_parameter(0).value().str());
+  absl::string_view input(template_string);
+  std::string parameter_re = "(\\{[a-zA-Z0-9_]*\\})";
+  std::string parameter;
+  if (!RE2::FindAndConsume(&input, parameter_re, &parameter)) {
+    return absl::InvalidArgumentError("No parameter found in the template.");
+  }
+  std::string other_parameter;
+  while (RE2::FindAndConsume(&input, parameter_re, &other_parameter)) {
+    if (other_parameter != parameter) {
+      return absl::InvalidArgumentError("Multiple parameters not supported.");
+    }
+  }
+  result->mutable_str()->assign(
+      absl::StrReplaceAll(template_string, {{parameter, arg.str()}}));
   return absl::OkStatus();
 }
 

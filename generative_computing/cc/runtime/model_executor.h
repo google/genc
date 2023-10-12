@@ -23,6 +23,7 @@ limitations under the License
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
+#include "generative_computing/cc/intrinsics/model_inference.h"
 #include "generative_computing/cc/runtime/executor.h"
 
 namespace generative_computing {
@@ -35,10 +36,9 @@ absl::StatusOr<std::shared_ptr<Executor>> CreateModelExecutor();
 // this method to inject support for additional models, beyond the base models
 // that are supported at runtime.
 // TODO(b/299566821): generalize for repeated multimodal response.
-typedef std::function<absl::StatusOr<std::string>(absl::string_view)>
-    InferenceFn;
+
 absl::StatusOr<std::shared_ptr<Executor>> CreateModelExecutorWithInferenceMap(
-    const absl::flat_hash_map<std::string, InferenceFn>& inference_map);
+    const intrinsics::ModelInference::InferenceMap& inference_map);
 
 }  // namespace generative_computing
 

@@ -13,25 +13,32 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include "generative_computing/cc/authoring/computation_utils.h"
+#ifndef GENERATIVE_COMPUTING_CC_INTRINSICS_PROMPT_TEMPLATE_H_
+#define GENERATIVE_COMPUTING_CC_INTRINSICS_PROMPT_TEMPLATE_H_
 
-#include <string>
-
+#include "absl/status/status.h"
 #include "absl/strings/string_view.h"
 #include "generative_computing/cc/intrinsics/intrinsics.h"
+#include "generative_computing/cc/runtime/intrinsic_handler.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 
 namespace generative_computing {
+namespace intrinsics {
 
-void SetModelInference(v0::Computation* computation,
-                       absl::string_view model_uri) {
-  v0::Intrinsic* const intrinsic_pb = computation->mutable_intrinsic();
-  intrinsic_pb->set_uri(
-      std::string(::generative_computing::intrinsics::kModelInference));
-  v0::Intrinsic::StaticParameter* const static_parameter_pb =
-      intrinsic_pb->add_static_parameter();
-  static_parameter_pb->set_name("model_uri");
-  static_parameter_pb->mutable_value()->set_str(std::string(model_uri));
-}
+class PromptTemplate : public IntrinsicHandler {
+ public:
+  PromptTemplate() {}
+  virtual ~PromptTemplate() {}
 
+  absl::string_view uri() const final { return kPromptTemplate; }
+  absl::Status CheckWellFormed(const v0::Intrinsic& intrinsic_pb) const final;
+  absl::Status ExecuteCall(const v0::Intrinsic& intrinsic_pb,
+                           const v0::Value& arg,
+                           const IntrinsicCallContext* call_context_or_nullptr,
+                           v0::Value* result) const final;
+};
+
+}  // namespace intrinsics
 }  // namespace generative_computing
+
+#endif  // GENERATIVE_COMPUTING_CC_INTRINSICS_PROMPT_TEMPLATE_H_

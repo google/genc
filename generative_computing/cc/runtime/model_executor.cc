@@ -19,20 +19,17 @@ limitations under the License
 #include <future>  // NOLINT
 #include <memory>
 #include <optional>
-#include <string>
 #include <utility>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
+#include "generative_computing/cc/intrinsics/model_inference.h"
+#include "generative_computing/cc/intrinsics/prompt_template.h"
+#include "generative_computing/cc/intrinsics/regex_partial_match.h"
 #include "generative_computing/cc/runtime/executor.h"
 #include "generative_computing/cc/runtime/intrinsic_handler.h"
-#include "generative_computing/cc/runtime/intrinsics/intrinsics.h"
-#include "generative_computing/cc/runtime/intrinsics/prompt_template.h"
-#include "generative_computing/cc/runtime/intrinsics/regex_partial_match.h"
 #include "generative_computing/cc/runtime/status_macros.h"
 #include "generative_computing/cc/runtime/threading.h"
 #include "generative_computing/proto/v0/computation.pb.h"
@@ -70,10 +67,10 @@ using ValueFuture = std::shared_future<absl::StatusOr<ExecutorValue>>;
 class ModelExecutor : public ExecutorBase<ValueFuture> {
  public:
   explicit ModelExecutor(
-      const absl::flat_hash_map<std::string, InferenceFn>& inference_map)
-      : inference_map_(inference_map),
-        thread_pool_(nullptr),
-        intrinsic_handlers_() {
+      const intrinsics::ModelInference::InferenceMap& inference_map)
+      : thread_pool_(nullptr), intrinsic_handlers_() {
+    intrinsic_handlers_.AddHandler(
+        new intrinsics::ModelInference(inference_map));
     intrinsic_handlers_.AddHandler(new intrinsics::PromptTemplate());
     intrinsic_handlers_.AddHandler(new intrinsics::RegexPartialMatch());
   }
@@ -105,7 +102,7 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
   absl::StatusOr<ValueFuture> CreateCall(
       ValueFuture func_future, std::optional<ValueFuture> arg_future) final {
     if (!arg_future.has_value()) {
-      return absl::InvalidArgumentError("Model calls require an argument.");
+      return absl::InvalidArgumentError("An argument is always required.");
     }
     return ThreadRun(
         [function = std::move(func_future), argument = std::move(arg_future),
@@ -115,31 +112,15 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
           if (!fn.value().has_computation()) {
             return absl::InvalidArgumentError("Function is not a computation.");
           }
-          // TODO(b/295015950): Delete non-intrinsic branches as a part of the
-          // intrinsic support-based cleanup.
-          if (!fn.value().computation().has_model() &&
-              !fn.value().computation().has_intrinsic()) {
+          if (!fn.value().computation().has_intrinsic()) {
             return absl::InvalidArgumentError(
                 absl::StrCat("Unsupported function type: ",
                     fn.value().computation().DebugString()));
           }
-          if (!arg.value().has_str()) {
-            return absl::InvalidArgumentError("Argument is not a string.");
-          }
-
-          // TODO(b/295015950): Delete non-intrinsic branches as a part of the
-          // intrinsic support-based cleanup.
           std::shared_ptr<v0::Value> result = std::make_shared<v0::Value>();
-          if (fn.value().computation().has_model()) {
-            GENC_TRY(Generate(fn.value().computation().model().model_id().uri(),
-                              arg.value().str(), result->mutable_str()));
-          } else {
-            // Must therefore be an intrinsic.
-            GENC_TRY(CallIntrinsic(
-                fn.value().computation().intrinsic(),
-                arg.value(),
-                result.get()));
-          }
+          GENC_TRY(intrinsic_handlers_.ExecuteCall(
+              fn.value().computation().intrinsic(), arg.value(), nullptr,
+              result.get()));
           return ExecutorValue(result);
         },
         thread_pool_);
@@ -156,55 +137,6 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
   }
 
  private:
-  absl::Status CallIntrinsic(
-      const v0::Intrinsic& intrinsic, const v0::Value& arg, v0::Value* result) {
-    // TODO(b/295015950): Eventually delete all the special-casing here.
-    // intrinsic support-based cleanup.
-    if (intrinsic.uri() == intrinsics::kModelInference) {
-      return CallIntrinsicModelInference(intrinsic, arg, result);
-    } else {
-      return intrinsic_handlers_.ExecuteCall(intrinsic, arg, nullptr, result);
-    }
-  }
-
-  absl::Status CallIntrinsicModelInference(const v0::Intrinsic& intrinsic,
-                                           const v0::Value& arg,
-                                           v0::Value* result) {
-    if (intrinsic.static_parameter_size() != 1) {
-      return absl::InvalidArgumentError("Wrong number of arguments.");
-    } else {
-      return Generate(intrinsic.static_parameter(0).value().str(), arg.str(),
-                      result->mutable_str());
-    }
-  }
-
-  // TODO(b/299566821): generalize for repeated multimodal response.
-  absl::Status Generate(const absl::string_view& model_uri,
-                        const absl::string_view arg, std::string* output) {
-    if (model_uri == "test_model") {
-      output->assign(absl::StrCat(
-          "This is an output from a test model in response to \"", arg, "\"."));
-      return absl::OkStatus();
-    }
-    if (inference_map_.contains(model_uri)) {
-      *output = GENC_TRY(inference_map_.at(model_uri)(arg));
-      return absl::OkStatus();
-    }
-
-    // TODO(b/295260921): Based on a prefix of the URI embedded in the `Model`,
-    // route calls to an appropriate child executor or child component that
-    // specializes in handling calls for the corresponding class of models.
-    // The set of supported models and child executors is something that should
-    // come in as a parameter (since we want it to be a point of flexibility we
-    // offer to whoever is handling runtime deployment and configuration).
-    // In particular, we should be able to effectively route the calls to either
-    // an on-device or a Cloud executor (and in general, there could be multiple
-    // of each supported here within the same runtime stack).
-    return absl::UnimplementedError(
-        absl::StrCat("Unsupported model: ", model_uri));
-  }
-
-  const absl::flat_hash_map<std::string, InferenceFn> inference_map_;
   ThreadPool* const thread_pool_;
   IntrinsicHandlerSet intrinsic_handlers_;
 };
@@ -215,11 +147,11 @@ absl::StatusOr<std::shared_ptr<Executor>> CreateModelExecutor() {
   // TODO(b/295260921): Rename this to CreateEmptyModelExecutor or delete.
   // Reduce factory fns to eliminate complexity.
   return std::make_shared<ModelExecutor>(
-      absl::flat_hash_map<std::string, InferenceFn>({}));
+      intrinsics::ModelInference::InferenceMap({}));
 }
 
 absl::StatusOr<std::shared_ptr<Executor>> CreateModelExecutorWithInferenceMap(
-    const absl::flat_hash_map<std::string, InferenceFn>& inference_map) {
+    const intrinsics::ModelInference::InferenceMap& inference_map) {
   return std::make_shared<ModelExecutor>(inference_map);
 }
 

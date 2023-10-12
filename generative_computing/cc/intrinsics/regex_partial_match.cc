@@ -13,32 +13,33 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#ifndef GENERATIVE_COMPUTING_CC_RUNTIME_INTRINSICS_PROMPT_TEMPLATE_H_
-#define GENERATIVE_COMPUTING_CC_RUNTIME_INTRINSICS_PROMPT_TEMPLATE_H_
+#include "generative_computing/cc/intrinsics/regex_partial_match.h"
 
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
 #include "generative_computing/cc/runtime/intrinsic_handler.h"
-#include "generative_computing/cc/runtime/intrinsics/intrinsics.h"
 #include "generative_computing/proto/v0/computation.pb.h"
+#include "re2/re2.h"
 
 namespace generative_computing {
 namespace intrinsics {
 
-class PromptTemplate : public IntrinsicHandler {
- public:
-  PromptTemplate() {}
-  virtual ~PromptTemplate() {}
+absl::Status RegexPartialMatch::CheckWellFormed(
+    const v0::Intrinsic& intrinsic_pb) const {
+  if (intrinsic_pb.static_parameter_size() != 1) {
+    return absl::InvalidArgumentError("Wrong number of arguments.");
+  }
+  return absl::OkStatus();
+}
 
-  absl::string_view uri() const final { return kPromptTemplate; }
-  absl::Status CheckWellFormed(const v0::Intrinsic& intrinsic_pb) const final;
-  absl::Status ExecuteCall(const v0::Intrinsic& intrinsic_pb,
-                           const v0::Value& arg,
-                           const IntrinsicCallContext* call_context_or_nullptr,
-                           v0::Value* result) const final;
-};
+absl::Status RegexPartialMatch::ExecuteCall(
+    const v0::Intrinsic& intrinsic_pb, const v0::Value& arg,
+    const IntrinsicCallContext* call_context_or_nullptr,
+    v0::Value* result) const {
+  result->set_boolean(RE2::PartialMatch(
+      arg.str(), intrinsic_pb.static_parameter(0).value().str()));
+  return absl::OkStatus();
+}
 
 }  // namespace intrinsics
 }  // namespace generative_computing
-
-#endif  // GENERATIVE_COMPUTING_CC_RUNTIME_INTRINSICS_PROMPT_TEMPLATE_H_

@@ -69,13 +69,12 @@ message Computation {
     // DEPRECATED CONSTRUCTS, TO BE REMOVED SHORTLY AS A PART OF CLEANUP
     // TODO(b/295013978): Replace all below with the newly added more generic
     // set of simpler abstractions.
-    Model model = 9;
     Fallback fallback = 11;
     Conditional conditional = 12;
     // END OF DEPRECATED CONSTRUCTS
   }
 
-  reserved 2, 10;
+  reserved 2, 9, 10;
 
   // NEXT ID: 15
 }
@@ -268,14 +267,6 @@ message Value {
 
 // TODO(b/295013978): Replace all below with the newly added more generic
 // set of simpler abstractions.
-
-message Model {
-  ModelId model_id = 1;
-}
-
-message ModelId {
-  string uri = 1;
-}
 
 message Fallback {
   repeated Computation candidate = 1;

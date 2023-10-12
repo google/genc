@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#ifndef GENERATIVE_COMPUTING_CC_RUNTIME_INTRINSICS_H_
-#define GENERATIVE_COMPUTING_CC_RUNTIME_INTRINSICS_H_
+#ifndef GENERATIVE_COMPUTING_CC_INTRINSICS_H_
+#define GENERATIVE_COMPUTING_CC_INTRINSICS_H_
 
 #include "absl/strings/string_view.h"
 
@@ -66,5 +66,4 @@ inline constexpr absl::string_view kRegexPartialMatch = "regex_partial_match";
 }  // namespace intrinsics
 }  // namespace generative_computing
 
-
-#endif  // GENERATIVE_COMPUTING_CC_RUNTIME_INTRINSICS_H_
+#endif  // GENERATIVE_COMPUTING_CC_INTRINSICS_H_

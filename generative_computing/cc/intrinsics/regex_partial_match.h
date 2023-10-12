@@ -13,13 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#ifndef GENERATIVE_COMPUTING_CC_RUNTIME_INTRINSICS_REGEX_PARTIAL_MATCH_H_
-#define GENERATIVE_COMPUTING_CC_RUNTIME_INTRINSICS_REGEX_PARTIAL_MATCH_H_
+#ifndef GENERATIVE_COMPUTING_CC_INTRINSICS_REGEX_PARTIAL_MATCH_H_
+#define GENERATIVE_COMPUTING_CC_INTRINSICS_REGEX_PARTIAL_MATCH_H_
 
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
+#include "generative_computing/cc/intrinsics/intrinsics.h"
 #include "generative_computing/cc/runtime/intrinsic_handler.h"
-#include "generative_computing/cc/runtime/intrinsics/intrinsics.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 
 namespace generative_computing {
@@ -41,4 +41,4 @@ class RegexPartialMatch : public IntrinsicHandler {
 }  // namespace intrinsics
 }  // namespace generative_computing
 
-#endif  // GENERATIVE_COMPUTING_CC_RUNTIME_INTRINSICS_REGEX_PARTIAL_MATCH_H_
+#endif  // GENERATIVE_COMPUTING_CC_INTRINSICS_REGEX_PARTIAL_MATCH_H_

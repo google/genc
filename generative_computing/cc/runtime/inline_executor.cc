@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include "generative_computing/cc/runtime/model_executor.h"
+#include "generative_computing/cc/runtime/inline_executor.h"
 
 #include <cstdint>
 #include <future>  // NOLINT
@@ -25,15 +25,11 @@ limitations under the License
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
-#include "generative_computing/cc/intrinsics/model_inference.h"
-#include "generative_computing/cc/intrinsics/prompt_template.h"
-#include "generative_computing/cc/intrinsics/regex_partial_match.h"
 #include "generative_computing/cc/runtime/executor.h"
 #include "generative_computing/cc/runtime/intrinsic_handler.h"
 #include "generative_computing/cc/runtime/status_macros.h"
 #include "generative_computing/cc/runtime/threading.h"
 #include "generative_computing/proto/v0/computation.pb.h"
-#include "generative_computing/proto/v0/executor.pb.h"
 
 namespace generative_computing {
 namespace {
@@ -60,25 +56,16 @@ class ExecutorValue {
 
 using ValueFuture = std::shared_future<absl::StatusOr<ExecutorValue>>;
 
-// Executor that specializes in handling interactions with a model calls (i.e.,
-// that only handles the `Model` computations as defined in the
-// `computation.proto`, and routes to the appropriate model backends depending
-// on the model declared).
-class ModelExecutor : public ExecutorBase<ValueFuture> {
+// Executor that specializes in handling inline intrinsics.
+class InlineExecutor : public ExecutorBase<ValueFuture> {
  public:
-  explicit ModelExecutor(
-      const intrinsics::ModelInference::InferenceMap& inference_map)
-      : thread_pool_(nullptr), intrinsic_handlers_() {
-    intrinsic_handlers_.AddHandler(
-        new intrinsics::ModelInference(inference_map));
-    intrinsic_handlers_.AddHandler(new intrinsics::PromptTemplate());
-    intrinsic_handlers_.AddHandler(new intrinsics::RegexPartialMatch());
-  }
+  explicit InlineExecutor(std::shared_ptr<IntrinsicHandlerSet> handler_set)
+      : thread_pool_(nullptr), intrinsic_handlers_(std::move(handler_set)) {}
 
-  ~ModelExecutor() override { ClearTracked(); }
+  ~InlineExecutor() override { ClearTracked(); }
 
   absl::string_view ExecutorName() final {
-    static constexpr absl::string_view kExecutorName = "ModelExecutor";
+    static constexpr absl::string_view kExecutorName = "InlineExecutor";
     return kExecutorName;
   }
 
@@ -118,9 +105,8 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
                     fn.value().computation().DebugString()));
           }
           std::shared_ptr<v0::Value> result = std::make_shared<v0::Value>();
-          GENC_TRY(intrinsic_handlers_.ExecuteCall(
-              fn.value().computation().intrinsic(), arg.value(), nullptr,
-              result.get()));
+          GENC_TRY(intrinsic_handlers_->ExecuteCall(
+              fn.value().computation().intrinsic(), arg.value(), result.get()));
           return ExecutorValue(result);
         },
         thread_pool_);
@@ -138,21 +124,14 @@ class ModelExecutor : public ExecutorBase<ValueFuture> {
 
  private:
   ThreadPool* const thread_pool_;
-  IntrinsicHandlerSet intrinsic_handlers_;
+  const std::shared_ptr<IntrinsicHandlerSet> intrinsic_handlers_;
 };
 
 }  // namespace
 
-absl::StatusOr<std::shared_ptr<Executor>> CreateModelExecutor() {
-  // TODO(b/295260921): Rename this to CreateEmptyModelExecutor or delete.
-  // Reduce factory fns to eliminate complexity.
-  return std::make_shared<ModelExecutor>(
-      intrinsics::ModelInference::InferenceMap({}));
-}
-
-absl::StatusOr<std::shared_ptr<Executor>> CreateModelExecutorWithInferenceMap(
-    const intrinsics::ModelInference::InferenceMap& inference_map) {
-  return std::make_shared<ModelExecutor>(inference_map);
+absl::StatusOr<std::shared_ptr<Executor>> CreateInlineExecutor(
+    std::shared_ptr<IntrinsicHandlerSet> handler_set) {
+  return std::make_shared<InlineExecutor>(std::move(handler_set));
 }
 
 }  // namespace generative_computing

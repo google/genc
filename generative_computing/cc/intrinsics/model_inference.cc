@@ -35,10 +35,9 @@ absl::Status ModelInference::CheckWellFormed(
   return absl::OkStatus();
 }
 
-absl::Status ModelInference::ExecuteCall(
-    const v0::Intrinsic& intrinsic_pb, const v0::Value& arg,
-    const IntrinsicCallContext* call_context_or_nullptr,
-    v0::Value* result) const {
+absl::Status ModelInference::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
+                                         const v0::Value& arg,
+                                         v0::Value* result) const {
   if (!arg.has_str()) {
     return absl::InvalidArgumentError("Argument is not a string.");
   }

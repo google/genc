@@ -24,14 +24,14 @@ limitations under the License
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
-#include "generative_computing/cc/intrinsics/intrinsics.h"
+#include "generative_computing/cc/intrinsics/intrinsic_uris.h"
 #include "generative_computing/cc/runtime/intrinsic_handler.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 
 namespace generative_computing {
 namespace intrinsics {
 
-class ModelInference : public IntrinsicHandler {
+class ModelInference : public InlineIntrinsicHandlerBase {
  public:
   typedef std::function<absl::StatusOr<std::string>(absl::string_view)>
       InferenceFn;
@@ -39,15 +39,14 @@ class ModelInference : public IntrinsicHandler {
   typedef absl::flat_hash_map<std::string, InferenceFn> InferenceMap;
 
   ModelInference(const InferenceMap& inference_map)
-      : inference_map_(inference_map) {}
+      : InlineIntrinsicHandlerBase(kModelInference),
+        inference_map_(inference_map) {}
 
   virtual ~ModelInference() {}
 
-  absl::string_view uri() const final { return kModelInference; }
   absl::Status CheckWellFormed(const v0::Intrinsic& intrinsic_pb) const final;
   absl::Status ExecuteCall(const v0::Intrinsic& intrinsic_pb,
                            const v0::Value& arg,
-                           const IntrinsicCallContext* call_context_or_nullptr,
                            v0::Value* result) const final;
 
  private:

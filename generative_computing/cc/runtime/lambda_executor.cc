@@ -31,7 +31,7 @@ limitations under the License
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
-#include "generative_computing/cc/intrinsics/intrinsics.h"
+#include "generative_computing/cc/intrinsics/intrinsic_uris.h"
 #include "generative_computing/cc/runtime/executor.h"
 #include "generative_computing/cc/runtime/status_macros.h"
 #include "generative_computing/proto/v0/computation.pb.h"

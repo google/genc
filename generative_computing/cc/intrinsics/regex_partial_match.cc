@@ -32,10 +32,9 @@ absl::Status RegexPartialMatch::CheckWellFormed(
   return absl::OkStatus();
 }
 
-absl::Status RegexPartialMatch::ExecuteCall(
-    const v0::Intrinsic& intrinsic_pb, const v0::Value& arg,
-    const IntrinsicCallContext* call_context_or_nullptr,
-    v0::Value* result) const {
+absl::Status RegexPartialMatch::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
+                                            const v0::Value& arg,
+                                            v0::Value* result) const {
   result->set_boolean(RE2::PartialMatch(
       arg.str(), intrinsic_pb.static_parameter(0).value().str()));
   return absl::OkStatus();

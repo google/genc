@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include "generative_computing/cc/runtime/model_executor.h"
+#include "generative_computing/cc/runtime/inline_executor.h"
 
 #include <memory>
 #include <string>
@@ -24,7 +24,8 @@ limitations under the License
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "generative_computing/cc/authoring/computation_utils.h"
-#include "generative_computing/cc/intrinsics/intrinsics.h"
+#include "generative_computing/cc/intrinsics/handler_sets.h"
+#include "generative_computing/cc/intrinsics/intrinsic_uris.h"
 #include "generative_computing/cc/intrinsics/model_inference.h"
 #include "generative_computing/cc/runtime/executor.h"
 #include "generative_computing/proto/v0/computation.pb.h"
@@ -33,10 +34,10 @@ limitations under the License
 namespace generative_computing {
 namespace {
 
-class ModelExecutorTest : public ::testing::Test {
+class InlineExecutorTest : public ::testing::Test {
  protected:
-  ModelExecutorTest() {}
-  ~ModelExecutorTest() override {}
+  InlineExecutorTest() {}
+  ~InlineExecutorTest() override {}
 
   // TODO(b/295260921): This needs to test a setup with multiple executors that
   // handle models for various URI prefixes, that calls are routed to an
@@ -44,9 +45,9 @@ class ModelExecutorTest : public ::testing::Test {
   // result in an error.
 };
 
-TEST_F(ModelExecutorTest, TestModel) {
+TEST_F(InlineExecutorTest, TestModel) {
   absl::StatusOr<std::shared_ptr<Executor>> executor =
-      generative_computing::CreateModelExecutor();
+      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({}));
   EXPECT_TRUE(executor.ok());
 
   v0::Value fn_pb;
@@ -71,13 +72,13 @@ TEST_F(ModelExecutorTest, TestModel) {
             "This is an output from a test model in response to \"Boo!\".");
 }
 
-TEST_F(ModelExecutorTest, TestModelWithInferenceFn) {
+TEST_F(InlineExecutorTest, TestModelWithInferenceFn) {
   intrinsics::ModelInference::InferenceMap inference_map;
   inference_map["test_inference_fn"] = [](absl::string_view arg) {
     return absl::StrCat("Testing inference fn with arg: ", arg);
   };
   absl::StatusOr<std::shared_ptr<Executor>> executor =
-      generative_computing::CreateModelExecutorWithInferenceMap(inference_map);
+      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet(inference_map));
   EXPECT_TRUE(executor.ok());
 
   v0::Value fn_pb;
@@ -101,9 +102,9 @@ TEST_F(ModelExecutorTest, TestModelWithInferenceFn) {
   EXPECT_EQ(result.str(), "Testing inference fn with arg: Boo!");
 }
 
-TEST_F(ModelExecutorTest, PromptTemplate) {
+TEST_F(InlineExecutorTest, PromptTemplate) {
   absl::StatusOr<std::shared_ptr<Executor>> executor =
-      generative_computing::CreateModelExecutor();
+      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({}));
   EXPECT_TRUE(executor.ok());
 
   v0::Value fn_pb;

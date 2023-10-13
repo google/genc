@@ -27,34 +27,78 @@ limitations under the License
 
 namespace generative_computing {
 
-// Represents the execution context for an intrinsic call.
-class IntrinsicCallContext {};
-
 // Defines a handler for a single intrinsic, to be used by executors in the
 // runtime stack.
 class IntrinsicHandler {
  public:
+  enum InterfaceType { INLINE, CONTROL_FLOW };
+
   // Returns the URI of the intrinsic implemented by this handler.
   virtual absl::string_view uri() const = 0;
+
+  // Returns the type of the interface implemented by this handler.
+  virtual InterfaceType interface_type() const = 0;
 
   // Checks that the definition of the intrinsic is well-formed, e.g., that
   // the static parameters are defined correctly.
   virtual absl::Status CheckWellFormed(
       const v0::Intrinsic& intrinsic_pb) const = 0;
 
-  // Implements the call of this intrinsic. The supplied call context is owned
-  // by the caller. It may be null, or its methods may be unimplemented if the
-  // call context is not present durign the call.
-  virtual absl::Status ExecuteCall(
-      const v0::Intrinsic& intrinsic_pb, const v0::Value& arg,
-      const IntrinsicCallContext* call_context_or_nullptr,
-      v0::Value* result) const = 0;
-
   virtual ~IntrinsicHandler() {}
 };
 
+// An interface implemented by handlers of the `INLINE` interface type.
+class InlineIntrinsicHandlerInterface {
+ public:
+  virtual absl::Status ExecuteCall(const v0::Intrinsic& intrinsic_pb,
+                                   const v0::Value& arg,
+                                   v0::Value* result) const = 0;
+
+  virtual ~InlineIntrinsicHandlerInterface() {}
+};
+
+// Represents the execution context for a control flow intrinsic.
+class ControlFlowIntrinsicCallContext {
+ public:
+  virtual ~ControlFlowIntrinsicCallContext() {}
+};
+
+// An interface implemented by handlers of the `CONTROL_FLOW` interface type.
+class ControlFlowIntrinsicHandlerInterface {
+ public:
+  virtual ~ControlFlowIntrinsicHandlerInterface() {}
+};
+
+// Base class for inline intrinsic handlers.
+class InlineIntrinsicHandlerBase : public IntrinsicHandler,
+                                   public InlineIntrinsicHandlerInterface {
+ public:
+  InlineIntrinsicHandlerBase(absl::string_view uri) : uri_(uri) {}
+
+  absl::string_view uri() const { return uri_; }
+  InterfaceType interface_type() const { return InterfaceType::INLINE; }
+
+ private:
+  const std::string uri_;
+};
+
+// Base class for control flow intrinsic handlers.
+class ControlFlowIntrinsicHandlerBase
+    : public IntrinsicHandler,
+      public ControlFlowIntrinsicHandlerInterface {
+ public:
+  ControlFlowIntrinsicHandlerBase(absl::string_view uri) : uri_(uri) {}
+
+  absl::string_view uri() const { return uri_; }
+  InterfaceType interface_type() const { return InterfaceType::CONTROL_FLOW; }
+
+ private:
+  const std::string uri_;
+};
+
 // Represents a set of intrinsic handlers.
-class IntrinsicHandlerSet {
+class IntrinsicHandlerSet : public InlineIntrinsicHandlerInterface,
+                            public ControlFlowIntrinsicHandlerInterface {
  public:
   IntrinsicHandlerSet() : handlers_lock_(absl::kConstInit), handlers_() {}
 
@@ -64,14 +108,12 @@ class IntrinsicHandlerSet {
 
   // Routes the `ExecuteCall` to the appropriate handler in the set.
   absl::Status ExecuteCall(const v0::Intrinsic& intrinsic_pb,
-                           const v0::Value& arg,
-                           const IntrinsicCallContext* call_context_or_nullptr,
-                           v0::Value* result);
+                           const v0::Value& arg, v0::Value* result) const;
 
   ~IntrinsicHandlerSet();
 
  private:
-  absl::Mutex handlers_lock_;
+  mutable absl::Mutex handlers_lock_;
   absl::flat_hash_map<std::string, const IntrinsicHandler*> handlers_;
 };
 

@@ -13,7 +13,7 @@
 # limitations under the License.
 """Libraries for constructing computations."""
 
-from generative_computing.cc.runtime.executor_bindings import intrinsics
+from generative_computing.cc.intrinsics import intrinsic_bindings
 from generative_computing.proto.v0 import computation_pb2 as pb
 
 
@@ -28,7 +28,7 @@ def create_model(model_uri):
   """
   return pb.Computation(
       intrinsic=pb.Intrinsic(
-          uri=intrinsics.MODEL_INFERENCE,
+          uri=intrinsic_bindings.intrinsics.MODEL_INFERENCE,
           static_parameter=[
               pb.Intrinsic.StaticParameter(
                   name='model_uri', value=pb.Value(str=model_uri)
@@ -49,7 +49,7 @@ def create_prompt_template(template_str):
   """
   return pb.Computation(
       intrinsic=pb.Intrinsic(
-          uri=intrinsics.PROMPT_TEMPLATE,
+          uri=intrinsic_bindings.intrinsics.PROMPT_TEMPLATE,
           static_parameter=[
               pb.Intrinsic.StaticParameter(
                   name='template_string',
@@ -67,7 +67,7 @@ def create_regex_partial_match(pattern_string):
   """
   return pb.Computation(
       intrinsic=pb.Intrinsic(
-          uri=intrinsics.REGEX_PARTIAL_MATCH,
+          uri=intrinsic_bindings.intrinsics.REGEX_PARTIAL_MATCH,
           static_parameter=[
               pb.Intrinsic.StaticParameter(
                   name='pattern_string',
@@ -180,7 +180,7 @@ def create_fallback(function_list):
             name='candidate_fn', value=pb.Value(computation=comp)))
   return pb.Computation(
       intrinsic=pb.Intrinsic(
-          uri=intrinsics.FALLBACK,
+          uri=intrinsic_bindings.intrinsics.FALLBACK,
           static_parameter=static_parameters))
 
 
@@ -200,7 +200,7 @@ def create_conditional(condition, positive_branch, negative_branch):
   """
   conditional = pb.Computation(
       intrinsic=pb.Intrinsic(
-          uri=intrinsics.CONDITIONAL,
+          uri=intrinsic_bindings.intrinsics.CONDITIONAL,
           static_parameter=[
               pb.Intrinsic.StaticParameter(
                   name='then', value=pb.Value(computation=positive_branch)

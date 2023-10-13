@@ -18,16 +18,22 @@ limitations under the License
 #include <memory>
 
 #include "absl/status/statusor.h"
+#include "generative_computing/cc/intrinsics/handler_sets.h"
 #include "generative_computing/cc/runtime/executor.h"
+#include "generative_computing/cc/runtime/inline_executor.h"
+#include "generative_computing/cc/runtime/intrinsic_handler.h"
 #include "generative_computing/cc/runtime/lambda_executor.h"
-#include "generative_computing/cc/runtime/model_executor.h"
 #include "generative_computing/cc/runtime/status_macros.h"
 
 namespace generative_computing {
 
+absl::StatusOr<std::shared_ptr<Executor>> CreateLocalExecutor(
+    std::shared_ptr<IntrinsicHandlerSet> handler_set) {
+  return CreateLambdaExecutor(GENC_TRY(CreateInlineExecutor(handler_set)));
+}
+
 absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultLocalExecutor() {
-  return generative_computing::CreateLambdaExecutor(
-      GENC_TRY(generative_computing::CreateModelExecutor()));
+  return CreateLocalExecutor(intrinsics::CreateCompleteHandlerSet({}));
 }
 
 }  // namespace generative_computing

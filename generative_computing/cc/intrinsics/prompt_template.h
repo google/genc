@@ -18,23 +18,21 @@ limitations under the License
 
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
-#include "generative_computing/cc/intrinsics/intrinsics.h"
+#include "generative_computing/cc/intrinsics/intrinsic_uris.h"
 #include "generative_computing/cc/runtime/intrinsic_handler.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 
 namespace generative_computing {
 namespace intrinsics {
 
-class PromptTemplate : public IntrinsicHandler {
+class PromptTemplate : public InlineIntrinsicHandlerBase {
  public:
-  PromptTemplate() {}
+  PromptTemplate() : InlineIntrinsicHandlerBase(kPromptTemplate) {}
   virtual ~PromptTemplate() {}
 
-  absl::string_view uri() const final { return kPromptTemplate; }
   absl::Status CheckWellFormed(const v0::Intrinsic& intrinsic_pb) const final;
   absl::Status ExecuteCall(const v0::Intrinsic& intrinsic_pb,
                            const v0::Value& arg,
-                           const IntrinsicCallContext* call_context_or_nullptr,
                            v0::Value* result) const final;
 };
 

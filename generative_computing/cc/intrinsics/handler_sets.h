@@ -12,3 +12,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
+
+#ifndef GENERATIVE_COMPUTING_CC_INTRINSICS_HANDLER_SETS_H_
+#define GENERATIVE_COMPUTING_CC_INTRINSICS_HANDLER_SETS_H_
+
+#include <memory>
+
+#include "generative_computing/cc/intrinsics/model_inference.h"
+#include "generative_computing/cc/runtime/intrinsic_handler.h"
+
+namespace generative_computing {
+namespace intrinsics {
+
+// Construct a new handler set.
+std::shared_ptr<IntrinsicHandlerSet> CreateCompleteHandlerSet(
+    const ModelInference::InferenceMap& inference_map);
+
+}  // namespace intrinsics
+}  // namespace generative_computing
+
+#endif  // GENERATIVE_COMPUTING_CC_INTRINSICS_HANDLER_SETS_H_

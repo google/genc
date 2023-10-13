@@ -1,3 +1,5 @@
+load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
+
 package(
     default_visibility = ["//visibility:public"],
 )
@@ -5,9 +7,35 @@ package(
 licenses(["notice"])
 
 cc_library(
-    name = "intrinsics",
-    srcs = ["intrinsics.cc"],
-    hdrs = ["intrinsics.h"],
+    name = "handler_sets",
+    srcs = ["handler_sets.cc"],
+    hdrs = ["handler_sets.h"],
+    deps = [
+        ":model_inference",
+        ":prompt_template",
+        ":regex_partial_match",
+        "//generative_computing/cc/runtime:intrinsic_handler",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+pybind_extension(
+    name = "intrinsic_bindings",
+    srcs = ["intrinsic_bindings.cc"],
+    tags = ["generated_py_module=generative_computing.intrinsics"],
+    deps = [
+        ":intrinsic_uris",
+        "@com_google_absl//absl/strings",
+        "@pybind11_abseil//pybind11_abseil:absl_casters",
+        "@pybind11_abseil//pybind11_abseil:status_casters",
+        "@pybind11_protobuf//pybind11_protobuf:native_proto_caster",
+    ],
+)
+
+cc_library(
+    name = "intrinsic_uris",
+    srcs = [],
+    hdrs = ["intrinsic_uris.h"],
     deps = ["@com_google_absl//absl/strings"],
 )
 
@@ -16,7 +44,7 @@ cc_library(
     srcs = ["model_inference.cc"],
     hdrs = ["model_inference.h"],
     deps = [
-        ":intrinsics",
+        ":intrinsic_uris",
         "//generative_computing/cc/runtime:intrinsic_handler",
         "//generative_computing/cc/runtime:status_macros",
         "//generative_computing/proto/v0:computation_cc_proto",
@@ -33,7 +61,7 @@ cc_library(
     srcs = ["prompt_template.cc"],
     hdrs = ["prompt_template.h"],
     deps = [
-        ":intrinsics",
+        ":intrinsic_uris",
         "//generative_computing/cc/runtime:intrinsic_handler",
         "//generative_computing/proto/v0:computation_cc_proto",
         "@com_github_google_re2//:re2",
@@ -47,7 +75,7 @@ cc_library(
     srcs = ["regex_partial_match.cc"],
     hdrs = ["regex_partial_match.h"],
     deps = [
-        ":intrinsics",
+        ":intrinsic_uris",
         "//generative_computing/cc/runtime:intrinsic_handler",
         "//generative_computing/proto/v0:computation_cc_proto",
         "@com_github_google_re2//:re2",

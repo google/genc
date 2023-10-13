@@ -13,30 +13,27 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#ifndef GENERATIVE_COMPUTING_CC_INTRINSICS_REGEX_PARTIAL_MATCH_H_
-#define GENERATIVE_COMPUTING_CC_INTRINSICS_REGEX_PARTIAL_MATCH_H_
+#include "generative_computing/cc/intrinsics/handler_sets.h"
 
-#include "absl/status/status.h"
-#include "absl/strings/string_view.h"
-#include "generative_computing/cc/intrinsics/intrinsic_uris.h"
+#include <memory>
+
+#include "generative_computing/cc/intrinsics/model_inference.h"
+#include "generative_computing/cc/intrinsics/prompt_template.h"
+#include "generative_computing/cc/intrinsics/regex_partial_match.h"
 #include "generative_computing/cc/runtime/intrinsic_handler.h"
-#include "generative_computing/proto/v0/computation.pb.h"
 
 namespace generative_computing {
 namespace intrinsics {
 
-class RegexPartialMatch : public InlineIntrinsicHandlerBase {
- public:
-  RegexPartialMatch() : InlineIntrinsicHandlerBase(kRegexPartialMatch) {}
-  virtual ~RegexPartialMatch() {}
-
-  absl::Status CheckWellFormed(const v0::Intrinsic& intrinsic_pb) const final;
-  absl::Status ExecuteCall(const v0::Intrinsic& intrinsic_pb,
-                           const v0::Value& arg,
-                           v0::Value* result) const final;
-};
+std::shared_ptr<IntrinsicHandlerSet> CreateCompleteHandlerSet(
+    const ModelInference::InferenceMap& inference_map) {
+  const std::shared_ptr<IntrinsicHandlerSet> handlers =
+      std::make_shared<IntrinsicHandlerSet>();
+  handlers->AddHandler(new intrinsics::ModelInference(inference_map));
+  handlers->AddHandler(new intrinsics::PromptTemplate());
+  handlers->AddHandler(new intrinsics::RegexPartialMatch());
+  return handlers;
+}
 
 }  // namespace intrinsics
 }  // namespace generative_computing
-
-#endif  // GENERATIVE_COMPUTING_CC_INTRINSICS_REGEX_PARTIAL_MATCH_H_

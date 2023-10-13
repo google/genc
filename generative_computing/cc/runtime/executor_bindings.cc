@@ -32,11 +32,9 @@ limitations under the License
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
-#include "generative_computing/cc/intrinsics/intrinsics.h"
 #include "generative_computing/cc/runtime/executor.h"
 #include "generative_computing/cc/runtime/executor_stacks.h"
 #include "generative_computing/proto/v0/computation.pb.h"
-#include "generative_computing/proto/v0/executor.pb.h"
 #include "include/pybind11/cast.h"
 #include "include/pybind11/detail/common.h"
 #include "include/pybind11/pybind11.h"
@@ -116,15 +114,6 @@ PYBIND11_MODULE(executor_bindings, m) {
   // Executor construction methods.
   m.def("create_default_local_executor", &CreateDefaultLocalExecutor,
         "Creates a defaul local executor.");
-
-  // Intrinsics.
-  auto intrinsics = m.def_submodule("intrinsics");
-  intrinsics.attr("CONDITIONAL") = py::str(intrinsics::kConditional);
-  intrinsics.attr("FALLBACK") = py::str(intrinsics::kFallback);
-  intrinsics.attr("MODEL_INFERENCE") = py::str(intrinsics::kModelInference);
-  intrinsics.attr("PROMPT_TEMPLATE") = py::str(intrinsics::kPromptTemplate);
-  intrinsics.attr("REGEX_PARTIAL_MATCH") =
-      py::str(intrinsics::kRegexPartialMatch);
 }
 
 }  // namespace

@@ -20,10 +20,15 @@ limitations under the License
 
 #include "absl/status/statusor.h"
 #include "generative_computing/cc/runtime/executor.h"
+#include "generative_computing/cc/runtime/intrinsic_handler.h"
 
 namespace generative_computing {
 
-// Returns an executor that performs local processing.
+// Constructs a local executor for a given set of intrinsic handlers.
+absl::StatusOr<std::shared_ptr<Executor>> CreateLocalExecutor(
+    std::shared_ptr<IntrinsicHandlerSet> handler_set);
+
+// Returns an executor that performs local processing in-process.
 absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultLocalExecutor();
 
 }  // namespace generative_computing

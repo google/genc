@@ -35,10 +35,9 @@ absl::Status PromptTemplate::CheckWellFormed(
   return absl::OkStatus();
 }
 
-absl::Status PromptTemplate::ExecuteCall(
-    const v0::Intrinsic& intrinsic_pb, const v0::Value& arg,
-    const IntrinsicCallContext* call_context_or_nullptr,
-    v0::Value* result) const {
+absl::Status PromptTemplate::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
+                                         const v0::Value& arg,
+                                         v0::Value* result) const {
   // TODO(b/295041950): Add support for handling prompt templates with
   // multiple arguments, not just a single string (so the argument can
   // in general be a struct with multiple values, not just one).

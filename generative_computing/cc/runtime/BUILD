@@ -47,9 +47,7 @@ pybind_extension(
     deps = [
         ":executor",
         ":executor_stacks",
-        "//generative_computing/cc/intrinsics",
         "//generative_computing/proto/v0:computation_cc_proto",
-        "//generative_computing/proto/v0:executor_cc_proto",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
@@ -65,9 +63,11 @@ cc_library(
     hdrs = ["executor_stacks.h"],
     deps = [
         ":executor",
+        ":inline_executor",
+        ":intrinsic_handler",
         ":lambda_executor",
-        ":model_executor",
         ":status_macros",
+        "//generative_computing/cc/intrinsics:handler_sets",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
     ],
@@ -81,6 +81,45 @@ cc_test(
         ":executor",
         ":executor_stacks",
         "@com_google_absl//absl/status:statusor",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "inline_executor",
+    srcs = ["inline_executor.cc"],
+    hdrs = ["inline_executor.h"],
+    deps = [
+        ":executor",
+        ":intrinsic_handler",
+        ":status_macros",
+        ":threading",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "//generative_computing/proto/v0:executor_cc_proto",
+        "@com_github_google_re2//:re2",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_test(
+    name = "inline_executor_test",
+    timeout = "short",
+    srcs = ["inline_executor_test.cc"],
+    deps = [
+        ":executor",
+        ":inline_executor",
+        "//generative_computing/cc/authoring:computation_utils",
+        "//generative_computing/cc/intrinsics:handler_sets",
+        "//generative_computing/cc/intrinsics:intrinsic_uris",
+        "//generative_computing/cc/intrinsics:model_inference",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "//generative_computing/proto/v0:executor_cc_proto",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -108,7 +147,7 @@ cc_library(
     deps = [
         ":executor",
         ":status_macros",
-        "//generative_computing/cc/intrinsics",
+        "//generative_computing/cc/intrinsics:intrinsic_uris",
         "//generative_computing/proto/v0:computation_cc_proto",
         "//generative_computing/proto/v0:executor_cc_proto",
         "@com_github_google_re2//:re2",
@@ -125,52 +164,10 @@ cc_test(
     srcs = ["lambda_executor_test.cc"],
     deps = [
         ":executor",
+        ":inline_executor",
         ":lambda_executor",
-        ":model_executor",
+        "//generative_computing/cc/intrinsics:handler_sets",
         "@com_google_absl//absl/status:statusor",
-        "@com_google_googletest//:gtest_main",
-    ],
-)
-
-cc_library(
-    name = "model_executor",
-    srcs = ["model_executor.cc"],
-    hdrs = ["model_executor.h"],
-    deps = [
-        ":executor",
-        ":intrinsic_handler",
-        ":status_macros",
-        ":threading",
-        "//generative_computing/cc/intrinsics",
-        "//generative_computing/cc/intrinsics:model_inference",
-        "//generative_computing/cc/intrinsics:prompt_template",
-        "//generative_computing/cc/intrinsics:regex_partial_match",
-        "//generative_computing/proto/v0:computation_cc_proto",
-        "//generative_computing/proto/v0:executor_cc_proto",
-        "@com_github_google_re2//:re2",
-        "@com_google_absl//absl/container:flat_hash_map",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
-    ],
-)
-
-cc_test(
-    name = "model_executor_test",
-    timeout = "short",
-    srcs = ["model_executor_test.cc"],
-    deps = [
-        ":executor",
-        ":model_executor",
-        "//generative_computing/cc/authoring:computation_utils",
-        "//generative_computing/cc/intrinsics",
-        "//generative_computing/cc/intrinsics:model_inference",
-        "//generative_computing/proto/v0:computation_cc_proto",
-        "//generative_computing/proto/v0:executor_cc_proto",
-        "@com_google_absl//absl/container:flat_hash_map",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",
     ],
 )

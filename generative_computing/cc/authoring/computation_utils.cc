@@ -18,7 +18,7 @@ limitations under the License
 #include <string>
 
 #include "absl/strings/string_view.h"
-#include "generative_computing/cc/intrinsics/intrinsics.h"
+#include "generative_computing/cc/intrinsics/intrinsic_uris.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 
 namespace generative_computing {

@@ -14,13 +14,14 @@
 """A class that represents a model cascade for use with LangChain APIs."""
 
 from typing import Any, List, Mapping, Optional
-import langchain
+from langchain.callbacks.manager import CallbackManagerForLLMRun  # pylint:disable=g-importing-member
+from langchain.llms.base import LLM  # pylint:disable=g-importing-member
 
 
-class ModelCascade(langchain.llms.base.LLM):
+class ModelCascade(LLM):
   """Represents a model cascade for use with LangChain APIs."""
 
-  models: List[langchain.llms.base.LLM] = []
+  models: List[LLM] = []
 
   @property
   def _llm_type(self) -> str:
@@ -32,9 +33,7 @@ class ModelCascade(langchain.llms.base.LLM):
       self,
       prompt: str,
       stop: Optional[List[str]] = None,
-      run_manager: Optional[
-          langchain.callbacks.manager.CallbackManagerForLLMRun
-      ] = None,
+      run_manager: Optional[CallbackManagerForLLMRun] = None,
       **kwargs: Any
   ) -> str:
     raise RuntimeError(

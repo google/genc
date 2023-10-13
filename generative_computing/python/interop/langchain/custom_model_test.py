@@ -14,7 +14,7 @@
 """Test for custom_model.py."""
 
 from absl.testing import absltest
-import langchain
+from langchain.llms.base import LLM  # pylint:disable=g-importing-member
 from generative_computing.python.interop.langchain import custom_model
 
 
@@ -22,7 +22,7 @@ class CustomModelTest(absltest.TestCase):
 
   def test_creation(self):
     llm = custom_model.CustomModel(uri='some_model')
-    self.assertIsInstance(llm, langchain.llms.base.LLM)
+    self.assertIsInstance(llm, LLM)
     self.assertEqual(llm.uri, 'some_model')
     self.assertEqual(llm._llm_type, 'CustomModel(some_model)')
 

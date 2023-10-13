@@ -14,7 +14,7 @@
 """Test for model_cascade.py."""
 
 from absl.testing import absltest
-import langchain
+from langchain.llms.base import LLM  # pylint:disable=g-importing-member
 from generative_computing.python.interop.langchain import custom_model
 from generative_computing.python.interop.langchain import model_cascade
 
@@ -25,7 +25,7 @@ class ModelCascadeTest(absltest.TestCase):
     llm1 = custom_model.CustomModel(uri='some_model')
     llm2 = custom_model.CustomModel(uri='some_other_model')
     llm3 = model_cascade.ModelCascade(models=[llm1, llm2])
-    self.assertIsInstance(llm3, langchain.llms.base.LLM)
+    self.assertIsInstance(llm3, LLM)
     self.assertLen(llm3.models, 2)
     self.assertEqual(
         llm3._llm_type,

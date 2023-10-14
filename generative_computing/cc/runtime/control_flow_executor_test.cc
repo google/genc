@@ -13,28 +13,34 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include "generative_computing/cc/runtime/executor_stacks.h"
+#include "generative_computing/cc/runtime/control_flow_executor.h"
 
 #include <memory>
 
+#include "googletest/include/gtest/gtest.h"
 #include "absl/status/statusor.h"
 #include "generative_computing/cc/intrinsics/handler_sets.h"
-#include "generative_computing/cc/runtime/control_flow_executor.h"
 #include "generative_computing/cc/runtime/executor.h"
 #include "generative_computing/cc/runtime/inline_executor.h"
 #include "generative_computing/cc/runtime/intrinsic_handler.h"
-#include "generative_computing/cc/runtime/status_macros.h"
 
 namespace generative_computing {
 
-absl::StatusOr<std::shared_ptr<Executor>> CreateLocalExecutor(
-    std::shared_ptr<IntrinsicHandlerSet> handler_set) {
-  return CreateControlFlowExecutor(handler_set,
-                                   GENC_TRY(CreateInlineExecutor(handler_set)));
-}
+class ControlFlowExecutorTest : public ::testing::Test {
+ protected:
+  ControlFlowExecutorTest() {}
+  ~ControlFlowExecutorTest() override {}
+};
 
-absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultLocalExecutor() {
-  return CreateLocalExecutor(intrinsics::CreateCompleteHandlerSet({}));
+TEST_F(ControlFlowExecutorTest, Simple) {
+  const std::shared_ptr<IntrinsicHandlerSet> handler_set =
+      intrinsics::CreateCompleteHandlerSet({});
+  absl::StatusOr<std::shared_ptr<Executor>> executor =
+      CreateControlFlowExecutor(handler_set,
+                                CreateInlineExecutor(handler_set).value());
+  EXPECT_TRUE(executor.ok());
+
+  // TODO(b/295041821): Pull in the tests.
 }
 
 }  // namespace generative_computing

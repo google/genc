@@ -7,6 +7,41 @@ package(
 licenses(["notice"])
 
 cc_library(
+    name = "control_flow_executor",
+    srcs = ["control_flow_executor.cc"],
+    hdrs = ["control_flow_executor.h"],
+    deps = [
+        ":executor",
+        ":intrinsic_handler",
+        ":status_macros",
+        "//generative_computing/cc/intrinsics:intrinsic_uris",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "//generative_computing/proto/v0:executor_cc_proto",
+        "@com_github_google_re2//:re2",
+        "@com_google_absl//absl/base:core_headers",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "control_flow_executor_test",
+    timeout = "short",
+    srcs = ["control_flow_executor_test.cc"],
+    deps = [
+        ":control_flow_executor",
+        ":executor",
+        ":inline_executor",
+        ":intrinsic_handler",
+        "//generative_computing/cc/intrinsics:handler_sets",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "executor",
     srcs = ["executor.cc"],
     hdrs = ["executor.h"],
@@ -62,10 +97,10 @@ cc_library(
     srcs = ["executor_stacks.cc"],
     hdrs = ["executor_stacks.h"],
     deps = [
+        ":control_flow_executor",
         ":executor",
         ":inline_executor",
         ":intrinsic_handler",
-        ":lambda_executor",
         ":status_macros",
         "//generative_computing/cc/intrinsics:handler_sets",
         "@com_google_absl//absl/status",
@@ -129,6 +164,7 @@ cc_library(
     srcs = ["intrinsic_handler.cc"],
     hdrs = ["intrinsic_handler.h"],
     deps = [
+        ":executor",
         ":status_macros",
         "//generative_computing/proto/v0:computation_cc_proto",
         "@com_google_absl//absl/base:core_headers",
@@ -137,38 +173,6 @@ cc_library(
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
-    ],
-)
-
-cc_library(
-    name = "lambda_executor",
-    srcs = ["lambda_executor.cc"],
-    hdrs = ["lambda_executor.h"],
-    deps = [
-        ":executor",
-        ":status_macros",
-        "//generative_computing/cc/intrinsics:intrinsic_uris",
-        "//generative_computing/proto/v0:computation_cc_proto",
-        "//generative_computing/proto/v0:executor_cc_proto",
-        "@com_github_google_re2//:re2",
-        "@com_google_absl//absl/base:core_headers",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
-    ],
-)
-
-cc_test(
-    name = "lambda_executor_test",
-    timeout = "short",
-    srcs = ["lambda_executor_test.cc"],
-    deps = [
-        ":executor",
-        ":inline_executor",
-        ":lambda_executor",
-        "//generative_computing/cc/intrinsics:handler_sets",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_googletest//:gtest_main",
     ],
 )
 

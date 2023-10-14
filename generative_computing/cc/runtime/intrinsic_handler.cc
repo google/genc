@@ -17,7 +17,9 @@ limitations under the License
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
 #include "generative_computing/cc/runtime/status_macros.h"
 
@@ -35,37 +37,56 @@ void IntrinsicHandlerSet::AddHandler(const IntrinsicHandler* handler) {
   handlers_[handler->uri()] = handler;
 }
 
-absl::Status IntrinsicHandlerSet::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
-                                              const v0::Value& arg,
-                                              v0::Value* result) const {
+absl::StatusOr<const IntrinsicHandler*> IntrinsicHandlerSet::GetHandler(
+    absl::string_view uri) const {
   const IntrinsicHandler* handler = nullptr;
   {
     absl::ReaderMutexLock l(&handlers_lock_);
-    auto it = handlers_.find(intrinsic_pb.uri());
+    auto it = handlers_.find(uri);
     if (it != handlers_.end()) {
       handler = it->second;
     }
   }
   if (handler == nullptr) {
     return absl::NotFoundError(
-        absl::StrCat("Could not find a handler for: ", intrinsic_pb.uri()));
+        absl::StrCat("Could not find a handler for: ", uri));
   }
-  if (handler->uri() != intrinsic_pb.uri()) {
+  if (handler->uri() != uri) {
     return absl::InternalError(
-        absl::StrCat("Wrong handler URI registered for: ", intrinsic_pb.uri()));
+        absl::StrCat("Wrong handler URI registered for: ", uri));
   }
+  return handler;
+}
+
+absl::StatusOr<const InlineIntrinsicHandlerInterface*>
+IntrinsicHandler::GetInlineInterface(const IntrinsicHandler* handler) {
   if (handler->interface_type() != IntrinsicHandler::InterfaceType::INLINE) {
-    return absl::InternalError(absl::StrCat(
-        "Wrong handler interface type registered for: ", intrinsic_pb.uri()));
+    return absl::InternalError(
+        absl::StrCat("Not an inline handler interface type: ", handler->uri()));
   }
-  GENC_TRY(handler->CheckWellFormed(intrinsic_pb));
   const InlineIntrinsicHandlerInterface* const interface =
       dynamic_cast<const InlineIntrinsicHandlerInterface*>(handler);
   if (interface == nullptr) {
     return absl::InternalError(absl::StrCat(
-        "Could not access the handler interface for: ", intrinsic_pb.uri()));
+        "Could not access the handler interface for: ", handler->uri()));
   }
-  return interface->ExecuteCall(intrinsic_pb, arg, result);
+  return interface;
+}
+
+absl::StatusOr<const ControlFlowIntrinsicHandlerInterface*>
+IntrinsicHandler::GetControlFlowInterface(const IntrinsicHandler* handler) {
+  if (handler->interface_type() !=
+      IntrinsicHandler::InterfaceType::CONTROL_FLOW) {
+    return absl::InternalError(absl::StrCat(
+        "Not a control flow handler interface type: ", handler->uri()));
+  }
+  const ControlFlowIntrinsicHandlerInterface* const interface =
+      dynamic_cast<const ControlFlowIntrinsicHandlerInterface*>(handler);
+  if (interface == nullptr) {
+    return absl::InternalError(absl::StrCat(
+        "Could not access the handler interface for: ", handler->uri()));
+  }
+  return interface;
 }
 
 }  // namespace generative_computing

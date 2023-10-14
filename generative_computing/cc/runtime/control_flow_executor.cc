@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include "generative_computing/cc/runtime/lambda_executor.h"
+#include "generative_computing/cc/runtime/control_flow_executor.h"
 
 #include <cstdint>
 #include <memory>
@@ -31,8 +31,9 @@ limitations under the License
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
-#include "generative_computing/cc/intrinsics/intrinsic_uris.h"
+#include "absl/types/span.h"
 #include "generative_computing/cc/runtime/executor.h"
+#include "generative_computing/cc/runtime/intrinsic_handler.h"
 #include "generative_computing/cc/runtime/status_macros.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 #include "generative_computing/proto/v0/executor.pb.h"
@@ -41,7 +42,7 @@ namespace generative_computing {
 namespace {
 
 class ExecutorValue;
-class LambdaExecutor;
+class ControlFlowExecutor;
 class Scope;
 
 using NamedValue = std::tuple<std::string, std::shared_ptr<ExecutorValue>>;
@@ -56,7 +57,7 @@ class ScopedLambda {
         scope_(std::move(other.scope_)) {}
 
   absl::StatusOr<std::shared_ptr<ExecutorValue>> Call(
-      const LambdaExecutor& executor,
+      const ControlFlowExecutor& executor,
       std::optional<std::shared_ptr<ExecutorValue>> arg) const;
 
   v0::Value as_value_pb() const {
@@ -73,15 +74,20 @@ class ScopedLambda {
 // An object for tracking an intrinsic that was created in a specific scope.
 class ScopedIntrinsic {
  public:
-  explicit ScopedIntrinsic(
-      v0::Intrinsic intrinsic_pb, std::shared_ptr<Scope> scope)
-      : intrinsic_pb_(std::move(intrinsic_pb)), scope_(std::move(scope)) {}
+  explicit ScopedIntrinsic(v0::Intrinsic intrinsic_pb,
+                           const IntrinsicHandler* intrinsic_handler,
+                           std::shared_ptr<Scope> scope)
+      : intrinsic_pb_(std::move(intrinsic_pb)),
+        intrinsic_handler_(intrinsic_handler),
+        scope_(std::move(scope)) {}
+
   ScopedIntrinsic(ScopedIntrinsic&& other)
       : intrinsic_pb_(std::move(other.intrinsic_pb_)),
+        intrinsic_handler_(other.intrinsic_handler_),
         scope_(std::move(other.scope_)) {}
 
   absl::StatusOr<std::shared_ptr<ExecutorValue>> Call(
-      const LambdaExecutor& executor,
+      const ControlFlowExecutor& executor,
       std::optional<std::shared_ptr<ExecutorValue>> arg) const;
 
   const v0::Intrinsic& intrinsic_pb() const {
@@ -90,6 +96,7 @@ class ScopedIntrinsic {
 
  private:
   v0::Intrinsic intrinsic_pb_;
+  const IntrinsicHandler* const intrinsic_handler_;
   std::shared_ptr<Scope> scope_;
 };
 
@@ -122,7 +129,7 @@ class Scope {
   std::optional<std::shared_ptr<Scope>> parent_;
 };
 
-// A value object for the LambdaExecutor.
+// A value object for the ControlFlowExecutor.
 class ExecutorValue {
  public:
   enum ValueType { UNKNOWN, EMBEDDED, STRUCTURE, LAMBDA, INTRINSIC };
@@ -183,14 +190,17 @@ class ExecutorValue {
       value_;
 };
 
-// Executor that specializes in handling lambda expressions, and otherwise
-// delegates all processing to a specified child executor.
-class LambdaExecutor : public ExecutorBase<std::shared_ptr<ExecutorValue>> {
+// Executor that specializes in handling lambda expressions and control flow,
+// and otherwise delegates all processing to a specified child executor.
+class ControlFlowExecutor
+    : public ExecutorBase<std::shared_ptr<ExecutorValue>> {
  public:
-  explicit LambdaExecutor(std::shared_ptr<Executor> child_executor)
-      : child_executor_(std::move(child_executor)) {}
+  explicit ControlFlowExecutor(std::shared_ptr<IntrinsicHandlerSet> handler_set,
+                               std::shared_ptr<Executor> child_executor)
+      : intrinsic_handlers_(handler_set),
+        child_executor_(std::move(child_executor)) {}
 
-  ~LambdaExecutor() override { ClearTracked(); }
+  ~ControlFlowExecutor() override { ClearTracked(); }
 
   // Evaluates a computation in the current scope.
   absl::StatusOr<std::shared_ptr<ExecutorValue>> Evaluate(
@@ -212,7 +222,7 @@ class LambdaExecutor : public ExecutorBase<std::shared_ptr<ExecutorValue>> {
 
  protected:
   absl::string_view ExecutorName() final {
-    static constexpr absl::string_view kExecutorName = "LambdaExecutor";
+    static constexpr absl::string_view kExecutorName = "ControlFlowExecutor";
     return kExecutorName;
   }
 
@@ -236,6 +246,7 @@ class LambdaExecutor : public ExecutorBase<std::shared_ptr<ExecutorValue>> {
                            v0::Value* value_pb) final;
 
  private:
+  const std::shared_ptr<IntrinsicHandlerSet> intrinsic_handlers_;
   const std::shared_ptr<Executor> child_executor_;
 
   // Converts an `ExecutorValue` into a child executor value.
@@ -261,22 +272,10 @@ class LambdaExecutor : public ExecutorBase<std::shared_ptr<ExecutorValue>> {
   absl::StatusOr<std::shared_ptr<ExecutorValue>> EvaluateSelection(
       const v0::Selection& selection_pb,
       const std::shared_ptr<Scope>& scope) const;
-
-  absl::StatusOr<std::shared_ptr<ExecutorValue>> EvaluateIntrinsic(
-      const v0::Intrinsic& intrinsic_pb,
-      const std::shared_ptr<Scope>& scope) const;
-
-  absl::StatusOr<std::shared_ptr<ExecutorValue>> EvaluateFallback(
-      const v0::Fallback& fallback_pb,
-      const std::shared_ptr<Scope>& scope) const;
-
-  absl::StatusOr<std::shared_ptr<ExecutorValue>> EvaluateConditional(
-      const v0::Conditional& conditional_pb,
-      const std::shared_ptr<Scope>& scope) const;
 };
 
 absl::StatusOr<std::shared_ptr<ExecutorValue>> ScopedLambda::Call(
-    const LambdaExecutor& executor,
+    const ControlFlowExecutor& executor,
     std::optional<std::shared_ptr<ExecutorValue>> arg) const {
   if (arg.has_value()) {
     NamedValue named_value =
@@ -329,7 +328,7 @@ std::string ExecutorValue::DebugString() const {
 }
 
 absl::StatusOr<std::shared_ptr<ExecutorValue>>
-LambdaExecutor::ConstCreateExecutorValue(const v0::Value& value_pb) const {
+ControlFlowExecutor::ConstCreateExecutorValue(const v0::Value& value_pb) const {
   switch (value_pb.value_case()) {
     case v0::Value::kStr:
     case v0::Value::kBoolean: {
@@ -350,18 +349,18 @@ LambdaExecutor::ConstCreateExecutorValue(const v0::Value& value_pb) const {
 }
 
 absl::StatusOr<std::shared_ptr<ExecutorValue>>
-LambdaExecutor::CreateExecutorValue(const v0::Value& value_pb) {
+ControlFlowExecutor::CreateExecutorValue(const v0::Value& value_pb) {
   return ConstCreateExecutorValue(value_pb);
 }
 
-absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::CreateCall(
+absl::StatusOr<std::shared_ptr<ExecutorValue>> ControlFlowExecutor::CreateCall(
     std::shared_ptr<ExecutorValue> function,
     std::optional<std::shared_ptr<ExecutorValue>> argument) {
   return ConstCreateCall(std::move(function), std::move(argument));
 }
 
 absl::StatusOr<std::shared_ptr<ExecutorValue>>
-LambdaExecutor::ConstCreateCall(
+ControlFlowExecutor::ConstCreateCall(
     std::shared_ptr<ExecutorValue> function,
     std::optional<std::shared_ptr<ExecutorValue>> argument) const {
   switch (function->type()) {
@@ -391,19 +390,21 @@ LambdaExecutor::ConstCreateCall(
   }
 }
 
-absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::CreateStruct(
+absl::StatusOr<std::shared_ptr<ExecutorValue>>
+ControlFlowExecutor::CreateStruct(
     std::vector<std::shared_ptr<ExecutorValue>> members) {
   return std::make_shared<ExecutorValue>(std::move(members));
 }
 
-absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::CreateSelection(
-    std::shared_ptr<ExecutorValue> value, const uint32_t index) {
+absl::StatusOr<std::shared_ptr<ExecutorValue>>
+ControlFlowExecutor::CreateSelection(std::shared_ptr<ExecutorValue> value,
+                                     const uint32_t index) {
   return CreateSelectionInternal(std::move(value), index);
 }
 
 absl::StatusOr<std::shared_ptr<ExecutorValue>>
-LambdaExecutor::CreateSelectionInternal(std::shared_ptr<ExecutorValue> source,
-                                        const uint32_t index) const {
+ControlFlowExecutor::CreateSelectionInternal(
+    std::shared_ptr<ExecutorValue> source, const uint32_t index) const {
   switch (source->type()) {
     case ExecutorValue::ValueType::EMBEDDED: {
       const OwnedValueId& child_id = source->embedded();
@@ -433,19 +434,19 @@ LambdaExecutor::CreateSelectionInternal(std::shared_ptr<ExecutorValue> source,
   }
 }
 
-absl::Status LambdaExecutor::Materialize(std::shared_ptr<ExecutorValue> value,
-                                         v0::Value* value_pb) {
+absl::Status ControlFlowExecutor::Materialize(
+    std::shared_ptr<ExecutorValue> value, v0::Value* value_pb) {
   return ConstMaterialize(std::move(value), value_pb);
 }
 
-absl::Status LambdaExecutor::ConstMaterialize(
+absl::Status ControlFlowExecutor::ConstMaterialize(
     std::shared_ptr<ExecutorValue> value, v0::Value* value_pb) const {
   std::optional<OwnedValueId> slot;
   ValueId child_value_id = GENC_TRY(Embed(*value, &slot));
   return child_executor_->Materialize(child_value_id, value_pb);
 }
 
-absl::StatusOr<ValueId> LambdaExecutor::Embed(
+absl::StatusOr<ValueId> ControlFlowExecutor::Embed(
     const ExecutorValue& value, std::optional<OwnedValueId>* slot) const {
   switch (value.type()) {
     case ExecutorValue::ValueType::EMBEDDED: {
@@ -484,7 +485,7 @@ absl::StatusOr<ValueId> LambdaExecutor::Embed(
   }
 }
 
-absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::Evaluate(
+absl::StatusOr<std::shared_ptr<ExecutorValue>> ControlFlowExecutor::Evaluate(
     const v0::Computation& computation_pb,
     const std::shared_ptr<Scope>& scope) const {
   switch (computation_pb.computation_case()) {
@@ -506,20 +507,19 @@ absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::Evaluate(
     case v0::Computation::kLambda: {
       return EvaluateLambda(computation_pb.lambda(), scope);
     }
-    case v0::Computation::kFallback: {
-      return EvaluateFallback(computation_pb.fallback(), scope);
-    }
-    case v0::Computation::kConditional: {
-      return EvaluateConditional(computation_pb.conditional(), scope);
-    }
     case v0::Computation::kIntrinsic: {
-      // TODO(b/295015950): Clean this up by consolidating intrinsic handling
-      // in one place behind an interop API.
-      if ((computation_pb.intrinsic().uri() == intrinsics::kConditional) ||
-          (computation_pb.intrinsic().uri() == intrinsics::kFallback)) {
-        return EvaluateIntrinsic(computation_pb.intrinsic(), scope);
+      const v0::Intrinsic& intr_pb = computation_pb.intrinsic();
+      const IntrinsicHandler* const handler =
+          GENC_TRY(intrinsic_handlers_->GetHandler(intr_pb.uri()));
+      GENC_TRY(handler->CheckWellFormed(intr_pb));
+      if (handler->interface_type() == IntrinsicHandler::CONTROL_FLOW) {
+        GENC_TRY(handler->CheckWellFormed(intr_pb));
+        return std::make_shared<ExecutorValue>(
+            ScopedIntrinsic{intr_pb, handler, scope});
+      } else {
+        // Non control-flow intrinsics must be handled by the child executor.
+        ABSL_FALLTHROUGH_INTENDED;
       }
-      ABSL_FALLTHROUGH_INTENDED;
     }
     default: {
       v0::Value child_value_pb;
@@ -530,8 +530,9 @@ absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::Evaluate(
   }
 }
 
-absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::EvaluateBlock(
-    const v0::Block& block_pb, const std::shared_ptr<Scope>& scope) const {
+absl::StatusOr<std::shared_ptr<ExecutorValue>>
+ControlFlowExecutor::EvaluateBlock(const v0::Block& block_pb,
+                                   const std::shared_ptr<Scope>& scope) const {
   std::shared_ptr<Scope> current_scope = scope;
   auto local_pb_formatter = [](std::string* out,
                                const v0::Block::Local& local_pb) {
@@ -552,8 +553,9 @@ absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::EvaluateBlock(
 }
 
 absl::StatusOr<std::shared_ptr<ExecutorValue>>
-LambdaExecutor::EvaluateReference(const v0::Reference& reference_pb,
-                                  const std::shared_ptr<Scope>& scope) const {
+ControlFlowExecutor::EvaluateReference(
+    const v0::Reference& reference_pb,
+    const std::shared_ptr<Scope>& scope) const {
   std::shared_ptr<ExecutorValue> resolved_value =
       GENC_TRY(scope->Resolve(reference_pb.name()),
                absl::StrCat("while searching scope: ", scope->DebugString()));
@@ -565,8 +567,9 @@ LambdaExecutor::EvaluateReference(const v0::Reference& reference_pb,
   return resolved_value;
 }
 
-absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::EvaluateCall(
-    const v0::Call& call_pb, const std::shared_ptr<Scope>& scope) const {
+absl::StatusOr<std::shared_ptr<ExecutorValue>>
+ControlFlowExecutor::EvaluateCall(const v0::Call& call_pb,
+                                  const std::shared_ptr<Scope>& scope) const {
   std::shared_ptr<ExecutorValue> function =
       GENC_TRY(Evaluate(call_pb.function(), scope));
   std::optional<std::shared_ptr<ExecutorValue>> argument;
@@ -576,8 +579,9 @@ absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::EvaluateCall(
   return ConstCreateCall(std::move(function), std::move(argument));
 }
 
-absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::EvaluateStruct(
-    const v0::Struct& struct_pb, const std::shared_ptr<Scope>& scope) const {
+absl::StatusOr<std::shared_ptr<ExecutorValue>>
+ControlFlowExecutor::EvaluateStruct(const v0::Struct& struct_pb,
+                                    const std::shared_ptr<Scope>& scope) const {
   std::vector<std::shared_ptr<ExecutorValue>> elements;
   elements.reserve(struct_pb.element_size());
   for (const v0::Struct::Element& element_pb : struct_pb.element()) {
@@ -587,150 +591,128 @@ absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::EvaluateStruct(
 }
 
 absl::StatusOr<std::shared_ptr<ExecutorValue>>
-LambdaExecutor::EvaluateSelection(const v0::Selection& selection_pb,
-                                  const std::shared_ptr<Scope>& scope) const {
+ControlFlowExecutor::EvaluateSelection(
+    const v0::Selection& selection_pb,
+    const std::shared_ptr<Scope>& scope) const {
   return CreateSelectionInternal(
       GENC_TRY(Evaluate(selection_pb.source(), scope)), selection_pb.index());
 }
 
-absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::EvaluateLambda(
-    const v0::Lambda& lambda_pb, const std::shared_ptr<Scope>& scope) const {
+absl::StatusOr<std::shared_ptr<ExecutorValue>>
+ControlFlowExecutor::EvaluateLambda(const v0::Lambda& lambda_pb,
+                                    const std::shared_ptr<Scope>& scope) const {
   return std::make_shared<ExecutorValue>(ScopedLambda{lambda_pb, scope});
 }
 
-absl::StatusOr<std::shared_ptr<ExecutorValue>>
-LambdaExecutor::EvaluateIntrinsic(
-    const v0::Intrinsic& intrinsic_pb,
-    const std::shared_ptr<Scope>& scope) const {
-  return std::make_shared<ExecutorValue>(ScopedIntrinsic{intrinsic_pb, scope});
-}
+class ControlFlowIntrinsicCallContextImpl
+    : public ControlFlowIntrinsicHandlerInterface::Context {
+ public:
+  typedef ControlFlowIntrinsicHandlerInterface::Value Value;
 
-absl::StatusOr<std::shared_ptr<ExecutorValue>> CallIntrinsicConditional(
-    const LambdaExecutor& executor, const v0::Intrinsic& intrinsic_pb,
-    std::optional<std::shared_ptr<ExecutorValue>> arg,
-    const std::shared_ptr<Scope>& scope) {
-  // TODO(b/295015950): Clean this up by consolidating intrinsic handling
-  // in one place behind an interop API.
-  if (!arg.has_value()) {
-    return absl::InvalidArgumentError("Missing condition.");
-  }
-  v0::Value cond_pb;
-  GENC_TRY(executor.ConstMaterialize(arg.value(), &cond_pb));
-  if (!cond_pb.has_boolean()) {
-    return absl::InvalidArgumentError(
-        absl::StrCat("Condition is not a Boolean: ", cond_pb.DebugString()));
-  }
-  if (intrinsic_pb.static_parameter_size() != 2) {
-    return absl::InvalidArgumentError("Missing a pair of static parameters.");
-  }
-  if ((intrinsic_pb.static_parameter(0).name() != "then") ||
-      (intrinsic_pb.static_parameter(1).name() != "else")) {
-    return absl::InvalidArgumentError("Wrong static parameter names.");
-  }
-  const v0::Value& selected_val_pb =
-      cond_pb.boolean() ? intrinsic_pb.static_parameter(0).value()
-                        : intrinsic_pb.static_parameter(1).value();
-  if (selected_val_pb.has_computation()) {
-    return executor.Evaluate(selected_val_pb.computation(), scope);
-  } else {
-    return executor.ConstCreateExecutorValue(selected_val_pb);
-  }
-}
+  class ValueImpl : public Value {
+   public:
+    explicit ValueImpl(std::shared_ptr<ExecutorValue> executor_value)
+        : executor_value_(executor_value) {}
 
-absl::StatusOr<std::shared_ptr<ExecutorValue>> CallIntrinsicFallback(
-    const LambdaExecutor& executor, const v0::Intrinsic& intrinsic_pb,
-    std::optional<std::shared_ptr<ExecutorValue>> arg,
-    const std::shared_ptr<Scope>& scope) {
-  // TODO(b/295015950): Clean this up by consolidating intrinsic handling
-  // in one place behind an interop API.
-  absl::Status error_status =
-      absl::UnavailableError("No candidate computations unavailable.");
-  for (const v0::Intrinsic::StaticParameter& static_parameter_pb :
-       intrinsic_pb.static_parameter()) {
-    if (static_parameter_pb.name() != "candidate_fn") {
-      return absl::InvalidArgumentError(
-          absl::StrCat("Bad parameter name: ", static_parameter_pb.name()));
+    ValueImpl(const ValueImpl& other) = default;
+    ValueImpl& operator=(const ValueImpl& other) = default;
+
+    virtual ~ValueImpl() {}
+
+    std::shared_ptr<ExecutorValue> executor_value() const {
+      return executor_value_;
     }
-    if (!static_parameter_pb.value().has_computation()) {
-      return absl::InvalidArgumentError("Bad parameter type.");
+
+   private:
+    std::shared_ptr<ExecutorValue> executor_value_;
+  };
+
+  static absl::StatusOr<std::shared_ptr<ExecutorValue>> ExtractExecutorValue(
+      std::shared_ptr<Value> val) {
+    Value* const val_ptr = val.get();
+    ValueImpl* const val_impl_ptr = dynamic_cast<ValueImpl*>(val_ptr);
+    if (val_impl_ptr == nullptr) {
+      return absl::InternalError(absl::StrCat("Not a ValueImpl."));
     }
-    absl::StatusOr<std::shared_ptr<ExecutorValue>> result =
-        executor.Evaluate(static_parameter_pb.value().computation(), scope);
-    if (result.ok()) {
-      result = executor.ConstCreateCall(std::move(result.value()), arg);
-      if (result.ok()) {
-        error_status = executor.ConstMaterialize(result.value(), nullptr);
-        if (error_status.ok()) {
-          return result;
-        }
-      } else {
-        error_status = result.status();
-      }
-    } else {
-      error_status = result.status();
-    }
+    return val_impl_ptr->executor_value();
   }
-  return error_status;
-}
+
+  ControlFlowIntrinsicCallContextImpl(const ControlFlowExecutor* executor,
+                                      const std::shared_ptr<Scope>& scope)
+      : executor_(executor), scope_(scope) {}
+
+  absl::StatusOr<std::shared_ptr<Value>> CreateValue(
+      const v0::Value& val_pb) final {
+    return std::shared_ptr<Value>(static_cast<Value*>(new ValueImpl(
+        GENC_TRY(val_pb.has_computation()
+                     ? executor_->Evaluate(val_pb.computation(), scope_)
+                     : executor_->ConstCreateExecutorValue(val_pb)))));
+  }
+
+  absl::StatusOr<std::shared_ptr<Value>> CreateCall(
+      std::shared_ptr<Value> function,
+      std::optional<std::shared_ptr<Value>> argument) final {
+    std::optional<std::shared_ptr<ExecutorValue>> arg;
+    if (argument.has_value()) {
+      arg = GENC_TRY(ExtractExecutorValue(argument.value()));
+    }
+    std::shared_ptr<ExecutorValue> fn =
+        GENC_TRY(ExtractExecutorValue(function));
+    return std::shared_ptr<Value>(static_cast<Value*>(
+        new ValueImpl(GENC_TRY(executor_->ConstCreateCall(fn, arg)))));
+  }
+
+  absl::StatusOr<std::shared_ptr<Value>> CreateStruct(
+      absl::Span<std::shared_ptr<Value>> members) final {
+    return absl::UnimplementedError("Not implemented.");
+  }
+
+  absl::StatusOr<std::shared_ptr<Value>> CreateSelection(
+      std::shared_ptr<Value> source, uint32_t index) final {
+    return absl::UnimplementedError("Not implemented.");
+  }
+
+  absl::Status Materialize(std::shared_ptr<Value> value,
+                           v0::Value* value_pb) final {
+    std::shared_ptr<ExecutorValue> val = GENC_TRY(ExtractExecutorValue(value));
+    return executor_->ConstMaterialize(val, value_pb);
+  }
+
+  absl::Status Dispose(std::shared_ptr<Value> value) final {
+    return absl::UnimplementedError("Not implemented.");
+  }
+
+ private:
+  const ControlFlowExecutor* const executor_;
+  const std::shared_ptr<Scope> scope_;
+};
 
 absl::StatusOr<std::shared_ptr<ExecutorValue>> ScopedIntrinsic::Call(
-    const LambdaExecutor& executor,
+    const ControlFlowExecutor& executor,
     std::optional<std::shared_ptr<ExecutorValue>> arg) const {
-  // TODO(b/295015950): Clean this up by consolidating intrinsic handling
-  // in one place behind an interop API.
-  if (intrinsic_pb_.uri() == intrinsics::kConditional) {
-    return CallIntrinsicConditional(executor, intrinsic_pb_, arg, scope_);
-  } else if (intrinsic_pb_.uri() == intrinsics::kFallback) {
-    return CallIntrinsicFallback(executor, intrinsic_pb_, arg, scope_);
-  } else {
-    return absl::UnimplementedError("Unsupported type of an intrinsic.");
+  const ControlFlowIntrinsicHandlerInterface* const interface =
+      GENC_TRY(IntrinsicHandler::GetControlFlowInterface(intrinsic_handler_));
+  ControlFlowIntrinsicCallContextImpl context(&executor, scope_);
+  std::optional<std::shared_ptr<ControlFlowIntrinsicHandlerInterface::Value>>
+      arg_val;
+  if (arg.has_value()) {
+    arg_val = std::shared_ptr<ControlFlowIntrinsicCallContextImpl::Value>(
+        static_cast<ControlFlowIntrinsicCallContextImpl::Value*>(
+            new ControlFlowIntrinsicCallContextImpl::ValueImpl(arg.value())));
   }
-}
-
-// TODO(b/295015950): Delete this as a part of intrinsic support-based cleanup.
-absl::StatusOr<std::shared_ptr<ExecutorValue>> LambdaExecutor::EvaluateFallback(
-    const v0::Fallback& fallback_pb,
-    const std::shared_ptr<Scope>& scope) const {
-  absl::Status error_status =
-      absl::UnavailableError("No candidate computations unavailable.");
-  for (const v0::Computation& comp_pb : fallback_pb.candidate()) {
-    absl::StatusOr<std::shared_ptr<ExecutorValue>> result =
-        Evaluate(comp_pb, scope);
-    if (result.ok()) {
-      error_status = ConstMaterialize(result.value(), nullptr);
-      if (error_status.ok()) {
-        return result;
-      }
-    } else {
-      error_status = result.status();
-    }
-  }
-  return error_status;
-}
-
-// TODO(b/295015950): Delete this as a part of intrinsic support-based cleanup.
-absl::StatusOr<std::shared_ptr<ExecutorValue>>
-LambdaExecutor::EvaluateConditional(const v0::Conditional& conditional_pb,
-                                    const std::shared_ptr<Scope>& scope) const {
-  std::shared_ptr<ExecutorValue> condition_result =
-      GENC_TRY(Evaluate(conditional_pb.condition(), scope));
-  v0::Value condition_result_pb;
-  GENC_TRY(ConstMaterialize(condition_result, &condition_result_pb));
-  if (!condition_result_pb.has_boolean()) {
-    return absl::InvalidArgumentError(absl::StrCat(
-        "Condition is not a Boolean: ", condition_result_pb.DebugString()));
-  }
-  const v0::Computation& chosen_branch_pb =
-      condition_result_pb.boolean() ? conditional_pb.positive_branch()
-                                    : conditional_pb.negative_branch();
-  return Evaluate(chosen_branch_pb, scope);
+  std::shared_ptr<ControlFlowIntrinsicHandlerInterface::Value> result_val =
+      GENC_TRY(interface->ExecuteCall(intrinsic_pb_, arg_val, &context));
+  std::shared_ptr<ExecutorValue> result_executor_value = GENC_TRY(
+      ControlFlowIntrinsicCallContextImpl::ExtractExecutorValue(result_val));
+  return result_executor_value;
 }
 
 }  // namespace
 
-absl::StatusOr<std::shared_ptr<Executor>> CreateLambdaExecutor(
+absl::StatusOr<std::shared_ptr<Executor>> CreateControlFlowExecutor(
+    std::shared_ptr<IntrinsicHandlerSet> handler_set,
     std::shared_ptr<Executor> child_executor) {
-  return std::make_shared<LambdaExecutor>(child_executor);
+  return std::make_shared<ControlFlowExecutor>(handler_set, child_executor);
 }
 
 }  // namespace generative_computing

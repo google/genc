@@ -7,10 +7,42 @@ package(
 licenses(["notice"])
 
 cc_library(
+    name = "conditional",
+    srcs = ["conditional.cc"],
+    hdrs = ["conditional.h"],
+    deps = [
+        ":intrinsic_uris",
+        "//generative_computing/cc/runtime:intrinsic_handler",
+        "//generative_computing/cc/runtime:status_macros",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_library(
+    name = "fallback",
+    srcs = ["fallback.cc"],
+    hdrs = ["fallback.h"],
+    deps = [
+        ":intrinsic_uris",
+        "//generative_computing/cc/runtime:intrinsic_handler",
+        "//generative_computing/cc/runtime:status_macros",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_library(
     name = "handler_sets",
     srcs = ["handler_sets.cc"],
     hdrs = ["handler_sets.h"],
     deps = [
+        ":conditional",
+        ":fallback",
         ":model_inference",
         ":prompt_template",
         ":regex_partial_match",

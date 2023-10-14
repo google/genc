@@ -104,9 +104,14 @@ class InlineExecutor : public ExecutorBase<ValueFuture> {
                 absl::StrCat("Unsupported function type: ",
                     fn.value().computation().DebugString()));
           }
+          const v0::Intrinsic& intr_pb = fn.value().computation().intrinsic();
+          const IntrinsicHandler* const handler =
+              GENC_TRY(intrinsic_handlers_->GetHandler(intr_pb.uri()));
+          GENC_TRY(handler->CheckWellFormed(intr_pb));
+          const InlineIntrinsicHandlerInterface* const interface =
+              GENC_TRY(IntrinsicHandler::GetInlineInterface(handler));
           std::shared_ptr<v0::Value> result = std::make_shared<v0::Value>();
-          GENC_TRY(intrinsic_handlers_->ExecuteCall(
-              fn.value().computation().intrinsic(), arg.value(), result.get()));
+          GENC_TRY(interface->ExecuteCall(intr_pb, arg.value(), result.get()));
           return ExecutorValue(result);
         },
         thread_pool_);

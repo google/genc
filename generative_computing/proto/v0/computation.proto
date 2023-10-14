@@ -65,16 +65,9 @@ message Computation {
     // TODO(b/295013978): Document here where the supported types of intrinsics
     // are listed, and where to add new ones.
     Intrinsic intrinsic = 13;
-
-    // DEPRECATED CONSTRUCTS, TO BE REMOVED SHORTLY AS A PART OF CLEANUP
-    // TODO(b/295013978): Replace all below with the newly added more generic
-    // set of simpler abstractions.
-    Fallback fallback = 11;
-    Conditional conditional = 12;
-    // END OF DEPRECATED CONSTRUCTS
   }
 
-  reserved 2, 9, 10;
+  reserved 2, 9, 10, 11, 12;
 
   // NEXT ID: 15
 }
@@ -261,19 +254,4 @@ message Value {
   }
 
   // TODO(b/295041601): Define the rest of this.
-}
-
-// DEPRECATED CONSTRUCTS, TO BE REMOVED SHORTLY AS A PART OF CLEANUP
-
-// TODO(b/295013978): Replace all below with the newly added more generic
-// set of simpler abstractions.
-
-message Fallback {
-  repeated Computation candidate = 1;
-}
-
-message Conditional {
-  Computation condition = 1;
-  Computation positive_branch = 2;
-  Computation negative_branch = 3;
 }

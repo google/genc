@@ -13,30 +13,24 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include "generative_computing/cc/runtime/lambda_executor.h"
+#ifndef GENERATIVE_COMPUTING_CC_RUNTIME_CONTROL_FLOW_EXECUTOR_H_
+#define GENERATIVE_COMPUTING_CC_RUNTIME_CONTROL_FLOW_EXECUTOR_H_
 
 #include <memory>
 
-#include "googletest/include/gtest/gtest.h"
 #include "absl/status/statusor.h"
-#include "generative_computing/cc/intrinsics/handler_sets.h"
 #include "generative_computing/cc/runtime/executor.h"
-#include "generative_computing/cc/runtime/inline_executor.h"
+#include "generative_computing/cc/runtime/intrinsic_handler.h"
 
 namespace generative_computing {
 
-class LambdaExecutorTest : public ::testing::Test {
- protected:
-  LambdaExecutorTest() {}
-  ~LambdaExecutorTest() override {}
-};
-
-TEST_F(LambdaExecutorTest, Simple) {
-  absl::StatusOr<std::shared_ptr<Executor>> executor = CreateLambdaExecutor(
-      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({})).value());
-  EXPECT_TRUE(executor.ok());
-
-  // TODO(b/295041821): Pull in the tests.
-}
+// Returns an executor that specializes in handling lambda expressions and
+// control flow intrinsics, and otherwise delegates all processing, including
+// inline intrinsics such as model calls, to the specified child executor.
+absl::StatusOr<std::shared_ptr<Executor>> CreateControlFlowExecutor(
+    std::shared_ptr<IntrinsicHandlerSet> handler_set,
+    std::shared_ptr<Executor> child_executor);
 
 }  // namespace generative_computing
+
+#endif  // GENERATIVE_COMPUTING_CC_RUNTIME_CONTROL_FLOW_EXECUTOR_H_

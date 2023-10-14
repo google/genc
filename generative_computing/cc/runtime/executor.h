@@ -42,30 +42,23 @@ class OwnedValueId;
 
 using ValueId = uint64_t;
 
-// The basic abstract interface shared among all runtime components.
-// Instances of this interface may specialize in a single atomic function,
-// e.g., just model calls, or composite processing (e.g., chains) where
-// they might delegate to other executor components, or they may represent
-// specializations for a given type of environment (e.g., the entire stack
-// of executors designed for on-device deployment).
-class Executor {
+template <class InValRefType, class OutValRefType>
+class ExecutorInterface {
  public:
   // Embeds a `Value` into the executor.
   //
   // This method is expected to return quickly. It should not block on complex
   // computation or IO-bound work, instead kicking off that work to run
   // asynchronously.
-  virtual absl::StatusOr<OwnedValueId> CreateValue(const v0::Value& val) = 0;
-
-  // TODO(b/295041601): Develop the core interfaces.
+  virtual absl::StatusOr<OutValRefType> CreateValue(const v0::Value& val) = 0;
 
   // Calls `function` with optional `argument`.
   //
   // This method is expected to return quickly. It should not block on complex
   // computation or IO-bound work, instead kicking off that work to run
   // asynchronously.
-  virtual absl::StatusOr<OwnedValueId> CreateCall(
-      const ValueId function, const std::optional<const ValueId> argument) = 0;
+  virtual absl::StatusOr<OutValRefType> CreateCall(
+      InValRefType function, std::optional<InValRefType> argument) = 0;
 
   // Creates a structure with a set of ordered `members`.
   //
@@ -79,8 +72,8 @@ class Executor {
   // This method is expected to return quickly. It should not block on complex
   // computation or IO-bound work, instead kicking off that work to run
   // asynchronously.
-  virtual absl::StatusOr<OwnedValueId> CreateStruct(
-      const absl::Span<const ValueId> members) = 0;
+  virtual absl::StatusOr<OutValRefType> CreateStruct(
+      absl::Span<InValRefType> members) = 0;
 
   // Selects the value at `index` from structure-typed `source` value.
   //
@@ -94,22 +87,32 @@ class Executor {
   // This method is expected to return quickly. It should not block on complex
   // computation or IO-bound work, instead kicking off that work to run
   // asynchronously.
-  virtual absl::StatusOr<OwnedValueId> CreateSelection(
-      const ValueId source, const uint32_t index) = 0;
+  virtual absl::StatusOr<OutValRefType> CreateSelection(InValRefType source,
+                                                        uint32_t index) = 0;
 
   // Materialize the value as a concrete payload.
   //
   // This method is blocking: it may synchronously wait for the result of
   // complex computations or IO-bound work.
   // If the argument `value_pb` is not null, populates the value.
-  virtual absl::Status Materialize(const ValueId value,
-                                   v0::Value* value_pb) = 0;
+  virtual absl::Status Materialize(InValRefType value, v0::Value* value_pb) = 0;
 
   // Dispose of a value, releasing any associated resources.
-  //
+  virtual absl::Status Dispose(InValRefType value) = 0;
+
+  virtual ~ExecutorInterface() {}
+};
+
+// The basic abstract interface shared among all runtime components.
+// Instances of this interface may specialize in a single atomic function,
+// e.g., just model calls, or composite processing (e.g., chains) where
+// they might delegate to other executor components, or they may represent
+// specializations for a given type of environment (e.g., the entire stack
+// of executors designed for on-device deployment).
+class Executor : public ExecutorInterface<const ValueId, OwnedValueId> {
+ public:
   // Users of this class should not typically access this function directly.
   // The `OwnedValueId`s returned will `Dispose` of themselves on destruction.
-  virtual absl::Status Dispose(const ValueId value) = 0;
 
   virtual ~Executor() {}
 };

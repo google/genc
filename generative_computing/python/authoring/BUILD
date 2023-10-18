@@ -20,8 +20,5 @@ py_library(
 py_test(
     name = "constructors_test",
     srcs = ["constructors_test.py"],
-    deps = [
-        ":constructors",
-        "//generative_computing/proto/v0:computation_py_pb2",
-    ],
+    deps = [":constructors"],
 )

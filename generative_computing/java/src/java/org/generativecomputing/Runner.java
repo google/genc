@@ -17,11 +17,11 @@ package org.generativecomputing;
 
 /** Interface for running Generative Computing computations. */
 public final class Runner {
-  public static Runner create(Computation computation) {
+  public static Runner create(Value computation) {
     return new Runner(computation, Executor.create());
   }
 
-  public static Runner create(Computation computation, long executorHandle) {
+  public static Runner create(Value computation, long executorHandle) {
     return new Runner(computation, Executor.create(executorHandle));
   }
 
@@ -37,14 +37,13 @@ public final class Runner {
     return result.getStr();
   }
 
-  private Runner(Computation computation, Executor executor) {
+  private Runner(Value computation, Executor executor) {
     this.computation = computation;
     this.executor = executor;
-    Value computationValue = Value.newBuilder().setComputation(this.computation).build();
-    this.computationVal = this.executor.createValue(computationValue);
+    this.computationVal = this.executor.createValue(this.computation);
   }
 
-  private final Computation computation;
+  private final Value computation;
   private final Executor executor;
   private final OwnedValueId computationVal;
 }

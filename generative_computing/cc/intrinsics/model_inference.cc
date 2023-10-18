@@ -29,8 +29,8 @@ namespace intrinsics {
 
 absl::Status ModelInference::CheckWellFormed(
     const v0::Intrinsic& intrinsic_pb) const {
-  if (intrinsic_pb.static_parameter_size() != 1) {
-    return absl::InvalidArgumentError("Wrong number of arguments.");
+  if (!intrinsic_pb.static_parameter().has_str()) {
+    return absl::InvalidArgumentError("Expect model_uri as str, got none.");
   }
   return absl::OkStatus();
 }
@@ -42,7 +42,7 @@ absl::Status ModelInference::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
     return absl::InvalidArgumentError("Argument is not a string.");
   }
   // TODO(b/299566821): generalize for repeated multimodal response.
-  const std::string model_uri(intrinsic_pb.static_parameter(0).value().str());
+  const std::string model_uri(intrinsic_pb.static_parameter().str());
   std::string* const output = result->mutable_str();
   if (model_uri == "test_model") {
     output->assign(

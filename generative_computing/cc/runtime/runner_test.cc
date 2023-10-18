@@ -13,20 +13,26 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
+#include "generative_computing/cc/runtime/runner.h"
+
+#include "googletest/include/gtest/gtest.h"
+#include "absl/status/statusor.h"
 #include "generative_computing/cc/authoring/computation_utils.h"
-
-#include <string>
-
-#include "absl/strings/string_view.h"
-#include "generative_computing/cc/intrinsics/intrinsic_uris.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 
 namespace generative_computing {
 
-void SetModelInference(v0::Value& computation, absl::string_view model_uri) {
-  v0::Intrinsic* const intrinsic_pb = computation.mutable_intrinsic();
-  intrinsic_pb->set_uri(std::string(intrinsics::kModelInference));
-  intrinsic_pb->mutable_static_parameter()->set_str(std::string(model_uri));
+TEST(RunnerTest, ModelRunReturnsValue) {
+  v0::Value comp_pb;
+  SetModelInference(comp_pb, "test_model");
+  absl::StatusOr<Runner> runner = Runner::CreateDefault(comp_pb);
+
+  v0::Value arg;
+  arg.set_str("Boo!");
+
+  absl::StatusOr<v0::Value> result = runner.value().Run(arg);
+  EXPECT_EQ(result.value().str(),
+            "This is an output from a test model in response to \"Boo!\".");
 }
 
 }  // namespace generative_computing

@@ -26,7 +26,7 @@ def create_computation_from_llm(llm):
     llm: An instance of `CustomModel` (the only model type currently supported).
 
   Returns:
-    An instance of `pb.Computation` with an embedded `Model`.
+    An instance of `pb.Value` with an embedded `Model`.
 
   Raises:
     TypeError: on an unrecognized type of model.
@@ -52,7 +52,7 @@ def create_computation_from_prompt_template(prompt_template):
     prompt_template: An instance of `PromptTemplate`.
 
   Returns:
-    An instance of `pb.Computation` with an embedded `PromptTemplate`.
+    An instance of `pb.Value` with an embedded `PromptTemplate`.
 
   Raises:
     TypeError: on an unrecognized type of argument.
@@ -72,7 +72,7 @@ def create_computation_from_chain(chain):
     chain: An instance of LLMChain object.
 
   Returns:
-    A corresponding instance of `pb.Computation`.
+    A corresponding instance of `pb.Value`.
   """
   comp = create_computation_from_llm(chain.llm)
   if chain.prompt:

@@ -20,7 +20,6 @@ limitations under the License
 #include "absl/status/status.h"
 #include "absl/strings/str_replace.h"
 #include "absl/strings/string_view.h"
-#include "generative_computing/cc/runtime/intrinsic_handler.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 #include "re2/re2.h"
 
@@ -29,8 +28,9 @@ namespace intrinsics {
 
 absl::Status PromptTemplate::CheckWellFormed(
     const v0::Intrinsic& intrinsic_pb) const {
-  if (intrinsic_pb.static_parameter_size() != 1) {
-    return absl::InvalidArgumentError("Wrong number of arguments.");
+  if (!intrinsic_pb.static_parameter().has_str()) {
+    return absl::InvalidArgumentError(
+        "Expect prompt_template as str, got none.");
   }
   return absl::OkStatus();
 }
@@ -42,7 +42,7 @@ absl::Status PromptTemplate::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
   // multiple arguments, not just a single string (so the argument can
   // in general be a struct with multiple values, not just one).
   const absl::string_view template_string(
-      intrinsic_pb.static_parameter(0).value().str());
+      intrinsic_pb.static_parameter().str());
   absl::string_view input(template_string);
   std::string parameter_re = "(\\{[a-zA-Z0-9_]*\\})";
   std::string parameter;

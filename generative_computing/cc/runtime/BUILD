@@ -14,10 +14,7 @@ cc_library(
         ":executor",
         ":intrinsic_handler",
         ":status_macros",
-        "//generative_computing/cc/intrinsics:intrinsic_uris",
         "//generative_computing/proto/v0:computation_cc_proto",
-        "//generative_computing/proto/v0:executor_cc_proto",
-        "@com_github_google_re2//:re2",
         "@com_google_absl//absl/base:core_headers",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
@@ -130,8 +127,6 @@ cc_library(
         ":status_macros",
         ":threading",
         "//generative_computing/proto/v0:computation_cc_proto",
-        "//generative_computing/proto/v0:executor_cc_proto",
-        "@com_github_google_re2//:re2",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
@@ -150,8 +145,6 @@ cc_test(
         "//generative_computing/cc/intrinsics:intrinsic_uris",
         "//generative_computing/cc/intrinsics:model_inference",
         "//generative_computing/proto/v0:computation_cc_proto",
-        "//generative_computing/proto/v0:executor_cc_proto",
-        "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
@@ -198,5 +191,31 @@ cc_library(
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_library(
+    name = "runner",
+    srcs = ["runner.cc"],
+    hdrs = ["runner.h"],
+    deps = [
+        ":executor",
+        ":executor_stacks",
+        ":status_macros",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+    ],
+)
+
+cc_test(
+    name = "runner_test",
+    srcs = ["runner_test.cc"],
+    deps = [
+        ":runner",
+        "//generative_computing/cc/authoring:computation_utils",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_googletest//:gtest_main",
     ],
 )

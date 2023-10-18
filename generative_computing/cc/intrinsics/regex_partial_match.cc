@@ -17,7 +17,6 @@ limitations under the License
 
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
-#include "generative_computing/cc/runtime/intrinsic_handler.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 #include "re2/re2.h"
 
@@ -26,8 +25,8 @@ namespace intrinsics {
 
 absl::Status RegexPartialMatch::CheckWellFormed(
     const v0::Intrinsic& intrinsic_pb) const {
-  if (intrinsic_pb.static_parameter_size() != 1) {
-    return absl::InvalidArgumentError("Wrong number of arguments.");
+  if (!intrinsic_pb.static_parameter().has_str()) {
+    return absl::InvalidArgumentError("Expect regex str, got none.");
   }
   return absl::OkStatus();
 }
@@ -35,8 +34,8 @@ absl::Status RegexPartialMatch::CheckWellFormed(
 absl::Status RegexPartialMatch::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
                                             const v0::Value& arg,
                                             v0::Value* result) const {
-  result->set_boolean(RE2::PartialMatch(
-      arg.str(), intrinsic_pb.static_parameter(0).value().str()));
+  result->set_boolean(
+      RE2::PartialMatch(arg.str(), intrinsic_pb.static_parameter().str()));
   return absl::OkStatus();
 }
 

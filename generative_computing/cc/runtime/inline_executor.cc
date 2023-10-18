@@ -24,6 +24,7 @@ limitations under the License
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "generative_computing/cc/runtime/executor.h"
 #include "generative_computing/cc/runtime/intrinsic_handler.h"
@@ -96,15 +97,12 @@ class InlineExecutor : public ExecutorBase<ValueFuture> {
          this]() -> absl::StatusOr<ExecutorValue> {
           ExecutorValue fn = GENC_TRY(Wait(function));
           ExecutorValue arg = GENC_TRY(Wait(argument.value()));
-          if (!fn.value().has_computation()) {
-            return absl::InvalidArgumentError("Function is not a computation.");
-          }
-          if (!fn.value().computation().has_intrinsic()) {
+          if (!fn.value().has_intrinsic()) {
             return absl::InvalidArgumentError(
                 absl::StrCat("Unsupported function type: ",
-                    fn.value().computation().DebugString()));
+                    fn.value().DebugString()));
           }
-          const v0::Intrinsic& intr_pb = fn.value().computation().intrinsic();
+          const v0::Intrinsic& intr_pb = fn.value().intrinsic();
           const IntrinsicHandler* const handler =
               GENC_TRY(intrinsic_handlers_->GetHandler(intr_pb.uri()));
           GENC_TRY(handler->CheckWellFormed(intr_pb));

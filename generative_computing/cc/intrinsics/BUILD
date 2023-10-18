@@ -28,7 +28,6 @@ cc_library(
     deps = [
         ":intrinsic_uris",
         "//generative_computing/cc/runtime:intrinsic_handler",
-        "//generative_computing/cc/runtime:status_macros",
         "//generative_computing/proto/v0:computation_cc_proto",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
@@ -80,7 +79,6 @@ cc_library(
         "//generative_computing/cc/runtime:intrinsic_handler",
         "//generative_computing/cc/runtime:status_macros",
         "//generative_computing/proto/v0:computation_cc_proto",
-        "@com_github_google_re2//:re2",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",

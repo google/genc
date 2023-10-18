@@ -70,7 +70,7 @@ class CreateComputationTest(absltest.TestCase):
     llm2 = custom_model.CustomModel(uri="some_other_model")
     llm3 = model_cascade.ModelCascade(models=[llm1, llm2])
     comp3 = create_computation.create_computation(llm3)
-    self.assertIsInstance(comp3, pb.Computation)
+    self.assertIsInstance(comp3, pb.Value)
     comp4 = authoring.create_fallback([
         authoring.create_model("some_model"),
         authoring.create_model("some_other_model"),

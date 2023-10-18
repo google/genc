@@ -26,14 +26,10 @@ def create_model(model_uri):
   Returns:
     A computation that represents the model.
   """
-  return pb.Computation(
+  return pb.Value(
       intrinsic=pb.Intrinsic(
           uri=intrinsic_bindings.intrinsics.MODEL_INFERENCE,
-          static_parameter=[
-              pb.Intrinsic.StaticParameter(
-                  name='model_uri', value=pb.Value(str=model_uri)
-              )
-          ],
+          static_parameter=pb.Value(str=model_uri),
       )
   )
 
@@ -47,13 +43,12 @@ def create_prompt_template(template_str):
   Returns:
     A computation that represents the prompt template.
   """
-  return pb.Computation(
+  return pb.Value(
       intrinsic=pb.Intrinsic(
           uri=intrinsic_bindings.intrinsics.PROMPT_TEMPLATE,
-          static_parameter=[
-              pb.Intrinsic.StaticParameter(
-                  name='template_string',
-                  value=pb.Value(str=template_str))]))
+          static_parameter=pb.Value(str=template_str),
+      )
+  )
 
 
 def create_regex_partial_match(pattern_string):
@@ -65,17 +60,16 @@ def create_regex_partial_match(pattern_string):
   Returns:
     A computation that represents the regex partial match intrinsic.
   """
-  return pb.Computation(
+  return pb.Value(
       intrinsic=pb.Intrinsic(
           uri=intrinsic_bindings.intrinsics.REGEX_PARTIAL_MATCH,
-          static_parameter=[
-              pb.Intrinsic.StaticParameter(
-                  name='pattern_string',
-                  value=pb.Value(str=pattern_string))]))
+          static_parameter=pb.Value(str=pattern_string),
+      )
+  )
 
 
 def create_reference(name):
-  """Contructs a reference to `name`.
+  """Constructs a reference to `name`.
 
   Args:
     name: The name of the referenced parameter.
@@ -85,11 +79,11 @@ def create_reference(name):
     correctly evaluated as a part of a lambda expression or similar construct
     in which this name is well-defined.
   """
-  return pb.Computation(reference=pb.Reference(name=name))
+  return pb.Value(reference=pb.Reference(name=name))
 
 
 def create_lambda(name, body):
-  """Contructs a lambda expression with parameter `name` and body `body`.
+  """Constructs a lambda expression with parameter `name` and body `body`.
 
   Args:
     name: The name of the parameter.
@@ -98,13 +92,11 @@ def create_lambda(name, body):
   Returns:
     A computation that represents the lambda expression.
   """
-  return pb.Computation(
-      **{'lambda': pb.Lambda(parameter_name=name, result=body)}
-  )
+  return pb.Value(**{'lambda': pb.Lambda(parameter_name=name, result=body)})
 
 
 def create_call(fn, arg):
-  """Contructs a function call.
+  """Constructs a function call.
 
   Args:
     fn: The function.
@@ -113,11 +105,11 @@ def create_call(fn, arg):
   Returns:
     A computation that represents the function call.
   """
-  return pb.Computation(call=pb.Call(function=fn, argument=arg))
+  return pb.Value(call=pb.Call(function=fn, argument=arg))
 
 
 def create_struct(comp_list):
-  """Contructs a struct.
+  """Constructs a struct.
 
   Args:
     comp_list: The list of elements.
@@ -127,12 +119,12 @@ def create_struct(comp_list):
   """
   elements = []
   for comp_pb in comp_list:
-    elements.append(pb.Struct.Element(value=comp_pb))
-  return pb.Computation(struct=pb.Struct(element=elements))
+    elements.append(pb.NamedValue(value=comp_pb))
+  return pb.Value(struct=pb.Struct(element=elements))
 
 
 def create_selection(source, index):
-  """Contructs a selection.
+  """Constructs a selection.
 
   Args:
     source: The source struct to select from.
@@ -141,7 +133,7 @@ def create_selection(source, index):
   Returns:
     A computation that represents the selection.
   """
-  return pb.Computation(selection=pb.Selection(source=source, index=index))
+  return pb.Value(selection=pb.Selection(source=source, index=index))
 
 
 def create_chain(function_list):
@@ -149,7 +141,7 @@ def create_chain(function_list):
 
   Args:
     function_list: A list of functions [f, g, ...], each of which should be an
-      instance of pb.Computation.
+      instance of pb.Value.
 
   Returns:
     A computation that represents a chain f(g(...)), with the functions applied
@@ -168,20 +160,22 @@ def create_fallback(function_list):
   Args:
     function_list: Candidate functions to attempt to apply to the argument in
       the order listed. The first successful one is the result; if failed, keep
-      going down the list. All functions must be of type `pb.Computation`.
+      going down the list. All functions must be of type `pb.Value`.
 
   Returns:
     A computation that represents a fallback expression.
   """
   static_parameters = []
   for comp in function_list:
-    static_parameters.append(
-        pb.Intrinsic.StaticParameter(
-            name='candidate_fn', value=pb.Value(computation=comp)))
-  return pb.Computation(
+    static_parameters.append(pb.NamedValue(name='candidate_fn', value=comp))
+  return pb.Value(
       intrinsic=pb.Intrinsic(
           uri=intrinsic_bindings.intrinsics.FALLBACK,
-          static_parameter=static_parameters))
+          static_parameter=pb.Value(
+              struct=pb.Struct(element=static_parameters)
+          ),
+      )
+  )
 
 
 def create_conditional(condition, positive_branch, negative_branch):
@@ -198,17 +192,17 @@ def create_conditional(condition, positive_branch, negative_branch):
   Returns:
     A computation that represents the conditional expression.
   """
-  conditional = pb.Computation(
+  conditional = pb.Value(
       intrinsic=pb.Intrinsic(
           uri=intrinsic_bindings.intrinsics.CONDITIONAL,
-          static_parameter=[
-              pb.Intrinsic.StaticParameter(
-                  name='then', value=pb.Value(computation=positive_branch)
-              ),
-              pb.Intrinsic.StaticParameter(
-                  name='else', value=pb.Value(computation=negative_branch)
-              ),
-          ],
+          static_parameter=pb.Value(
+              struct=pb.Struct(
+                  element=[
+                      pb.NamedValue(name='then', value=positive_branch),
+                      pb.NamedValue(name='else', value=negative_branch),
+                  ]
+              )
+          ),
       )
   )
   return create_call(conditional, condition)

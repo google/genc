@@ -28,16 +28,7 @@ namespace intrinsics {
 
 absl::Status Fallback::CheckWellFormed(
     const v0::Intrinsic& intrinsic_pb) const {
-  for (const v0::Intrinsic::StaticParameter& static_parameter_pb :
-       intrinsic_pb.static_parameter()) {
-    if (static_parameter_pb.name() != "candidate_fn") {
-      return absl::InvalidArgumentError(
-          absl::StrCat("Bad parameter name: ", static_parameter_pb.name()));
-    }
-    if (!static_parameter_pb.value().has_computation()) {
-      return absl::InvalidArgumentError("Bad parameter type.");
-    }
-  }
+  // TODO(b/305795076): check intrinsic_pb.struct_ contains only function types.
   return absl::OkStatus();
 }
 
@@ -46,8 +37,8 @@ Fallback::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
                       std::optional<ValueRef> arg, Context* context) const {
   absl::Status error_status =
       absl::UnavailableError("No candidate computations available.");
-  for (const v0::Intrinsic::StaticParameter& static_parameter_pb :
-       intrinsic_pb.static_parameter()) {
+  for (const v0::NamedValue& static_parameter_pb :
+       intrinsic_pb.static_parameter().struct_().element()) {
     absl::StatusOr<ValueRef> result =
         context->CreateValue(static_parameter_pb.value());
     if (result.ok()) {

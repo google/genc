@@ -21,10 +21,9 @@ limitations under the License
 
 namespace generative_computing {
 
-// Populate the computation.proto in `computation` to represent a model
+// Populate the computation.proto in `intrinsics` to represent a model
 // inference call to a model `model_uri`.
-void SetModelInference(v0::Computation* computation,
-                       absl::string_view model_uri);
+void SetModelInference(v0::Value& computation, absl::string_view model_uri);
 
 }  // namespace generative_computing
 

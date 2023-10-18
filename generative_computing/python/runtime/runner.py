@@ -29,8 +29,8 @@ def _to_value_proto(arg):
   Raises:
     TypeError: if the argument is of an unsupported type.
   """
-  if isinstance(arg, pb.Computation):
-    return pb.Value(computation=arg)
+  if isinstance(arg, pb.Value):
+    return arg
   if isinstance(arg, str):
     return pb.Value(**{'str': arg})
   if isinstance(arg, bool):
@@ -64,7 +64,7 @@ class Runner(object):
   """Represents a runner."""
 
   def __init__(
-      self, comp_pb: pb.Computation, executor: executor_bindings.Executor = None
+      self, comp_pb: pb.Value, executor: executor_bindings.Executor = None
   ):
     """Construct a runner for the given computation proto.
 
@@ -78,7 +78,7 @@ class Runner(object):
     else:
       self._executor = executor
     self._comp_pb = comp_pb
-    self._comp_val = self._executor.create_value(_to_value_proto(self._comp_pb))
+    self._comp_val = self._executor.create_value(self._comp_pb)
 
   def __call__(self, *args, **kwargs):
     """Invoke the runner on a given set of arguments.

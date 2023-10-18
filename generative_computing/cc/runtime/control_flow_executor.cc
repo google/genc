@@ -36,7 +36,6 @@ limitations under the License
 #include "generative_computing/cc/runtime/intrinsic_handler.h"
 #include "generative_computing/cc/runtime/status_macros.h"
 #include "generative_computing/proto/v0/computation.pb.h"
-#include "generative_computing/proto/v0/executor.pb.h"
 
 namespace generative_computing {
 namespace {
@@ -62,7 +61,7 @@ class ScopedLambda {
 
   v0::Value as_value_pb() const {
     v0::Value value_pb;
-    *value_pb.mutable_computation()->mutable_lambda() = lambda_pb_;
+    *value_pb.mutable_lambda() = lambda_pb_;
     return value_pb;
   }
 
@@ -90,9 +89,7 @@ class ScopedIntrinsic {
       const ControlFlowExecutor& executor,
       std::optional<std::shared_ptr<ExecutorValue>> arg) const;
 
-  const v0::Intrinsic& intrinsic_pb() const {
-    return intrinsic_pb_;
-  }
+  const v0::Intrinsic& intrinsic_pb() const { return intrinsic_pb_; }
 
  private:
   v0::Intrinsic intrinsic_pb_;
@@ -183,10 +180,8 @@ class ExecutorValue {
  private:
   ExecutorValue() = delete;
 
-  std::variant<OwnedValueId,
-               std::vector<std::shared_ptr<ExecutorValue>>,
-               ScopedLambda,
-               ScopedIntrinsic>
+  std::variant<OwnedValueId, std::vector<std::shared_ptr<ExecutorValue>>,
+               ScopedLambda, ScopedIntrinsic>
       value_;
 };
 
@@ -202,10 +197,9 @@ class ControlFlowExecutor
 
   ~ControlFlowExecutor() override { ClearTracked(); }
 
-  // Evaluates a computation in the current scope.
+  // Evaluates a value in the current scope.
   absl::StatusOr<std::shared_ptr<ExecutorValue>> Evaluate(
-      const v0::Computation& computation_pb,
-      const std::shared_ptr<Scope>& scope) const;
+      const v0::Value& value_pb, const std::shared_ptr<Scope>& scope) const;
 
   // TODO(b/295015950): Clean these up by consolidating intrinsic handling
   // in one place behind an interop API, and removing these calls from a public
@@ -214,9 +208,8 @@ class ControlFlowExecutor
   absl::StatusOr<std::shared_ptr<ExecutorValue>> ConstCreateCall(
       std::shared_ptr<ExecutorValue> function,
       std::optional<std::shared_ptr<ExecutorValue>> argument) const;
-  absl::Status ConstMaterialize(
-      std::shared_ptr<ExecutorValue> value,
-      v0::Value* value_pb) const;
+  absl::Status ConstMaterialize(std::shared_ptr<ExecutorValue> value,
+                                v0::Value* value_pb) const;
   absl::StatusOr<std::shared_ptr<ExecutorValue>> ConstCreateExecutorValue(
       const v0::Value& value_pb) const;
 
@@ -331,16 +324,20 @@ absl::StatusOr<std::shared_ptr<ExecutorValue>>
 ControlFlowExecutor::ConstCreateExecutorValue(const v0::Value& value_pb) const {
   switch (value_pb.value_case()) {
     case v0::Value::kStr:
-    case v0::Value::kBoolean: {
+    case v0::Value::kBoolean:
+    case v0::Value::kTensor:
+    case v0::Value::kMedia: {
       return std::make_shared<ExecutorValue>(
           GENC_TRY(child_executor_->CreateValue(value_pb)));
     }
-    case v0::Value::kTensor: {
-      return std::make_shared<ExecutorValue>(
-          GENC_TRY(child_executor_->CreateValue(value_pb)));
-    }
-    case v0::Value::kComputation: {
-      return Evaluate(value_pb.computation(), std::make_shared<Scope>());
+    case v0::Value::kBlock:
+    case v0::Value::kReference:
+    case v0::Value::kCall:
+    case v0::Value::kLambda:
+    case v0::Value::kStruct:
+    case v0::Value::kSelection:
+    case v0::Value::kIntrinsic: {
+      return Evaluate(value_pb, std::make_shared<Scope>());
     }
     default:
       return absl::UnimplementedError(absl::StrCat(
@@ -486,29 +483,28 @@ absl::StatusOr<ValueId> ControlFlowExecutor::Embed(
 }
 
 absl::StatusOr<std::shared_ptr<ExecutorValue>> ControlFlowExecutor::Evaluate(
-    const v0::Computation& computation_pb,
-    const std::shared_ptr<Scope>& scope) const {
-  switch (computation_pb.computation_case()) {
-    case v0::Computation::kBlock: {
-      return EvaluateBlock(computation_pb.block(), scope);
+    const v0::Value& value_pb, const std::shared_ptr<Scope>& scope) const {
+  switch (value_pb.value_case()) {
+    case v0::Value::kBlock: {
+      return EvaluateBlock(value_pb.block(), scope);
     }
-    case v0::Computation::kReference: {
-      return EvaluateReference(computation_pb.reference(), scope);
+    case v0::Value::kReference: {
+      return EvaluateReference(value_pb.reference(), scope);
     }
-    case v0::Computation::kCall: {
-      return EvaluateCall(computation_pb.call(), scope);
+    case v0::Value::kCall: {
+      return EvaluateCall(value_pb.call(), scope);
     }
-    case v0::Computation::kStruct: {
-      return EvaluateStruct(computation_pb.struct_(), scope);
+    case v0::Value::kSelection: {
+      return EvaluateSelection(value_pb.selection(), scope);
     }
-    case v0::Computation::kSelection: {
-      return EvaluateSelection(computation_pb.selection(), scope);
+    case v0::Value::kStruct: {
+      return EvaluateStruct(value_pb.struct_(), scope);
     }
-    case v0::Computation::kLambda: {
-      return EvaluateLambda(computation_pb.lambda(), scope);
+    case v0::Value::kLambda: {
+      return EvaluateLambda(value_pb.lambda(), scope);
     }
-    case v0::Computation::kIntrinsic: {
-      const v0::Intrinsic& intr_pb = computation_pb.intrinsic();
+    case v0::Value::kIntrinsic: {
+      const v0::Intrinsic& intr_pb = value_pb.intrinsic();
       const IntrinsicHandler* const handler =
           GENC_TRY(intrinsic_handlers_->GetHandler(intr_pb.uri()));
       GENC_TRY(handler->CheckWellFormed(intr_pb));
@@ -522,10 +518,8 @@ absl::StatusOr<std::shared_ptr<ExecutorValue>> ControlFlowExecutor::Evaluate(
       }
     }
     default: {
-      v0::Value child_value_pb;
-      *child_value_pb.mutable_computation() = computation_pb;
       return std::make_shared<ExecutorValue>(
-          GENC_TRY(child_executor_->CreateValue(child_value_pb)));
+          GENC_TRY(child_executor_->CreateValue(value_pb)));
     }
   }
 }
@@ -535,16 +529,17 @@ ControlFlowExecutor::EvaluateBlock(const v0::Block& block_pb,
                                    const std::shared_ptr<Scope>& scope) const {
   std::shared_ptr<Scope> current_scope = scope;
   auto local_pb_formatter = [](std::string* out,
-                               const v0::Block::Local& local_pb) {
+                               const v0::NamedValue& local_pb) {
     out->append(local_pb.name());
   };
-  for (int i = 0; i < block_pb.local_size(); ++i) {
-    const v0::Block::Local& local_pb = block_pb.local(i);
+  for (int i = 0; i < block_pb.local().element_size(); ++i) {
+    const v0::NamedValue& local_pb = block_pb.local().element(i);
     std::shared_ptr<ExecutorValue> value = GENC_TRY(
         Evaluate(local_pb.value(), current_scope),
         absl::StrCat(
             "while evaluating local [", local_pb.name(), "] in block locals [",
-            absl::StrJoin(block_pb.local(), ",", local_pb_formatter), "]"));
+            absl::StrJoin(block_pb.local().element(), ",", local_pb_formatter),
+            "]"));
     current_scope = std::make_shared<Scope>(
         std::make_tuple(local_pb.name(), std::move(value)),
         std::move(current_scope));
@@ -584,7 +579,7 @@ ControlFlowExecutor::EvaluateStruct(const v0::Struct& struct_pb,
                                     const std::shared_ptr<Scope>& scope) const {
   std::vector<std::shared_ptr<ExecutorValue>> elements;
   elements.reserve(struct_pb.element_size());
-  for (const v0::Struct::Element& element_pb : struct_pb.element()) {
+  for (const v0::NamedValue& element_pb : struct_pb.element()) {
     elements.emplace_back(GENC_TRY(Evaluate(element_pb.value(), scope)));
   }
   return std::make_shared<ExecutorValue>(std::move(elements));
@@ -644,9 +639,25 @@ class ControlFlowIntrinsicCallContextImpl
   absl::StatusOr<std::shared_ptr<Value>> CreateValue(
       const v0::Value& val_pb) final {
     return std::shared_ptr<Value>(static_cast<Value*>(new ValueImpl(
-        GENC_TRY(val_pb.has_computation()
-                     ? executor_->Evaluate(val_pb.computation(), scope_)
+        GENC_TRY(HasComputation(val_pb)
+                     ? executor_->Evaluate(val_pb, scope_)
                      : executor_->ConstCreateExecutorValue(val_pb)))));
+  }
+
+  static bool HasComputation(const v0::Value& val_pb) {
+    switch (val_pb.value_case()) {
+      case v0::Value::kBlock:
+      case v0::Value::kReference:
+      case v0::Value::kCall:
+      case v0::Value::kLambda:
+      case v0::Value::kStruct:
+      case v0::Value::kSelection:
+      case v0::Value::kIntrinsic: {
+        return true;
+      }
+      default:
+        return false;
+    }
   }
 
   absl::StatusOr<std::shared_ptr<Value>> CreateCall(

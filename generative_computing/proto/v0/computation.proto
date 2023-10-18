@@ -8,71 +8,8 @@ option java_outer_classname = "ComputationProto";
 option java_multiple_files = true;
 option java_package = "org.generativecomputing";
 
-// A core data structure that represents a generative AI computation in a
-// portable, platform- and language-independent format.
-message Computation {
-  // The type signature of this computation (currently optional, eventually
-  // required if it cannot be automatically inferred).
-  Type type = 1;
-
-  // The specification of the generative computation to perform.
-  oneof computation {
-    // An invocation of a given function on a given argument. The function
-    // being invoked can be any object of a functional type (e.g., a model
-    // inference function, a prompt template constructor, an output parser,
-    // a safety checker, or a lambda expression explicitly defined in this
-    // proto, etc.), as long as its type signature matches the type of the
-    // argument passed as input. The value of the computation is the result
-    // returned by the function being called.
-    Call call = 5;
-
-    // A lambda expression defines a function that takes a single formal
-    // parameter, and produces a single result (either potentially a struct,
-    // a function, etc.). Lambdas can be nested.
-    Lambda lambda = 8;
-
-    // A reference to a name defined in a surrounding context, such as the
-    // parameter within a lambda expression. The value of the reference is
-    // the value of the object it refers to.
-    Reference reference = 4;
-
-    // A tuple that consists of orderded, and optionally named, elements.
-    // Structs are used, e.g., to assemble multiple values to form a complex
-    // argument to a function call, or to represent a complex results. They
-    // can be nested to model complex data structures.
-    Struct struct = 6;
-
-    // A selection of an element from a struct. Selections are used, e.g.,
-    // to extract a part of a result of one computation to feed as a part of
-    // an argument to a subsequent computation.
-    Selection selection = 7;
-
-    // A block of computation logic that consists of a series of assignments,
-    // followed by a computation that produces the final result. The named
-    // values produced by the assignments can appear in the result, and/or in
-    // assignments further down the list.
-    Block block = 3;
-
-    // An intrinsic. Intrinsics are functions with well-defined semantics that
-    // are supported by the framework, natively understood by the reference set
-    // of runtime components, and used to support the core functionality,
-    // including interoperability with popular types of frontend SDKs, model
-    // cascading and other types of hybrid computing patterns, etc. Intrinsics
-    // range from simple transformations on data (e.g., a prompt template, an
-    // output parser, or a model inference function) to operators that accept
-    // functions as arguments (e.g., conditionals, loops, fallback, and other
-    // control flow or higher-level functional operators).
-    // TODO(b/295013978): Document here where the supported types of intrinsics
-    // are listed, and where to add new ones.
-    Intrinsic intrinsic = 13;
-  }
-
-  reserved 2, 9, 10, 11, 12;
-
-  // NEXT ID: 15
-}
-
-// Represents a type within a computation.
+// Represents a type of a value within a computation (or a computation itself,
+// as a value of a functional type).
 message Type {
   oneof type {
     FunctionType function = 1;
@@ -85,11 +22,13 @@ message Type {
   }
 }
 
+// Represents a functional type.
 message FunctionType {
   Type parameter = 1;
   Type result = 2;
 }
 
+// Represents a composite structure type (potentially nested).
 message StructType {
   repeated Element element = 1;
   message Element {
@@ -98,10 +37,17 @@ message StructType {
   }
 }
 
+// Represents a type of a sequence (of an unknown number of identically-typed
+// elements).
 message SequenceType {
   Type element = 1;
 }
 
+// Represents a scalar type.
+// NOTE: The ordering of types in this enum is intended to be consistent with
+// TensorFlow's `DType` to facilitate potential future interoperability (but
+// one must no rely on this for correctness, as this property isn't guaranteed
+// to be preserved in future refactoring).
 enum ScalarType {
   SCALAR_TYPE_INVALID = 0;
   SCALAR_TYPE_FLOAT = 1;
@@ -127,6 +73,7 @@ enum ScalarType {
   SCALAR_TYPE_UINT64 = 23;
 }
 
+// Represents a tensor type.
 message TensorType {
   ScalarType scalar = 1;
   repeated int64 dims = 2;
@@ -135,12 +82,15 @@ message TensorType {
 
 // A representation of a function call.
 message Call {
-  // A computation that represents the function to call.
-  Computation function = 1;
+  // A value of a functional type that represents the function to call, the
+  // formal parameter to which must match the `argument`.
+  Value function = 1;
 
-  // A computation that represents the argument to the function specified above.
-  // Present if and only if "function" declares a parameter.
-  Computation argument = 2;
+  // A value that represents the argument to the function specified above.
+  // Present if and only if "function" declares a parameter. This can be a
+  // materializes value, or a value represented as a computation that must
+  // be evaluated.
+  Value argument = 2;
 }
 
 // A representation of a lambda expression.
@@ -153,30 +103,38 @@ message Lambda {
   // A computation that represents the result of applying the lambda to the
   // parameter. The result may contain references to the named parameter
   // defined above.
-  Computation result = 2;
+  Value result = 2;
 }
 
-// A reference by name (label) to a computation defined earlier.
+// A reference by name (label) to a value defined earlier, either as a lambda
+// parameter, or within a `Block`.
 message Reference {
   string name = 1;
 }
 
-// A representation of a struct.
-message Struct {
-  // The ordering of elements is significant; names are optional.
-  repeated Element element = 2;
-  message Element {
-    string name = 1;
-    Computation value = 2;
-  }
+// Ordering is significant for symmetry with dynamic function calls. Name is
+// optional because we only use it for semantics and during typechecking, at
+// runtime name is not used, it's kept for debuggability.
+message NamedValue {
+  string name = 1;
+  Value value = 2;
+}
 
+// A representation of a structured value. Elements can be either materialized
+// values, or values represented as computations that must be evaluated (e.g.,
+// such as function calls, selections, etc.).
+message Struct {
+  // The ordering of the elements is significant, regardless of whether they
+  // are named or not, and must be preserved while processing to facilitate
+  // selection by index (as defined below).
+  repeated NamedValue element = 2;
   reserved 1;
 }
 
 // A representation of a selection from a struct.
 message Selection {
   // The source of selection (required).
-  Computation source = 1;
+  Value source = 1;
 
   // A specification of which element to select by index.
   int32 index = 2;
@@ -184,7 +142,8 @@ message Selection {
   reserved 3;
 }
 
-// A representation of a block of computations.
+// A representation of a `let` expression that incrementally defines a list of
+// named values, and then refers to the values within the body of the `result`.
 message Block {
   // One or more locals defined within the block, each associating a label with
   // a computation. Computations, whether those associated with the locals, or
@@ -192,18 +151,15 @@ message Block {
   // defined earlier. Self-references are prohibited. All names introduced here
   // must be different. Since execution semantics at this level is purely
   // functional without side effects, the ordering in which the locals are
-  // declared is not significant, as it is only the dependencies between the
+  // declared is not significant as long as the declaration of any value in the
+  // struct precedes its usage. It is only the dependencies between the
   // computations that effectively determine the causal relationships that
   // constrain the order of execution.
-  repeated Local local = 1;
-  message Local {
-    string name = 1;
-    Computation value = 2;
-  }
+  Struct local = 1;
 
   // The result returned by the block (required). The result computation may
   // refer to any of the locals defined above by name.
-  Computation result = 2;
+  Value result = 2;
 }
 
 // A representation of an intrinsic.
@@ -219,19 +175,87 @@ message Intrinsic {
   // typically do also accept dynamic parameters (supplied via function calls,
   // as defined above), and it is only the types of the dynamic parameters that
   // are reflected in a given intrinsic's functional type signature.
-  repeated StaticParameter static_parameter = 2;
-  message StaticParameter {
-    string name = 1;
-    Value value = 2;
-  }
+  Value static_parameter = 2;
 }
 
-// A representation of a materialized value. These can be defined statically
-// (e.g., as a static parameter to an intrinsic), they can materialize in a
-// dynamic manner as the comoputation is being executed by the runtime, as a
-// result returned to the caller, or as an argument supplied by the caller.
+// A core data structure that represents a value in a generative AI computation
+// in a portable, platform- and language-independent format, either in a
+// materialized form (e.g., as a scalar or a struct), or as a computation that
+// must be evaluated to product such a materialized form (e.g., a function all).
+// Values can be of functional types, and functions are modeled as values.
+// The constructs defined below can be arbitrarily nested, e.g., to define
+// nested structures, cascading function calls, functions that accept multiple
+// parameters, functions that take functions as parameters, etc.
 message Value {
+  // The type of this value (currently optional, eventually required where it
+  // cannot be automatically inferred from the context).
+  Type type = 13;
+
   oneof value {
+    // CORE COMPOSITIONAL, STRUCTURED, AND FUNCTIONAL CONSTRUCTS FOR FORMING
+    // COMPLEX TYPES OF VALUES AND COMPUTATION DEFINITIONS.
+
+    // NOTE: This list is designed to be minimalistic, and intended to remain
+    // stable. New operators, including control flow or higher-level operators,
+    // must be defined as intrinsics (see below).
+
+    // An invocation of a given function on a given argument. The function
+    // being invoked can be any object of a functional type (e.g., a model
+    // inference function, a prompt template constructor, an output parser,
+    // a safety checker, or a lambda expression explicitly defined in this
+    // proto, etc.), as long as its type signature matches the type of the
+    // argument passed as input. The value of the computation is the result
+    // returned by the function being called.
+    Call call = 7;
+
+    // A lambda expression defines a function that takes a single formal
+    // parameter, and produces a single result (either potentially a struct,
+    // a function, etc.). Lambdas can be nested.
+    Lambda lambda = 8;
+
+    // A reference to a name defined in a surrounding context, such as the
+    // parameter within a lambda expression. The value of the reference is
+    // the value of the object it refers to.
+    Reference reference = 9;
+
+    // A tuple that consists of orderded, and optionally named, values.
+    // Structs are used, e.g., to assemble multiple values to form a complex
+    // argument to a function call, or to represent a complex results. They
+    // can be nested to model complex data structures.
+    Struct struct = 6;
+
+    // A selection of an element from a struct. Selections are used, e.g.,
+    // to extract a part of a result of one computation to feed as a part of
+    // an argument to a subsequent computation.
+    Selection selection = 10;
+
+    // A block of computation logic that consists of a series of assignments,
+    // followed by a computation that produces the final result. The named
+    // values produced by the assignments can appear in the result, and/or in
+    // assignments further down the list.
+    Block block = 11;
+
+    // An intrinsic. Intrinsics are functions with well-defined semantics that
+    // are supported by the framework, natively understood by the reference set
+    // of runtime components, and used to support the core functionality,
+    // including interoperability with popular types of frontend SDKs, model
+    // cascading and other types of hybrid computing patterns, etc. Intrinsics
+    // range from simple transformations on data (e.g., a prompt template, an
+    // output parser, or a model inference function) to operators that accept
+    // functions as arguments (e.g., conditionals, loops, fallback, and other
+    // control flow or higher-level functional operators).
+    // TODO(b/295013978): Document here where the supported types of intrinsics
+    // are listed, and where to add new ones.
+    Intrinsic intrinsic = 12;
+
+    // REPRESENTATIONS OF MATERIALIZED VALUES (SCALARS, TENSORS, MEDIA TYPES).
+
+    // NOTE: This list is expected to grow, but where possible, we default to
+    // using representations that already exist (e.g., nested structures of
+    // scalars), rather than embedding new formats that duplicate the existing
+    // functionality, except where a new representation might need to be
+    // introduced for performance reasons.
+
     // The preferred representation for string values.
     string str = 3;
 
@@ -245,13 +269,11 @@ message Value {
     // as defined in `tensorflow/core/framework/tensor.proto`. This is
     // currently the only way to pass in numeric or string values, including
     // simple scalars.
+    // NOTE: This must be `Any` in order to avoid a dependency on TensorFlow.
     google.protobuf.Any tensor = 1;
 
-    // A value of a functional type, represented here as a computation.
-    Computation computation = 2;
-
-    // NEXT ID: 6
+    // NEXT ID: 14
   }
 
-  // TODO(b/295041601): Define the rest of this.
+  reserved 2;
 }

@@ -33,7 +33,7 @@ namespace intrinsics {
 
 class ModelInference : public InlineIntrinsicHandlerBase {
  public:
-  typedef std::function<absl::StatusOr<std::string>(absl::string_view)>
+  typedef std::function<absl::StatusOr<v0::Value>(v0::Value)>
       InferenceFn;
 
   typedef absl::flat_hash_map<std::string, InferenceFn> InferenceMap;

@@ -38,6 +38,7 @@ def _to_value_proto(arg):
   raise TypeError('Unsupported Python argument type {}.'.format(type(arg)))
 
 
+# TODO(b/305092775): consider deprecate this.
 def _from_value_proto(result_pb):
   """Creates a Python value object that corresponds to the given value proto.
 
@@ -57,9 +58,14 @@ def _from_value_proto(result_pb):
     return result_pb.str
   if which_result == 'boolean':
     return result_pb.boolean
+  if which_result == 'media':
+    return result_pb.media
+  if which_result == 'struct':
+    return result_pb.struct
   raise TypeError('Unsupported value proto type {}.'.format(which_result))
 
 
+# TODO(b/305092775): deprecate Python Runner methods, provide C++ bindings.
 class Runner(object):
   """Represents a runner."""
 

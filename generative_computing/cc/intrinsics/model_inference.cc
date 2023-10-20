@@ -20,7 +20,6 @@ limitations under the License
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
-#include "generative_computing/cc/runtime/intrinsic_handler.h"
 #include "generative_computing/cc/runtime/status_macros.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 
@@ -41,17 +40,15 @@ absl::Status ModelInference::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
   if (!arg.has_str()) {
     return absl::InvalidArgumentError("Argument is not a string.");
   }
-  // TODO(b/299566821): generalize for repeated multimodal response.
   const std::string model_uri(intrinsic_pb.static_parameter().str());
-  std::string* const output = result->mutable_str();
   if (model_uri == "test_model") {
-    output->assign(
+    result->set_str(
         absl::StrCat("This is an output from a test model in response to \"",
                      arg.str(), "\"."));
     return absl::OkStatus();
   }
   if (inference_map_.contains(model_uri)) {
-    *output = GENC_TRY(inference_map_.at(model_uri)(arg.str()));
+    *result = GENC_TRY(inference_map_.at(model_uri)(arg));
     return absl::OkStatus();
   }
 

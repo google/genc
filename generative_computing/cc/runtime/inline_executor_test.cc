@@ -73,8 +73,10 @@ TEST_F(InlineExecutorTest, TestModel) {
 
 TEST_F(InlineExecutorTest, TestModelWithInferenceFn) {
   intrinsics::ModelInference::InferenceMap inference_map;
-  inference_map["test_inference_fn"] = [](absl::string_view arg) {
-    return absl::StrCat("Testing inference fn with arg: ", arg);
+  inference_map["test_inference_fn"] = [](v0::Value arg) {
+    v0::Value result;
+    result.set_str(absl::StrCat("Testing inference fn with arg: ", arg.str()));
+    return result;
   };
   absl::StatusOr<std::shared_ptr<Executor>> executor =
       CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet(inference_map));

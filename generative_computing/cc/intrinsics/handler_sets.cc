@@ -18,7 +18,9 @@ limitations under the License
 #include <memory>
 
 #include "generative_computing/cc/intrinsics/conditional.h"
+#include "generative_computing/cc/intrinsics/delegate.h"
 #include "generative_computing/cc/intrinsics/fallback.h"
+#include "generative_computing/cc/intrinsics/repeat.h"
 #include "generative_computing/cc/intrinsics/model_inference.h"
 #include "generative_computing/cc/intrinsics/prompt_template.h"
 #include "generative_computing/cc/intrinsics/regex_partial_match.h"
@@ -32,8 +34,10 @@ std::shared_ptr<IntrinsicHandlerSet> CreateCompleteHandlerSet(
   const std::shared_ptr<IntrinsicHandlerSet> handlers =
       std::make_shared<IntrinsicHandlerSet>();
   handlers->AddHandler(new intrinsics::Conditional());
+  handlers->AddHandler(new intrinsics::Delegate({}));
   handlers->AddHandler(new intrinsics::Fallback());
   handlers->AddHandler(new intrinsics::ModelInference(inference_map));
+  handlers->AddHandler(new intrinsics::Repeat());
   handlers->AddHandler(new intrinsics::PromptTemplate());
   handlers->AddHandler(new intrinsics::RegexPartialMatch());
   return handlers;

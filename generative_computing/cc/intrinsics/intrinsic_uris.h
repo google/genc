@@ -34,6 +34,17 @@ namespace intrinsics {
 // "then" or "else" as the output of the conditional.
 inline constexpr absl::string_view kConditional = "conditional";
 
+// Delegates processing to a named runtime environment (e.g., from a device
+// to remotely execute within a Cloud backend). The processing being delegated
+// can be an arbitrary computation (e.g., a chain or a workflow) as long as
+// all intrinsics within that computation are supported by the remote backends.
+// The static parameter is a struct, the first element of which is the URI of
+// the runtime environment to delegate to, and the second of which is the
+// computation to delegate to run in that environment.
+// The dynamic parameter is the argument for that computation (to be uploaded
+// to the environment in which it is going to be executed).
+inline constexpr absl::string_view kDelegate = "delegate";
+
 // Performs a fallback across a list of candidate computations that are to be
 // lazily attempted in the order listed (i.e., they are not evaluated, parsed,
 // or initialized until it's their turn to attempt in the sequence).
@@ -62,6 +73,11 @@ inline constexpr absl::string_view kPromptTemplate = "prompt_template";
 // Returns a boolean scalar. The returned values is True if partial match found
 // a match, False otherwise.
 inline constexpr absl::string_view kRegexPartialMatch = "regex_partial_match";
+
+// Represents a loop that repeats its logic n times sequentially .
+// Takes one static parameter contains loop_body_fn and stop_fn, max_step.
+// Takes one dynamic Value parameter, which serves as the input to the loop.
+inline constexpr absl::string_view kRepeat = "repeat";
 
 }  // namespace intrinsics
 }  // namespace generative_computing

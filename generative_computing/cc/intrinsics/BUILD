@@ -22,6 +22,22 @@ cc_library(
 )
 
 cc_library(
+    name = "delegate",
+    srcs = ["delegate.cc"],
+    hdrs = ["delegate.h"],
+    deps = [
+        ":intrinsic_uris",
+        "//generative_computing/cc/runtime:intrinsic_handler",
+        "//generative_computing/cc/runtime:status_macros",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_library(
     name = "fallback",
     srcs = ["fallback.cc"],
     hdrs = ["fallback.h"],
@@ -41,12 +57,13 @@ cc_library(
     hdrs = ["handler_sets.h"],
     deps = [
         ":conditional",
+        ":delegate",
         ":fallback",
         ":model_inference",
         ":prompt_template",
         ":regex_partial_match",
+        ":repeat",
         "//generative_computing/cc/runtime:intrinsic_handler",
-        "@com_google_absl//absl/strings",
     ],
 )
 
@@ -56,7 +73,6 @@ pybind_extension(
     tags = ["generated_py_module=generative_computing.intrinsics"],
     deps = [
         ":intrinsic_uris",
-        "@com_google_absl//absl/strings",
         "@pybind11_abseil//pybind11_abseil:absl_casters",
         "@pybind11_abseil//pybind11_abseil:status_casters",
         "@pybind11_protobuf//pybind11_protobuf:native_proto_caster",
@@ -111,5 +127,20 @@ cc_library(
         "@com_github_google_re2//:re2",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_library(
+    name = "repeat",
+    srcs = ["repeat.cc"],
+    hdrs = ["repeat.h"],
+    deps = [
+        ":intrinsic_uris",
+        "//generative_computing/cc/runtime:intrinsic_handler",
+        "//generative_computing/cc/runtime:status_macros",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
     ],
 )

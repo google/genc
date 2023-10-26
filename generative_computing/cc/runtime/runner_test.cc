@@ -17,14 +17,13 @@ limitations under the License
 
 #include "googletest/include/gtest/gtest.h"
 #include "absl/status/statusor.h"
-#include "generative_computing/cc/authoring/computation_utils.h"
+#include "generative_computing/cc/authoring/constructor.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 
 namespace generative_computing {
 
 TEST(RunnerTest, ModelRunReturnsValue) {
-  v0::Value comp_pb;
-  SetModelInference(comp_pb, "test_model");
+  v0::Value comp_pb = CreateModelInference("test_model").value();
   absl::StatusOr<Runner> runner = Runner::CreateDefault(comp_pb);
 
   v0::Value arg;

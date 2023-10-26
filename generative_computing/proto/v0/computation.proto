@@ -95,6 +95,9 @@ message Value {
     // The preferred representation for Boolean values.
     bool boolean = 4;
 
+    // The preferred representation for int numeric values.
+    int32 int_32 = 14;
+
     // The preferred representation for media values, e.g. image/audio.
     bytes media = 5;
 
@@ -105,7 +108,7 @@ message Value {
     // NOTE: This must be `Any` in order to avoid a dependency on TensorFlow.
     google.protobuf.Any tensor = 1;
 
-    // NEXT ID: 14
+    // NEXT ID: 15
   }
 
   // The type of this value (currently optional; eventually required where it

@@ -13,20 +13,33 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include "generative_computing/cc/authoring/computation_utils.h"
+#ifndef GENERATIVE_COMPUTING_CC_INTRINSICS_REPEAT_H_
+#define GENERATIVE_COMPUTING_CC_INTRINSICS_REPEAT_H_
 
-#include <string>
+#include <optional>
 
-#include "absl/strings/string_view.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "generative_computing/cc/intrinsics/intrinsic_uris.h"
+#include "generative_computing/cc/runtime/intrinsic_handler.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 
 namespace generative_computing {
+namespace intrinsics {
 
-void SetModelInference(v0::Value& computation, absl::string_view model_uri) {
-  v0::Intrinsic* const intrinsic_pb = computation.mutable_intrinsic();
-  intrinsic_pb->set_uri(std::string(intrinsics::kModelInference));
-  intrinsic_pb->mutable_static_parameter()->set_str(std::string(model_uri));
-}
+class Repeat : public ControlFlowIntrinsicHandlerBase {
+ public:
+  Repeat() : ControlFlowIntrinsicHandlerBase(kRepeat) {}
 
+  virtual ~Repeat() {}
+
+  absl::Status CheckWellFormed(const v0::Intrinsic& intrinsic_pb) const final;
+
+  absl::StatusOr<ValueRef> ExecuteCall(const v0::Intrinsic& intrinsic_pb,
+                                       std::optional<ValueRef> arg,
+                                       Context* context) const final;
+};
+}  // namespace intrinsics
 }  // namespace generative_computing
+
+#endif  // GENERATIVE_COMPUTING_CC_INTRINSICS_REPEAT_H_

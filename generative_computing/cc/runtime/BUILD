@@ -32,8 +32,13 @@ cc_test(
         ":executor",
         ":inline_executor",
         ":intrinsic_handler",
+        ":runner",
+        "//generative_computing/cc/authoring:constructor",
         "//generative_computing/cc/intrinsics:handler_sets",
+        "//generative_computing/cc/intrinsics:model_inference",
         "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/strings:str_format",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -140,7 +145,7 @@ cc_test(
     deps = [
         ":executor",
         ":inline_executor",
-        "//generative_computing/cc/authoring:computation_utils",
+        "//generative_computing/cc/authoring:constructor",
         "//generative_computing/cc/intrinsics:handler_sets",
         "//generative_computing/cc/intrinsics:intrinsic_uris",
         "//generative_computing/cc/intrinsics:model_inference",
@@ -213,7 +218,7 @@ cc_test(
     srcs = ["runner_test.cc"],
     deps = [
         ":runner",
-        "//generative_computing/cc/authoring:computation_utils",
+        "//generative_computing/cc/authoring:constructor",
         "//generative_computing/proto/v0:computation_cc_proto",
         "@com_google_absl//absl/status:statusor",
         "@com_google_googletest//:gtest_main",

@@ -52,6 +52,7 @@ PYBIND11_MODULE(intrinsic_bindings, m) {
   auto intrinsics = m.def_submodule("intrinsics");
   intrinsics.attr("CONDITIONAL") = py::str(intrinsics::kConditional);
   intrinsics.attr("FALLBACK") = py::str(intrinsics::kFallback);
+  intrinsics.attr("REPEAT") = py::str(intrinsics::kRepeat);
   intrinsics.attr("MODEL_INFERENCE") = py::str(intrinsics::kModelInference);
   intrinsics.attr("PROMPT_TEMPLATE") = py::str(intrinsics::kPromptTemplate);
   intrinsics.attr("REGEX_PARTIAL_MATCH") =

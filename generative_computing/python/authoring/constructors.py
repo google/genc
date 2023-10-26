@@ -95,6 +95,29 @@ def create_lambda(name, body):
   return pb.Value(**{'lambda': pb.Lambda(parameter_name=name, result=body)})
 
 
+def create_repeat(num_steps, body_fn):
+  """Constructs a while loop, stop_fn is evaluated before entering the loop.
+
+  Args:
+    num_steps: Number of steps to repeat the calculation.
+    body_fn: The loop body funciton name.
+
+  Returns:
+    A computation that represents the while loop.
+  """
+  elements = [
+      pb.NamedValue(name='num_steps', value=pb.Value(str=str(num_steps))),
+      pb.NamedValue(name='body_fn', value=pb.Value(str=body_fn)),
+  ]
+
+  return pb.Value(
+      intrinsic=pb.Intrinsic(
+          uri=intrinsic_bindings.intrinsics.REPEAT,
+          static_parameter=pb.Value(struct=pb.Struct(element=elements)),
+      )
+  )
+
+
 def create_call(fn, arg):
   """Constructs a function call.
 

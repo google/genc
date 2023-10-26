@@ -23,7 +23,7 @@ limitations under the License
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
-#include "generative_computing/cc/authoring/computation_utils.h"
+#include "generative_computing/cc/authoring/constructor.h"
 #include "generative_computing/cc/intrinsics/handler_sets.h"
 #include "generative_computing/cc/intrinsics/intrinsic_uris.h"
 #include "generative_computing/cc/intrinsics/model_inference.h"
@@ -49,8 +49,7 @@ TEST_F(InlineExecutorTest, TestModel) {
       CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({}));
   EXPECT_TRUE(executor.ok());
 
-  v0::Value fn_pb;
-  SetModelInference(fn_pb, "test_model");
+  v0::Value fn_pb = CreateModelInference("test_model").value();
   absl::StatusOr<OwnedValueId> fn_val = executor.value()->CreateValue(fn_pb);
   EXPECT_TRUE(fn_val.ok());
 
@@ -82,8 +81,7 @@ TEST_F(InlineExecutorTest, TestModelWithInferenceFn) {
       CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet(inference_map));
   EXPECT_TRUE(executor.ok());
 
-  v0::Value fn_pb;
-  SetModelInference(fn_pb, "test_inference_fn");
+  v0::Value fn_pb = CreateModelInference("test_inference_fn").value();
   absl::StatusOr<OwnedValueId> fn_val = executor.value()->CreateValue(fn_pb);
   EXPECT_TRUE(fn_val.ok());
 

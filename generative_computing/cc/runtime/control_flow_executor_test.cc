@@ -44,7 +44,9 @@ absl::StatusOr<std::shared_ptr<Executor>> CreateTestControlFlowExecutor(
   if (inference_map == nullptr) {
     handler_set = intrinsics::CreateCompleteHandlerSet({});
   } else {
-    handler_set = intrinsics::CreateCompleteHandlerSet(*inference_map);
+    intrinsics::HandlerSetConfig config;
+    config.model_inference_map = *inference_map;
+    handler_set = intrinsics::CreateCompleteHandlerSet(config);
   }
 
   return CreateControlFlowExecutor(handler_set,

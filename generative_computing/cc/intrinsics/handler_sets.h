@@ -18,15 +18,21 @@ limitations under the License
 
 #include <memory>
 
+#include "generative_computing/cc/intrinsics/delegate.h"
 #include "generative_computing/cc/intrinsics/model_inference.h"
 #include "generative_computing/cc/runtime/intrinsic_handler.h"
 
 namespace generative_computing {
 namespace intrinsics {
 
+struct HandlerSetConfig {
+  Delegate::RunnerMap delegate_map;
+  ModelInference::InferenceMap model_inference_map;
+};
+
 // Construct a new handler set.
 std::shared_ptr<IntrinsicHandlerSet> CreateCompleteHandlerSet(
-    const ModelInference::InferenceMap& inference_map);
+    const HandlerSetConfig& config);
 
 }  // namespace intrinsics
 }  // namespace generative_computing

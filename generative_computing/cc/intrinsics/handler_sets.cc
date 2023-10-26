@@ -30,13 +30,14 @@ namespace generative_computing {
 namespace intrinsics {
 
 std::shared_ptr<IntrinsicHandlerSet> CreateCompleteHandlerSet(
-    const ModelInference::InferenceMap& inference_map) {
+    const HandlerSetConfig& config) {
   const std::shared_ptr<IntrinsicHandlerSet> handlers =
       std::make_shared<IntrinsicHandlerSet>();
   handlers->AddHandler(new intrinsics::Conditional());
-  handlers->AddHandler(new intrinsics::Delegate({}));
+  handlers->AddHandler(new intrinsics::Delegate(config.delegate_map));
   handlers->AddHandler(new intrinsics::Fallback());
-  handlers->AddHandler(new intrinsics::ModelInference(inference_map));
+  handlers->AddHandler(
+      new intrinsics::ModelInference(config.model_inference_map));
   handlers->AddHandler(new intrinsics::Repeat());
   handlers->AddHandler(new intrinsics::PromptTemplate());
   handlers->AddHandler(new intrinsics::RegexPartialMatch());

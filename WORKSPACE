@@ -66,6 +66,15 @@ http_archive(
     sha256 = "75922da3a1bdb417d820398eb03d4e9bd067c4905a4246d35a44c01d62154d91",
 )
 
+http_archive(
+  name = "curl",
+  urls = ["https://curl.se/download/curl-8.4.0.tar.gz"],
+  sha256 = "816e41809c043ff285e8c0f06a75a1fa250211bbfb2dc0a037eeef39f1a9e427",
+  strip_prefix = "curl-8.4.0",
+  build_file = "//bazel:curl.BUILD",
+)
+
+
 new_git_repository(
     name = "pybind11",
     build_file = "@pybind11_bazel//:pybind11.BUILD",

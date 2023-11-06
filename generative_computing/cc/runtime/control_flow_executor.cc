@@ -208,6 +208,10 @@ class ControlFlowExecutor
   absl::StatusOr<std::shared_ptr<ExecutorValue>> ConstCreateCall(
       std::shared_ptr<ExecutorValue> function,
       std::optional<std::shared_ptr<ExecutorValue>> argument) const;
+  absl::StatusOr<std::shared_ptr<ExecutorValue>> ConstCreateStruct(
+      std::vector<std::shared_ptr<ExecutorValue>> members) const;
+  absl::StatusOr<std::shared_ptr<ExecutorValue>> ConstCreateSelection(
+      std::shared_ptr<ExecutorValue> value, uint32_t index) const;
   absl::Status ConstMaterialize(std::shared_ptr<ExecutorValue> value,
                                 v0::Value* value_pb) const;
   absl::StatusOr<std::shared_ptr<ExecutorValue>> ConstCreateExecutorValue(
@@ -396,6 +400,18 @@ ControlFlowExecutor::CreateStruct(
 absl::StatusOr<std::shared_ptr<ExecutorValue>>
 ControlFlowExecutor::CreateSelection(std::shared_ptr<ExecutorValue> value,
                                      const uint32_t index) {
+  return CreateSelectionInternal(std::move(value), index);
+}
+
+absl::StatusOr<std::shared_ptr<ExecutorValue>>
+ControlFlowExecutor::ConstCreateStruct(
+    std::vector<std::shared_ptr<ExecutorValue>> members) const {
+  return std::make_shared<ExecutorValue>(std::move(members));
+}
+
+absl::StatusOr<std::shared_ptr<ExecutorValue>>
+ControlFlowExecutor::ConstCreateSelection(
+    std::shared_ptr<ExecutorValue> value, uint32_t index) const {
   return CreateSelectionInternal(std::move(value), index);
 }
 
@@ -675,12 +691,24 @@ class ControlFlowIntrinsicCallContextImpl
 
   absl::StatusOr<std::shared_ptr<Value>> CreateStruct(
       absl::Span<std::shared_ptr<Value>> members) final {
-    return absl::UnimplementedError("Not implemented.");
+    std::vector<std::shared_ptr<ExecutorValue>> member_vals;
+    for (const std::shared_ptr<Value>& member : members) {
+      member_vals.emplace_back(GENC_TRY(ExtractExecutorValue(member)));
+    }
+    std::shared_ptr<ExecutorValue> struct_val =
+        GENC_TRY(executor_->ConstCreateStruct(member_vals));
+    return std::shared_ptr<Value>(
+        static_cast<Value*>(new ValueImpl(struct_val)));
   }
 
   absl::StatusOr<std::shared_ptr<Value>> CreateSelection(
       std::shared_ptr<Value> source, uint32_t index) final {
-    return absl::UnimplementedError("Not implemented.");
+    std::shared_ptr<ExecutorValue> source_val =
+        GENC_TRY(ExtractExecutorValue(source));
+    std::shared_ptr<ExecutorValue> selection_val =
+        GENC_TRY(executor_->ConstCreateSelection(source_val, index));
+    return std::shared_ptr<Value>(
+        static_cast<Value*>(new ValueImpl(selection_val)));
   }
 
   absl::Status Materialize(std::shared_ptr<Value> value,

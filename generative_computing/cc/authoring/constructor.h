@@ -16,6 +16,7 @@ limitations under the License
 #ifndef GENERATIVE_COMPUTING_CC_AUTHORING_CONSTRUCTOR_H_
 #define GENERATIVE_COMPUTING_CC_AUTHORING_CONSTRUCTOR_H_
 
+#include <string>
 #include <vector>
 
 #include "absl/status/statusor.h"
@@ -41,8 +42,7 @@ absl::StatusOr<v0::Value> CreateChain(std::vector<v0::Value> function_list);
 
 // Returns a repeat proto which will repeat body_fn for num_steps, sequentially,
 // the output of the current step is the input to next iteration.
-absl::StatusOr<v0::Value> CreateRepeat(int num_steps,
-                                       absl::string_view body_fn_name);
+absl::StatusOr<v0::Value> CreateRepeat(int num_steps, v0::Value body_fn);
 
 // Returns a model inference proto with the given model URI.
 absl::StatusOr<v0::Value> CreateModelInference(absl::string_view model_uri);
@@ -51,6 +51,34 @@ absl::StatusOr<v0::Value> CreateModelInference(absl::string_view model_uri);
 // inference call to a model `model_uri`.
 void SetModelInference(v0::Value& computation, absl::string_view model_uri);
 
+// Creates a logical negation computation.
+absl::StatusOr<v0::Value> CreateLogicalNot();
+
+// Creates a prompt template computation with the given template string.
+absl::StatusOr<v0::Value> CreatePromptTemplate(absl::string_view template_str);
+
+// Creates a partial regex matcher with the given template string.
+absl::StatusOr<v0::Value> CreateRegexPartialMatch(
+    absl::string_view pattern_str);
+
+// Creates a while loop with the given condition_fn, body_fn.
+absl::StatusOr<v0::Value> CreateWhile(v0::Value condition_fn,
+                                      v0::Value body_fn);
+
+// Creates a for loop with the given num_steps, and a sequence of body_fns,
+// which will be executed sequentially each iteration, if any the function
+// inside body_fns is a conditional, and list evaluate to be true, it'll exit
+// the for loop.
+absl::StatusOr<v0::Value> CreateLoopChainCombo(int num_steps,
+                                               std::vector<v0::Value> body_fns);
+
+// Given a list of functions [f, g, ...] create a chain f(g(...)). Compared to
+// CreateChain, this chain can contain break point as part of the chain.
+absl::StatusOr<v0::Value> CreateBreakableChain(std::vector<v0::Value> fns_list);
+
+// Creates a NamedValue
+absl::StatusOr<v0::NamedValue> CreateNamedValue(std::string name,
+                                                v0::Value value);
 }  // namespace generative_computing
 
 #endif  // GENERATIVE_COMPUTING_CC_AUTHORING_CONSTRUCTOR_H_

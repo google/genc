@@ -88,6 +88,29 @@ class ConstructorsTest(absltest.TestCase):
     self.assertEqual(comp_pb.intrinsic.uri, 'regex_partial_match')
     self.assertEqual(comp_pb.intrinsic.static_parameter.str, 'A: True')
 
+  def test_while(self):
+    test_condition_fn = constructors.create_regex_partial_match(
+        'stop_keyword: Finish'
+    )
+    test_body_fn = constructors.create_model('test_model')
+    while_pb = constructors.create_while(test_condition_fn, test_body_fn)
+    self.assertEqual(while_pb.WhichOneof('value'), 'intrinsic')
+    self.assertEqual(while_pb.intrinsic.uri, 'while')
+    self.assertLen(while_pb.intrinsic.static_parameter.struct.element, 2)
+
+    for idx, param_name, fn in [
+        (0, 'condition_fn', str(test_condition_fn)),
+        (1, 'body_fn', str(test_body_fn)),
+    ]:
+      self.assertEqual(
+          while_pb.intrinsic.static_parameter.struct.element[idx].name,
+          param_name,
+      )
+      self.assertEqual(
+          str(while_pb.intrinsic.static_parameter.struct.element[idx].value),
+          fn,
+      )
+
 
 if __name__ == '__main__':
   absltest.main()

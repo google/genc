@@ -16,8 +16,12 @@ limitations under the License
 #include "generative_computing/cc/intrinsics/prompt_template.h"
 
 #include <string>
+#include <utility>
+#include <vector>
 
+#include "absl/container/flat_hash_set.h"
 #include "absl/status/status.h"
+#include "absl/strings/str_format.h"
 #include "absl/strings/str_replace.h"
 #include "absl/strings/string_view.h"
 #include "generative_computing/proto/v0/computation.pb.h"
@@ -25,6 +29,7 @@ limitations under the License
 
 namespace generative_computing {
 namespace intrinsics {
+constexpr absl::string_view kParameterRe = "(\\{[a-zA-Z0-9_]*\\})";
 
 absl::Status PromptTemplate::CheckWellFormed(
     const v0::Intrinsic& intrinsic_pb) const {
@@ -38,25 +43,33 @@ absl::Status PromptTemplate::CheckWellFormed(
 absl::Status PromptTemplate::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
                                          const v0::Value& arg,
                                          v0::Value* result) const {
-  // TODO(b/295041950): Add support for handling prompt templates with
-  // multiple arguments, not just a single string (so the argument can
-  // in general be a struct with multiple values, not just one).
   const absl::string_view template_string(
       intrinsic_pb.static_parameter().str());
   absl::string_view input(template_string);
-  std::string parameter_re = "(\\{[a-zA-Z0-9_]*\\})";
   std::string parameter;
-  if (!RE2::FindAndConsume(&input, parameter_re, &parameter)) {
-    return absl::InvalidArgumentError("No parameter found in the template.");
+  // Extract template placeholders.
+  absl::flat_hash_set<std::string> parameters_set;
+  while (RE2::FindAndConsume(&input, kParameterRe, &parameter)) {
+    parameters_set.insert(parameter);
   }
-  std::string other_parameter;
-  while (RE2::FindAndConsume(&input, parameter_re, &other_parameter)) {
-    if (other_parameter != parameter) {
-      return absl::InvalidArgumentError("Multiple parameters not supported.");
+
+  std::vector<std::pair<std::string, std::string>> replacements = {};
+  if (parameters_set.size() == 1) {
+    // Handle univariate template.
+    if (!arg.has_str()) {
+      return absl::InvalidArgumentError(
+          "Expect input to PromptTemplate to have str value, got none.");
+    }
+    replacements.emplace_back(parameter, arg.str());
+  } else {
+    // Handle multivariate template.
+    for (const auto& arg : arg.struct_().element()) {
+      replacements.emplace_back(absl::StrFormat("{%s}", arg.name()),
+                                arg.value().str());
     }
   }
-  result->mutable_str()->assign(
-      absl::StrReplaceAll(template_string, {{parameter, arg.str()}}));
+
+  result->set_str(absl::StrReplaceAll(template_string, replacements));
   return absl::OkStatus();
 }
 

@@ -56,13 +56,17 @@ cc_library(
     srcs = ["handler_sets.cc"],
     hdrs = ["handler_sets.h"],
     deps = [
+        ":breakable_chain",
         ":conditional",
         ":delegate",
         ":fallback",
+        ":logical_not",
+        ":loop_chain_combo",
         ":model_inference",
         ":prompt_template",
         ":regex_partial_match",
         ":repeat",
+        ":while",
         "//generative_computing/cc/runtime:intrinsic_handler",
     ],
 )
@@ -103,6 +107,19 @@ cc_library(
 )
 
 cc_library(
+    name = "logical_not",
+    srcs = ["logical_not.cc"],
+    hdrs = ["logical_not.h"],
+    deps = [
+        ":intrinsic_uris",
+        "//generative_computing/cc/runtime:intrinsic_handler",
+        "//generative_computing/cc/runtime:status_macros",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status",
+    ],
+)
+
+cc_library(
     name = "prompt_template",
     srcs = ["prompt_template.cc"],
     hdrs = ["prompt_template.h"],
@@ -111,8 +128,10 @@ cc_library(
         "//generative_computing/cc/runtime:intrinsic_handler",
         "//generative_computing/proto/v0:computation_cc_proto",
         "@com_github_google_re2//:re2",
+        "@com_google_absl//absl/container:flat_hash_set",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/strings:str_format",
     ],
 )
 
@@ -140,6 +159,51 @@ cc_library(
         "//generative_computing/cc/runtime:status_macros",
         "//generative_computing/proto/v0:computation_cc_proto",
         "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+    ],
+)
+
+cc_library(
+    name = "while",
+    srcs = ["while.cc"],
+    hdrs = ["while.h"],
+    deps = [
+        ":intrinsic_uris",
+        "//generative_computing/cc/runtime:intrinsic_handler",
+        "//generative_computing/cc/runtime:status_macros",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_library(
+    name = "loop_chain_combo",
+    srcs = ["loop_chain_combo.cc"],
+    hdrs = ["loop_chain_combo.h"],
+    deps = [
+        ":intrinsic_uris",
+        "//generative_computing/cc/runtime:intrinsic_handler",
+        "//generative_computing/cc/runtime:status_macros",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_library(
+    name = "breakable_chain",
+    srcs = ["breakable_chain.cc"],
+    hdrs = ["breakable_chain.h"],
+    deps = [
+        ":intrinsic_uris",
+        "//generative_computing/cc/authoring:constructor",
+        "//generative_computing/cc/runtime:intrinsic_handler",
+        "//generative_computing/cc/runtime:status_macros",
+        "//generative_computing/proto/v0:computation_cc_proto",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
     ],

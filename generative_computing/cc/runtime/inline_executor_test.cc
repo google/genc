@@ -16,7 +16,6 @@ limitations under the License
 #include "generative_computing/cc/runtime/inline_executor.h"
 
 #include <memory>
-#include <string>
 
 #include "googletest/include/gtest/gtest.h"
 #include "absl/status/status.h"
@@ -25,9 +24,8 @@ limitations under the License
 #include "absl/strings/string_view.h"
 #include "generative_computing/cc/authoring/constructor.h"
 #include "generative_computing/cc/intrinsics/handler_sets.h"
-#include "generative_computing/cc/intrinsics/intrinsic_uris.h"
-#include "generative_computing/cc/intrinsics/model_inference.h"
 #include "generative_computing/cc/runtime/executor.h"
+#include "generative_computing/cc/runtime/runner.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 
 namespace generative_computing {
@@ -101,35 +99,69 @@ TEST_F(InlineExecutorTest, TestModelWithInferenceFn) {
   EXPECT_EQ(result.str(), "Testing inference fn with arg: Boo!");
 }
 
-TEST_F(InlineExecutorTest, PromptTemplate) {
-  absl::StatusOr<std::shared_ptr<Executor>> executor =
-      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({}));
-  EXPECT_TRUE(executor.ok());
+TEST_F(InlineExecutorTest, ProcessUnivariatePromptTemplate) {
+  std::shared_ptr<Executor> executor =
+      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({})).value();
 
-  v0::Value fn_pb;
-  v0::Intrinsic* const intrinsic_pb = fn_pb.mutable_intrinsic();
-  intrinsic_pb->set_uri(
-      std::string(::generative_computing::intrinsics::kPromptTemplate));
-  intrinsic_pb->mutable_static_parameter()->set_str(
-      "Q: What should I pack for a trip to {location}? A: ");
-  absl::StatusOr<OwnedValueId> fn_val = executor.value()->CreateValue(fn_pb);
-  EXPECT_TRUE(fn_val.ok());
+  v0::Value template_pb =
+      CreatePromptTemplate(
+          "Q: What should I pack for a trip to {location}? A: ")
+          .value();
+
+  Runner runner = Runner::Create(template_pb, executor).value();
 
   v0::Value arg_pb;
   arg_pb.set_str("a grocery store");
-  absl::StatusOr<OwnedValueId> arg_val = executor.value()->CreateValue(arg_pb);
-  EXPECT_TRUE(arg_val.ok());
-
-  absl::StatusOr<OwnedValueId> result_val =
-      executor.value()->CreateCall(fn_val->ref(), arg_val->ref());
-  EXPECT_TRUE(result_val.ok());
-
-  v0::Value result;
-  absl::Status status =
-      executor.value()->Materialize(result_val->ref(), &result);
-  EXPECT_TRUE(status.ok());
+  v0::Value result = runner.Run(arg_pb).value();
   EXPECT_EQ(result.str(),
             "Q: What should I pack for a trip to a grocery store? A: ");
+}
+
+TEST_F(InlineExecutorTest, ProcessUnivariatePromptTemplateFailsWithEmptyStr) {
+  std::shared_ptr<Executor> executor =
+      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({})).value();
+
+  v0::Value template_pb =
+      CreatePromptTemplate(
+          "Q: What should I pack for a trip to {location}? A: ")
+          .value();
+
+  Runner runner = Runner::Create(template_pb, executor).value();
+
+  v0::Value arg_pb;
+  absl::StatusOr<v0::Value> result = runner.Run(arg_pb);
+  EXPECT_FALSE(result.ok());
+}
+
+TEST_F(InlineExecutorTest, ProcessMultivariatePromptTemplate) {
+  std::shared_ptr<Executor> executor =
+      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({})).value();
+
+  v0::Value template_pb =
+      CreatePromptTemplate(
+          "Q: What should I {do} for a trip to {location}? Also find me the "
+          "cheapest transportation to {location}. A: ")
+          .value();
+
+  Runner runner = Runner::Create(template_pb, executor).value();
+
+  v0::Value arg_pb;
+  // Variables in template can functions like keyword argument, therefore order
+  // doesn't matter.
+  v0::NamedValue* location_arg_pb =
+      arg_pb.mutable_struct_()->mutable_element()->Add();
+  location_arg_pb->set_name("location");
+  location_arg_pb->mutable_value()->set_str("Tokyo");
+
+  v0::NamedValue* do_arg_pb =
+      arg_pb.mutable_struct_()->mutable_element()->Add();
+  do_arg_pb->set_name("do");
+  do_arg_pb->mutable_value()->set_str("pack");
+
+  v0::Value result = runner.Run(arg_pb).value();
+  EXPECT_EQ(result.str(),
+            "Q: What should I pack for a trip to Tokyo? Also find me the "
+            "cheapest transportation to Tokyo. A: ");
 }
 
 }  // namespace

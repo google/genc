@@ -38,15 +38,15 @@ ExtractStaticParameters(const v0::Value& value) {
 
 TEST(CreateRepeatTest, ReturnsCorrectRepeatProto) {
   int steps = 5;
-  std::string test_fn_name = "test_body_fn";
-  v0::Value repeat_pb = CreateRepeat(steps, test_fn_name).value();
+  v0::Value model_pb = CreateModelInference("test_model_uri").value();
+  v0::Value repeat_pb = CreateRepeat(steps, model_pb).value();
   EXPECT_EQ(repeat_pb.intrinsic().uri(), "repeat");
   absl::flat_hash_map<std::string, v0::Value> kwargs =
       ExtractStaticParameters(repeat_pb).value();
 
   EXPECT_EQ(kwargs.at("num_steps").int_32(), steps);
   EXPECT_EQ(kwargs.at("body_fn").intrinsic().static_parameter().str(),
-            test_fn_name);
+            model_pb.intrinsic().static_parameter().str());
 }
 
 TEST(CreateModelInferenceTest, ReturnsCorrectModelInferenceProto) {
@@ -54,6 +54,31 @@ TEST(CreateModelInferenceTest, ReturnsCorrectModelInferenceProto) {
   v0::Value model_pb = CreateModelInference(test_model_uri).value();
   EXPECT_EQ(model_pb.intrinsic().uri(), "model_inference");
   EXPECT_EQ(model_pb.intrinsic().static_parameter().str(), test_model_uri);
+}
+
+TEST(CreateWhileTest, ReturnsCorrectLogicalNotProto) {
+  v0::Value logical_not_pb = CreateLogicalNot().value();
+  EXPECT_EQ(logical_not_pb.intrinsic().uri(), "logical_not");
+}
+
+TEST(CreateWhileTest, ReturnsCorrectRegexPartialMatchProto) {
+  std::string test_regex_pattern = "test_pattern";
+  v0::Value regex_pb = CreateRegexPartialMatch(test_regex_pattern).value();
+  EXPECT_EQ(regex_pb.intrinsic().uri(), "regex_partial_match");
+  EXPECT_EQ(regex_pb.intrinsic().static_parameter().str(), test_regex_pattern);
+}
+
+TEST(CreateWhileTest, ReturnsCorrectWhileProto) {
+  v0::Value test_condition_fn =
+      CreateRegexPartialMatch("stop_keyword: Finish").value();
+  v0::Value test_body_fn = CreateModelInference("test_model").value();
+  v0::Value while_pb = CreateWhile(test_condition_fn, test_body_fn).value();
+  EXPECT_EQ(while_pb.intrinsic().uri(), "while");
+  absl::flat_hash_map<std::string, v0::Value> kwargs =
+      ExtractStaticParameters(while_pb).value();
+
+  EXPECT_EQ(kwargs.at("condition_fn").intrinsic().uri(), "regex_partial_match");
+  EXPECT_EQ(kwargs.at("body_fn").intrinsic().uri(), "model_inference");
 }
 }  // namespace
 }  // namespace generative_computing

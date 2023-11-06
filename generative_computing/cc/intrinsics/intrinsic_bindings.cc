@@ -50,13 +50,17 @@ PYBIND11_MODULE(intrinsic_bindings, m) {
 
   // Intrinsics.
   auto intrinsics = m.def_submodule("intrinsics");
+  intrinsics.attr("BREAKABLE_CHAIN") = py::str(intrinsics::kBreakableChain);
   intrinsics.attr("CONDITIONAL") = py::str(intrinsics::kConditional);
   intrinsics.attr("FALLBACK") = py::str(intrinsics::kFallback);
-  intrinsics.attr("REPEAT") = py::str(intrinsics::kRepeat);
+  intrinsics.attr("LOOP_CHAIN_COMBO") = py::str(intrinsics::kLoopChainCombo);
+  intrinsics.attr("LOGICAL_NOT") = py::str(intrinsics::kLogicalNot);
   intrinsics.attr("MODEL_INFERENCE") = py::str(intrinsics::kModelInference);
   intrinsics.attr("PROMPT_TEMPLATE") = py::str(intrinsics::kPromptTemplate);
   intrinsics.attr("REGEX_PARTIAL_MATCH") =
       py::str(intrinsics::kRegexPartialMatch);
+  intrinsics.attr("REPEAT") = py::str(intrinsics::kRepeat);
+  intrinsics.attr("WHILE") = py::str(intrinsics::kWhile);
 }
 
 }  // namespace

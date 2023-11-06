@@ -229,3 +229,32 @@ def create_conditional(condition, positive_branch, negative_branch):
       )
   )
   return create_call(conditional, condition)
+
+
+def create_while(condition_fn, body_fn):
+  """Constructs a while loop.
+
+  Args:
+    condition_fn: The condition function. The condition function controls while
+      loop iterations. If condition function evaluates to false, the while loop
+      is terminated. If it evaluates to true, while loop continues with the next
+      iteration.
+    body_fn: The loop body function.
+
+  Returns:
+    A computation that represents the while loop.
+  """
+  while_loop = pb.Value(
+      intrinsic=pb.Intrinsic(
+          uri=intrinsic_bindings.intrinsics.WHILE,
+          static_parameter=pb.Value(
+              struct=pb.Struct(
+                  element=[
+                      pb.NamedValue(name='condition_fn', value=condition_fn),
+                      pb.NamedValue(name='body_fn', value=body_fn),
+                  ]
+              )
+          ),
+      )
+  )
+  return while_loop

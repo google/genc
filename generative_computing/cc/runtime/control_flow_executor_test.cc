@@ -29,6 +29,7 @@ limitations under the License
 #include "generative_computing/cc/runtime/inline_executor.h"
 #include "generative_computing/cc/runtime/intrinsic_handler.h"
 #include "generative_computing/cc/runtime/runner.h"
+#include "generative_computing/proto/v0/computation.pb.h"
 
 namespace generative_computing {
 
@@ -58,8 +59,6 @@ TEST_F(ControlFlowExecutorTest, ReturnsExecutorOnCreation) {
       CreateTestControlFlowExecutor();
 
   EXPECT_TRUE(executor.ok());
-
-  // TODO(b/295041821): Pull in the tests.
 }
 
 TEST_F(ControlFlowExecutorTest, RepeatOnSuccessRunsComputationNTimes) {
@@ -72,10 +71,12 @@ TEST_F(ControlFlowExecutorTest, RepeatOnSuccessRunsComputationNTimes) {
     return result;
   };
 
+  v0::Value body_fn = CreateModelInference("append_foo").value();
+
   std::shared_ptr<Executor> executor =
       CreateTestControlFlowExecutor(&inference_map).value();
 
-  v0::Value repeat_pb = CreateRepeat(3, "append_foo").value();
+  v0::Value repeat_pb = CreateRepeat(3, body_fn).value();
 
   Runner runner = Runner::Create(repeat_pb, executor).value();
 
@@ -129,4 +130,128 @@ TEST_F(ControlFlowExecutorTest, TestChaining) {
   EXPECT_EQ(result.str(), "fn_1(fn_2(test_input))");
 }
 
+TEST_F(ControlFlowExecutorTest, WhileLoopExecutionTest) {
+  // Create a test condition_fn that pumps the while loop.
+  v0::Value test_condition_fn =
+      CreateChain({CreateLogicalNot().value(),
+                   CreateRegexPartialMatch("Action: Finish").value()})
+          .value();
+
+  // Create a test body_fn.
+  intrinsics::ModelInference::InferenceMap inference_map;
+  v0::Value test_body_fn = CreateModelInference("test_body_fn").value();
+  int current_val = 1;
+  inference_map["test_body_fn"] = [&current_val](const v0::Value& arg) {
+    v0::Value result;
+    if (current_val == 3) {
+      result.set_str(absl::StrCat(arg.str(), "Action: Finish"));
+    } else {
+      result.set_str(absl::StrCat(arg.str(), current_val));
+    }
+    current_val++;
+    return result;
+  };
+
+  std::shared_ptr<Executor> executor =
+      CreateTestControlFlowExecutor(&inference_map).value();
+  v0::Value while_pb = CreateWhile(test_condition_fn, test_body_fn).value();
+
+  Runner runner = Runner::Create(while_pb, executor).value();
+  v0::Value arg;
+  arg.set_str("");
+  v0::Value result = runner.Run(arg).value();
+  EXPECT_EQ(result.str(), "12Action: Finish");
+}
+
+TEST_F(ControlFlowExecutorTest, LoopChainComboAbleToLoopAndBreak) {
+  // Step up executor and test custom fns.
+  intrinsics::ModelInference::InferenceMap inference_map;
+  v0::Value test_body_fn = CreateModelInference("test_body_fn").value();
+  int count = 0;
+  inference_map["append_finish_when_counts_reaches_3"] =
+      [&count](const v0::Value& arg) {
+        v0::Value result;
+        count++;
+        if (count == 3) {
+          result.set_str(absl::StrCat(arg.str(), "[FINISH]"));
+          return result;
+        }
+        return arg;
+      };
+
+  inference_map["append_foo"] = [](const v0::Value& arg) {
+    v0::Value result;
+    result.set_str(absl::StrCat(arg.str(), "foo"));
+    return result;
+  };
+
+  inference_map["append_bar"] = [](const v0::Value& arg) {
+    v0::Value result;
+    result.set_str(absl::StrCat(arg.str(), "bar"));
+    return result;
+  };
+  std::shared_ptr<Executor> executor =
+      CreateTestControlFlowExecutor(&inference_map).value();
+
+  // Create a for loop computation with break condition.
+  v0::Value append_foo_fn = CreateModelInference("append_foo").value();
+  v0::Value append_bar_fn = CreateModelInference("append_bar").value();
+  v0::Value if_finish_then_break_fn = CreateRegexPartialMatch("FINISH").value();
+  v0::Value count_to_3_append_finish_fn =
+      CreateModelInference("append_finish_when_counts_reaches_3").value();
+  v0::Value comp_pb =
+      CreateLoopChainCombo(
+          100,
+          std::vector<v0::Value>{append_foo_fn, if_finish_then_break_fn,
+                                 append_bar_fn, count_to_3_append_finish_fn})
+          .value();
+
+  // Run it.
+  Runner runner = Runner::Create(comp_pb, executor).value();
+  v0::Value arg;
+  arg.set_str("[START]");
+  v0::Value result = runner.Run(arg).value();
+  EXPECT_EQ(result.str(), "[START]foobarfoobarfoobar[FINISH]foo");
+}
+
+TEST_F(ControlFlowExecutorTest, BreakableChainCanChainAndBreak) {
+  intrinsics::ModelInference::InferenceMap inference_map;
+  inference_map["append_foo"] = [](const v0::Value& arg) {
+    v0::Value result;
+    result.set_str(absl::StrCat(arg.str(), "foo"));
+    return result;
+  };
+
+  inference_map["append_bar"] = [](const v0::Value& arg) {
+    v0::Value result;
+    result.set_str(absl::StrCat(arg.str(), "bar"));
+    return result;
+  };
+
+  inference_map["append_baz"] = [](const v0::Value& arg) {
+    v0::Value result;
+    result.set_str(absl::StrCat(arg.str(), "baz"));
+    return result;
+  };
+  std::shared_ptr<Executor> executor =
+      CreateTestControlFlowExecutor(&inference_map).value();
+
+  // Create a custom chain with break condition.
+  v0::Value append_foo_fn = CreateModelInference("append_foo").value();
+  v0::Value append_bar_fn = CreateModelInference("append_bar").value();
+  v0::Value break_with_bar_fn = CreateRegexPartialMatch("bar").value();
+  v0::Value append_baz_fn = CreateModelInference("append_baz").value();
+  v0::Value comp_pb =
+      CreateBreakableChain(std::vector<v0::Value>{append_foo_fn, append_bar_fn,
+                                                  break_with_bar_fn,
+                                                  append_baz_fn})
+          .value();
+
+  // Run it.
+  Runner runner = Runner::Create(comp_pb, executor).value();
+  v0::Value arg;
+  arg.set_str("[START]");
+  v0::Value result = runner.Run(arg).value();
+  EXPECT_EQ(result.str(), "[START]foobar");
+}
 }  // namespace generative_computing

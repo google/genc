@@ -54,6 +54,11 @@ inline constexpr absl::string_view kDelegate = "delegate";
 // the candidate functions (all of which must have matching type signatures).
 inline constexpr absl::string_view kFallback = "fallback";
 
+// Represents a logical not.
+// Takes zero static parameters.
+// Takes one dynamic parameter containing the boolean to be flipped.
+inline constexpr absl::string_view kLogicalNot = "logical_not";
+
 // Calls a model for inference.
 // Takes one static parameter "model_uri" of a string type.
 // Takes one dynamic string parameter, which serves as the input to the model.
@@ -75,9 +80,31 @@ inline constexpr absl::string_view kPromptTemplate = "prompt_template";
 inline constexpr absl::string_view kRegexPartialMatch = "regex_partial_match";
 
 // Represents a loop that repeats its logic n times sequentially .
-// Takes one static parameter contains loop_body_fn and stop_fn, max_step.
+// Takes one static parameter contains body_fn and num_steps.
 // Takes one dynamic Value parameter, which serves as the input to the loop.
 inline constexpr absl::string_view kRepeat = "repeat";
+
+// Represents a while loop that repeats until the condition evaluates to false.
+// The condition is evaluated first, including before the first iteration.
+// Takes one static struct_ parameter containing 'condition_fn' and 'body_fn'.
+// Takes one dynamic Value parameter, which serves as the input to the loop.
+inline constexpr absl::string_view kWhile = "while";
+
+// Represents a for loop that repeats itself for given number of steps, and can
+// flexibally break during execution. Takes one static parameter contains
+// num_steps, and chain of body_fns, fn1, fn2..., which will be executed
+// sequentially, if any of those function evaluates to be true, the for loop
+// will break. It takes one dynamic Value parameter, which serves as the input
+// to the loop.
+inline constexpr absl::string_view kLoopChainCombo = "loop_chain_combo";
+
+// Represents a custom chain, a chain of fns, h, g, f... will be executed
+// sequentially.
+// If g returns non-bool, then g(f(x)) is being fed further as input into
+// h(...). If g returns true, then f(x) is returned by the chain. If g returns
+// false, then f(x) is being fed further as input into h(...).
+//  Chain by nature are compositional, one chain can contain other chains,
+inline constexpr absl::string_view kBreakableChain = "breakable_chain";
 
 }  // namespace intrinsics
 }  // namespace generative_computing

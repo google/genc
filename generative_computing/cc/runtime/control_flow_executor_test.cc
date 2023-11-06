@@ -254,4 +254,50 @@ TEST_F(ControlFlowExecutorTest, BreakableChainCanChainAndBreak) {
   v0::Value result = runner.Run(arg).value();
   EXPECT_EQ(result.str(), "[START]foobar");
 }
+
+TEST_F(ControlFlowExecutorTest, CreateStructAndSelection) {
+  absl::StatusOr<std::shared_ptr<Executor>> executor =
+      CreateTestControlFlowExecutor();
+  EXPECT_TRUE(executor.ok());
+
+  v0::Value x, y;
+  x.set_str("foo");
+  y.set_str("bar");
+
+  absl::StatusOr<OwnedValueId> x_val = executor.value()->CreateValue(x);
+  EXPECT_TRUE(x_val.ok());
+
+  absl::StatusOr<OwnedValueId> y_val = executor.value()->CreateValue(y);
+  EXPECT_TRUE(y_val.ok());
+
+  std::vector<ValueId> elements;
+  elements.push_back(x_val.value().ref());
+  elements.push_back(y_val.value().ref());
+  absl::StatusOr<OwnedValueId> z_val = executor.value()->CreateStruct(elements);
+  EXPECT_TRUE(z_val.ok());
+
+  v0::Value result;
+  EXPECT_TRUE(executor.value()->Materialize(z_val.value().ref(), &result).ok());
+
+  v0::Value expected_result;
+  auto good_struct = expected_result.mutable_struct_();
+  good_struct->add_element()->mutable_value()->set_str("foo");
+  good_struct->add_element()->mutable_value()->set_str("bar");
+  EXPECT_EQ(result.DebugString(), expected_result.DebugString());
+
+  absl::StatusOr<OwnedValueId> a_val =
+      executor.value()->CreateSelection(z_val.value().ref(), 0);
+  EXPECT_TRUE(a_val.ok());
+  v0::Value a_pb;
+  EXPECT_TRUE(executor.value()->Materialize(a_val.value().ref(), &a_pb).ok());
+  EXPECT_EQ(a_pb.DebugString(), x.DebugString());
+
+  absl::StatusOr<OwnedValueId> b_val =
+      executor.value()->CreateSelection(z_val.value().ref(), 1);
+  EXPECT_TRUE(b_val.ok());
+  v0::Value b_pb;
+  EXPECT_TRUE(executor.value()->Materialize(b_val.value().ref(), &b_pb).ok());
+  EXPECT_EQ(b_pb.DebugString(), y.DebugString());
+}
+
 }  // namespace generative_computing

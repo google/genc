@@ -117,12 +117,35 @@ class InlineExecutor : public ExecutorBase<ValueFuture> {
 
   absl::StatusOr<ValueFuture> CreateStruct(
       std::vector<ValueFuture> member_futures) final {
-    return absl::UnimplementedError("Unimplemented");
+    return ThreadRun(
+        [member_futures]() -> absl::StatusOr<ExecutorValue> {
+          std::shared_ptr<v0::Value> result_pb = std::make_shared<v0::Value>();
+          auto elements = result_pb->mutable_struct_()->mutable_element();
+          for (const auto& member_future : member_futures) {
+            ExecutorValue val = GENC_TRY(Wait(member_future));
+            elements->Add()->mutable_value()->CopyFrom(val.value());
+          }
+          return ExecutorValue(result_pb);
+        },
+        thread_pool_);
   }
 
   absl::StatusOr<ValueFuture> CreateSelection(ValueFuture value_future,
                                               const uint32_t index) final {
-    return absl::UnimplementedError("Unimplemented");
+    return ThreadRun(
+        [value_future, index]() -> absl::StatusOr<ExecutorValue> {
+          ExecutorValue val = GENC_TRY(Wait(value_future));
+          if (!val.value().has_struct_()) {
+            return absl::InvalidArgumentError(
+                absl::StrCat("Not a struct: ", val.value().DebugString()));
+          }
+          if (val.value().struct_().element_size() <= index) {
+            return absl::OutOfRangeError("Selection index out of bounds.");
+          }
+          return ExecutorValue(std::make_shared<v0::Value>(
+              val.value().struct_().element(index).value()));
+        },
+        thread_pool_);
   }
 
  private:

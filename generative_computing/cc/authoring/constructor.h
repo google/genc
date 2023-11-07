@@ -47,6 +47,9 @@ absl::StatusOr<v0::Value> CreateRepeat(int num_steps, v0::Value body_fn);
 // Returns a model inference proto with the given model URI.
 absl::StatusOr<v0::Value> CreateModelInference(absl::string_view model_uri);
 
+// Returns a custom function proto with the given fn URI.
+absl::StatusOr<v0::Value> CreateCustomFunction(absl::string_view fn_uri);
+
 // Populate the computation.proto in `intrinsics` to represent a model
 // inference call to a model `model_uri`.
 void SetModelInference(v0::Value& computation, absl::string_view model_uri);
@@ -72,6 +75,9 @@ absl::StatusOr<v0::Value> CreateWhile(v0::Value condition_fn,
 absl::StatusOr<v0::Value> CreateLoopChainCombo(int num_steps,
                                                std::vector<v0::Value> body_fns);
 
+// Creates a Logger, it takes an input logs it and returns the original input.
+absl::StatusOr<v0::Value> CreateLogger();
+
 // Given a list of functions [f, g, ...] create a chain f(g(...)). Compared to
 // CreateChain, this chain can contain break point as part of the chain.
 absl::StatusOr<v0::Value> CreateBreakableChain(std::vector<v0::Value> fns_list);
@@ -79,6 +85,7 @@ absl::StatusOr<v0::Value> CreateBreakableChain(std::vector<v0::Value> fns_list);
 // Creates a NamedValue
 absl::StatusOr<v0::NamedValue> CreateNamedValue(std::string name,
                                                 v0::Value value);
+
 }  // namespace generative_computing
 
 #endif  // GENERATIVE_COMPUTING_CC_AUTHORING_CONSTRUCTOR_H_

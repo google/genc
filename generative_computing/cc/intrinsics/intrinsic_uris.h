@@ -64,6 +64,11 @@ inline constexpr absl::string_view kLogicalNot = "logical_not";
 // Takes one dynamic string parameter, which serves as the input to the model.
 inline constexpr absl::string_view kModelInference = "model_inference";
 
+// Calls a user defined custom function.
+// Takes one static parameter "fn_uri" of a string type.
+// Takes one dynamic value parameter, which serves as the input to the function.
+inline constexpr absl::string_view kCustomFunction = "custom_function";
+
 // Constructs a prompt.
 // Takes one static parameter "template_string" of a string type.
 // Takes (currently just) one dynamic string parameter, which serves as the
@@ -105,6 +110,9 @@ inline constexpr absl::string_view kLoopChainCombo = "loop_chain_combo";
 // false, then f(x) is being fed further as input into h(...).
 //  Chain by nature are compositional, one chain can contain other chains,
 inline constexpr absl::string_view kBreakableChain = "breakable_chain";
+
+// Represents a logger, prints the value and returns the original value.
+inline constexpr absl::string_view kLogger = "logger";
 
 }  // namespace intrinsics
 }  // namespace generative_computing

@@ -54,6 +54,14 @@ void SetModelInference(v0::Value& computation, absl::string_view model_uri) {
   intrinsic_pb->mutable_static_parameter()->set_str(std::string(model_uri));
 }
 
+absl::StatusOr<v0::Value> CreateCustomFunction(absl::string_view fn_uri) {
+  v0::Value fn_pb;
+  v0::Intrinsic* const intrinsic_pb = fn_pb.mutable_intrinsic();
+  intrinsic_pb->set_uri(std::string(intrinsics::kCustomFunction));
+  intrinsic_pb->mutable_static_parameter()->set_str(std::string(fn_uri));
+  return fn_pb;
+}
+
 absl::StatusOr<v0::Value> CreateLambda(absl::string_view arg_name,
                                        v0::Value body) {
   v0::Value value_pb;
@@ -167,6 +175,13 @@ absl::StatusOr<v0::Value> CreateBreakableChain(
         GENC_TRY(CreateNamedValue(absl::StrFormat("step_%d", i), fns_list[i]));
   }
   return chain_pb;
+}
+
+absl::StatusOr<v0::Value> CreateLogger() {
+  v0::Value logger_pb;
+  v0::Intrinsic* const intrinsic_pb = logger_pb.mutable_intrinsic();
+  intrinsic_pb->set_uri(std::string(intrinsics::kLogger));
+  return logger_pb;
 }
 
 }  // namespace generative_computing

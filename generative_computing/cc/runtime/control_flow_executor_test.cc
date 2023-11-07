@@ -16,12 +16,17 @@ limitations under the License
 #include "generative_computing/cc/runtime/control_flow_executor.h"
 
 #include <memory>
+#include <optional>
+#include <string>
 #include <vector>
 
 #include "googletest/include/gtest/gtest.h"
+#include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
+#include "absl/types/span.h"
 #include "generative_computing/cc/authoring/constructor.h"
 #include "generative_computing/cc/intrinsics/handler_sets.h"
 #include "generative_computing/cc/intrinsics/model_inference.h"
@@ -29,9 +34,13 @@ limitations under the License
 #include "generative_computing/cc/runtime/inline_executor.h"
 #include "generative_computing/cc/runtime/intrinsic_handler.h"
 #include "generative_computing/cc/runtime/runner.h"
+#include "generative_computing/cc/runtime/status_macros.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 
 namespace generative_computing {
+
+constexpr absl::string_view kTestIntrinsic =
+    "nonexistent_intrinsic_only_for_testing_purposes";
 
 class ControlFlowExecutorTest : public ::testing::Test {
  protected:
@@ -298,6 +307,121 @@ TEST_F(ControlFlowExecutorTest, CreateStructAndSelection) {
   v0::Value b_pb;
   EXPECT_TRUE(executor.value()->Materialize(b_val.value().ref(), &b_pb).ok());
   EXPECT_EQ(b_pb.DebugString(), y.DebugString());
+}
+
+TEST_F(ControlFlowExecutorTest, CreateStructInIntrinsicHandler) {
+  class TestIntrinsic : public ControlFlowIntrinsicHandlerBase {
+   public:
+    TestIntrinsic() : ControlFlowIntrinsicHandlerBase(kTestIntrinsic) {}
+    virtual ~TestIntrinsic() {}
+
+    absl::Status CheckWellFormed(
+        const v0::Intrinsic& intrinsic_pb) const final {
+      return absl::OkStatus();
+    }
+
+    // Constructs a struct that consists of the dynamic argument and the static
+    // argument as the two elements.
+    absl::StatusOr<ValueRef> ExecuteCall(
+        const v0::Intrinsic& intrinsic_pb,
+        std::optional<ValueRef> arg,
+        Context* context) const final {
+      if (!arg.has_value()) {
+        return absl::InvalidArgumentError("Missing argument.");
+      }
+      std::shared_ptr<Value> x = arg.value();
+      std::shared_ptr<Value> y =
+          GENC_TRY(context->CreateValue(intrinsic_pb.static_parameter()));
+      std::vector<std::shared_ptr<Value>> elements;
+      elements.push_back(x);
+      elements.push_back(y);
+      return context->CreateStruct(absl::MakeSpan(elements));
+    }
+  };
+
+  std::shared_ptr<IntrinsicHandlerSet> handler_set =
+      intrinsics::CreateCompleteHandlerSet(intrinsics::HandlerSetConfig());
+  handler_set->AddHandler(new TestIntrinsic());
+  absl::StatusOr<std::shared_ptr<Executor>> executor =
+      CreateControlFlowExecutor(
+          handler_set, CreateInlineExecutor(handler_set).value());
+  EXPECT_TRUE(executor.ok());
+
+  v0::Value x, y;
+  x.set_str("foo");
+  auto intrinsic = y.mutable_intrinsic();
+  intrinsic->set_uri(std::string(kTestIntrinsic));
+  intrinsic->mutable_static_parameter()->set_str("bar");
+
+  absl::StatusOr<OwnedValueId> x_val = executor.value()->CreateValue(x);
+  EXPECT_TRUE(x_val.ok());
+
+  absl::StatusOr<OwnedValueId> y_val = executor.value()->CreateValue(y);
+  EXPECT_TRUE(y_val.ok());
+
+  absl::StatusOr<OwnedValueId> z_val =
+      executor.value()->CreateCall(y_val.value().ref(), x_val.value().ref());
+  EXPECT_TRUE(z_val.ok());
+
+  v0::Value result;
+  EXPECT_TRUE(executor.value()->Materialize(z_val.value().ref(), &result).ok());
+
+  v0::Value expected_result;
+  auto good_struct = expected_result.mutable_struct_();
+  good_struct->add_element()->mutable_value()->set_str("foo");
+  good_struct->add_element()->mutable_value()->set_str("bar");
+  EXPECT_EQ(result.DebugString(), expected_result.DebugString());
+}
+
+TEST_F(ControlFlowExecutorTest, CreateSelectionInIntrinsicHandler) {
+  class TestIntrinsic : public ControlFlowIntrinsicHandlerBase {
+   public:
+    TestIntrinsic() : ControlFlowIntrinsicHandlerBase(kTestIntrinsic) {}
+    virtual ~TestIntrinsic() {}
+
+    absl::Status CheckWellFormed(
+        const v0::Intrinsic& intrinsic_pb) const final {
+      return absl::OkStatus();
+    }
+
+    // Selects tjhe first element of a struct.
+    absl::StatusOr<ValueRef> ExecuteCall(
+        const v0::Intrinsic& intrinsic_pb,
+        std::optional<ValueRef> arg,
+        Context* context) const final {
+      if (!arg.has_value()) {
+        return absl::InvalidArgumentError("Missing argument.");
+      }
+      return context->CreateSelection(arg.value(), 0);
+    }
+  };
+
+  std::shared_ptr<IntrinsicHandlerSet> handler_set =
+      intrinsics::CreateCompleteHandlerSet(intrinsics::HandlerSetConfig());
+  handler_set->AddHandler(new TestIntrinsic());
+  absl::StatusOr<std::shared_ptr<Executor>> executor =
+      CreateControlFlowExecutor(
+          handler_set, CreateInlineExecutor(handler_set).value());
+  EXPECT_TRUE(executor.ok());
+
+  v0::Value x, y;
+  x.mutable_struct_()->add_element()->mutable_value()->set_str("foo");
+  x.mutable_struct_()->add_element()->mutable_value()->set_str("bar");
+  y.mutable_intrinsic()->set_uri(std::string(kTestIntrinsic));
+
+  absl::StatusOr<OwnedValueId> x_val = executor.value()->CreateValue(x);
+  EXPECT_TRUE(x_val.ok());
+
+  absl::StatusOr<OwnedValueId> y_val = executor.value()->CreateValue(y);
+  EXPECT_TRUE(y_val.ok());
+
+  absl::StatusOr<OwnedValueId> z_val =
+      executor.value()->CreateCall(y_val.value().ref(), x_val.value().ref());
+  EXPECT_TRUE(z_val.ok());
+
+  v0::Value result;
+  EXPECT_TRUE(executor.value()->Materialize(z_val.value().ref(), &result).ok());
+  EXPECT_EQ(result.DebugString(), x.struct_().element(0).value().DebugString());
 }
 
 }  // namespace generative_computing

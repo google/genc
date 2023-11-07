@@ -17,10 +17,12 @@ limitations under the License
 
 #include <memory>
 
-#include "generative_computing/cc/intrinsics/conditional.h"
 #include "generative_computing/cc/intrinsics/breakable_chain.h"
+#include "generative_computing/cc/intrinsics/conditional.h"
+#include "generative_computing/cc/intrinsics/custom_function.h"
 #include "generative_computing/cc/intrinsics/delegate.h"
 #include "generative_computing/cc/intrinsics/fallback.h"
+#include "generative_computing/cc/intrinsics/logger.h"
 #include "generative_computing/cc/intrinsics/logical_not.h"
 #include "generative_computing/cc/intrinsics/loop_chain_combo.h"
 #include "generative_computing/cc/intrinsics/model_inference.h"
@@ -41,6 +43,9 @@ std::shared_ptr<IntrinsicHandlerSet> CreateCompleteHandlerSet(
   handlers->AddHandler(new intrinsics::Conditional());
   handlers->AddHandler(new intrinsics::Delegate(config.delegate_map));
   handlers->AddHandler(new intrinsics::Fallback());
+  handlers->AddHandler(new intrinsics::Logger);
+  handlers->AddHandler(
+      new intrinsics::CustomFunction(config.custom_function_map));
   handlers->AddHandler(
       new intrinsics::ModelInference(config.model_inference_map));
   handlers->AddHandler(new intrinsics::LogicalNot());

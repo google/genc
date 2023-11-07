@@ -56,6 +56,13 @@ TEST(CreateModelInferenceTest, ReturnsCorrectModelInferenceProto) {
   EXPECT_EQ(model_pb.intrinsic().static_parameter().str(), test_model_uri);
 }
 
+TEST(CreateCustomFunctionTest, ReturnsCorrectCustomFunctionProto) {
+  std::string fn_uri = "test_fn_uri";
+  v0::Value custom_fn_pb = CreateCustomFunction(fn_uri).value();
+  EXPECT_EQ(custom_fn_pb.intrinsic().uri(), "custom_function");
+  EXPECT_EQ(custom_fn_pb.intrinsic().static_parameter().str(), fn_uri);
+}
+
 TEST(CreateWhileTest, ReturnsCorrectLogicalNotProto) {
   v0::Value logical_not_pb = CreateLogicalNot().value();
   EXPECT_EQ(logical_not_pb.intrinsic().uri(), "logical_not");

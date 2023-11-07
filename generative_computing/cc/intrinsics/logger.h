@@ -13,30 +13,29 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#ifndef GENERATIVE_COMPUTING_CC_INTRINSICS_HANDLER_SETS_H_
-#define GENERATIVE_COMPUTING_CC_INTRINSICS_HANDLER_SETS_H_
+#ifndef GENERATIVE_COMPUTING_CC_INTRINSICS_LOGGER_H_
+#define GENERATIVE_COMPUTING_CC_INTRINSICS_LOGGER_H_
 
-#include <memory>
-
-#include "generative_computing/cc/intrinsics/custom_function.h"
-#include "generative_computing/cc/intrinsics/delegate.h"
-#include "generative_computing/cc/intrinsics/model_inference.h"
+#include "absl/status/status.h"
+#include "generative_computing/cc/intrinsics/intrinsic_uris.h"
 #include "generative_computing/cc/runtime/intrinsic_handler.h"
+#include "generative_computing/proto/v0/computation.pb.h"
+
 
 namespace generative_computing {
 namespace intrinsics {
 
-struct HandlerSetConfig {
-  Delegate::RunnerMap delegate_map;
-  ModelInference::InferenceMap model_inference_map;
-  CustomFunction::FunctionMap custom_function_map;
+class Logger : public InlineIntrinsicHandlerBase {
+ public:
+  Logger() : InlineIntrinsicHandlerBase(kLogger) {}
+  virtual ~Logger() {}
+
+  absl::Status CheckWellFormed(const v0::Intrinsic& intrinsic_pb) const final;
+
+  absl::Status ExecuteCall(const v0::Intrinsic& intrinsic_pb,
+                           const v0::Value& arg, v0::Value* result) const final;
 };
-
-// Construct a new handler set.
-std::shared_ptr<IntrinsicHandlerSet> CreateCompleteHandlerSet(
-    const HandlerSetConfig& config);
-
 }  // namespace intrinsics
 }  // namespace generative_computing
 
-#endif  // GENERATIVE_COMPUTING_CC_INTRINSICS_HANDLER_SETS_H_
+#endif  // GENERATIVE_COMPUTING_CC_INTRINSICS_LOGGER_H_

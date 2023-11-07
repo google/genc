@@ -58,8 +58,10 @@ cc_library(
     deps = [
         ":breakable_chain",
         ":conditional",
+        ":custom_function",
         ":delegate",
         ":fallback",
+        ":logger",
         ":logical_not",
         ":loop_chain_combo",
         ":model_inference",
@@ -204,6 +206,33 @@ cc_library(
         "//generative_computing/cc/runtime:intrinsic_handler",
         "//generative_computing/cc/runtime:status_macros",
         "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+    ],
+)
+
+cc_library(
+    name = "logger",
+    srcs = ["logger.cc"],
+    hdrs = ["logger.h"],
+    deps = [
+        ":intrinsic_uris",
+        "//generative_computing/cc/runtime:intrinsic_handler",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status",
+    ],
+)
+
+cc_library(
+    name = "custom_function",
+    srcs = ["custom_function.cc"],
+    hdrs = ["custom_function.h"],
+    deps = [
+        ":intrinsic_uris",
+        "//generative_computing/cc/runtime:intrinsic_handler",
+        "//generative_computing/cc/runtime:status_macros",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
     ],

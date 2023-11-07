@@ -15,8 +15,11 @@ limitations under the License
 
 #include "generative_computing/cc/runtime/inline_executor.h"
 
+#include <iostream>
 #include <memory>
 #include <vector>
+#include <sstream>
+#include <streambuf>
 
 #include "googletest/include/gtest/gtest.h"
 #include "absl/status/status.h"
@@ -98,6 +101,26 @@ TEST_F(InlineExecutorTest, TestModelWithInferenceFn) {
       executor.value()->Materialize(result_val->ref(), &result);
   EXPECT_TRUE(status.ok());
   EXPECT_EQ(result.str(), "Testing inference fn with arg: Boo!");
+}
+
+TEST_F(InlineExecutorTest, CustomFunctionInvokesUserDefinedFn) {
+  intrinsics::HandlerSetConfig config;
+  config.custom_function_map["append_foo"] = [](v0::Value arg) {
+    v0::Value result;
+    result.set_str(absl::StrCat(arg.str(), "foo"));
+    return result;
+  };
+  std::shared_ptr<Executor> executor =
+      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet(config))
+          .value();
+
+  v0::Value fn_pb = CreateCustomFunction("append_foo").value();
+  Runner runner = Runner::Create(fn_pb, executor).value();
+
+  v0::Value arg_pb;
+  arg_pb.set_str("bar");
+  v0::Value result = runner.Run(arg_pb).value();
+  EXPECT_EQ(result.str(), "barfoo");
 }
 
 TEST_F(InlineExecutorTest, ProcessUnivariatePromptTemplate) {
@@ -209,6 +232,24 @@ TEST_F(InlineExecutorTest, CreateStructAndSelection) {
   v0::Value b_pb;
   EXPECT_TRUE(executor.value()->Materialize(b_val.value().ref(), &b_pb).ok());
   EXPECT_EQ(b_pb.DebugString(), y.DebugString());
+}
+
+TEST_F(InlineExecutorTest, LoggerLogsAndLeavesValueUnchanged) {
+  std::shared_ptr<Executor> executor =
+      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({})).value();
+
+  v0::Value logger_pb = CreateLogger().value();
+  Runner runner = Runner::Create(logger_pb, executor).value();
+
+  std::streambuf* cout_streambuf = std::cout.rdbuf();
+  std::ostringstream captured_output;
+  std::cout.rdbuf(captured_output.rdbuf());
+  v0::Value arg_pb;
+  arg_pb.set_str("Boo!");
+  runner.Run(arg_pb).value();
+  std::cout.rdbuf(cout_streambuf);
+
+  EXPECT_EQ(captured_output.str(), "Boo!\n");
 }
 
 }  // namespace

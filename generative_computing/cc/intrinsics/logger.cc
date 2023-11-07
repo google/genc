@@ -13,30 +13,30 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#ifndef GENERATIVE_COMPUTING_CC_INTRINSICS_HANDLER_SETS_H_
-#define GENERATIVE_COMPUTING_CC_INTRINSICS_HANDLER_SETS_H_
+#include "generative_computing/cc/intrinsics/logger.h"
 
-#include <memory>
+#include <iostream>
 
-#include "generative_computing/cc/intrinsics/custom_function.h"
-#include "generative_computing/cc/intrinsics/delegate.h"
-#include "generative_computing/cc/intrinsics/model_inference.h"
-#include "generative_computing/cc/runtime/intrinsic_handler.h"
+#include "absl/status/status.h"
+#include "generative_computing/proto/v0/computation.pb.h"
 
 namespace generative_computing {
 namespace intrinsics {
+absl::Status Logger::CheckWellFormed(const v0::Intrinsic& intrinsic_pb) const {
+  return absl::OkStatus();
+}
 
-struct HandlerSetConfig {
-  Delegate::RunnerMap delegate_map;
-  ModelInference::InferenceMap model_inference_map;
-  CustomFunction::FunctionMap custom_function_map;
-};
-
-// Construct a new handler set.
-std::shared_ptr<IntrinsicHandlerSet> CreateCompleteHandlerSet(
-    const HandlerSetConfig& config);
-
+absl::Status Logger::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
+                                 const v0::Value& arg,
+                                 v0::Value* result) const {
+  if (arg.has_str()) {
+    // Pretty print of string
+    std::cout << arg.str() << "\n";
+  } else {
+    std::cout << arg.DebugString() << "\n";
+  }
+  *result = arg;
+  return absl::OkStatus();
+}
 }  // namespace intrinsics
 }  // namespace generative_computing
-
-#endif  // GENERATIVE_COMPUTING_CC_INTRINSICS_HANDLER_SETS_H_

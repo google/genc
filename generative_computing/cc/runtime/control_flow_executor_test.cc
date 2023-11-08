@@ -28,6 +28,7 @@ limitations under the License
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
 #include "generative_computing/cc/authoring/constructor.h"
+#include "generative_computing/cc/intrinsics/custom_function.h"
 #include "generative_computing/cc/intrinsics/handler_sets.h"
 #include "generative_computing/cc/intrinsics/model_inference.h"
 #include "generative_computing/cc/runtime/executor.h"
@@ -49,15 +50,18 @@ class ControlFlowExecutorTest : public ::testing::Test {
 };
 
 absl::StatusOr<std::shared_ptr<Executor>> CreateTestControlFlowExecutor(
-    intrinsics::ModelInference::InferenceMap* inference_map = nullptr) {
+    intrinsics::ModelInference::InferenceMap* inference_map = nullptr,
+    intrinsics::CustomFunction::FunctionMap* custom_fn_map = nullptr) {
   std::shared_ptr<IntrinsicHandlerSet> handler_set;
-  if (inference_map == nullptr) {
-    handler_set = intrinsics::CreateCompleteHandlerSet({});
-  } else {
-    intrinsics::HandlerSetConfig config;
-    config.model_inference_map = *inference_map;
-    handler_set = intrinsics::CreateCompleteHandlerSet(config);
+
+  intrinsics::HandlerSetConfig config;
+  if (custom_fn_map != nullptr) {
+    config.custom_function_map = *custom_fn_map;
   }
+  if (inference_map != nullptr) {
+    config.model_inference_map = *inference_map;
+  }
+  handler_set = intrinsics::CreateCompleteHandlerSet(config);
 
   return CreateControlFlowExecutor(handler_set,
                                    CreateInlineExecutor(handler_set).value());
@@ -322,10 +326,9 @@ TEST_F(ControlFlowExecutorTest, CreateStructInIntrinsicHandler) {
 
     // Constructs a struct that consists of the dynamic argument and the static
     // argument as the two elements.
-    absl::StatusOr<ValueRef> ExecuteCall(
-        const v0::Intrinsic& intrinsic_pb,
-        std::optional<ValueRef> arg,
-        Context* context) const final {
+    absl::StatusOr<ValueRef> ExecuteCall(const v0::Intrinsic& intrinsic_pb,
+                                         std::optional<ValueRef> arg,
+                                         Context* context) const final {
       if (!arg.has_value()) {
         return absl::InvalidArgumentError("Missing argument.");
       }
@@ -343,8 +346,8 @@ TEST_F(ControlFlowExecutorTest, CreateStructInIntrinsicHandler) {
       intrinsics::CreateCompleteHandlerSet(intrinsics::HandlerSetConfig());
   handler_set->AddHandler(new TestIntrinsic());
   absl::StatusOr<std::shared_ptr<Executor>> executor =
-      CreateControlFlowExecutor(
-          handler_set, CreateInlineExecutor(handler_set).value());
+      CreateControlFlowExecutor(handler_set,
+                                CreateInlineExecutor(handler_set).value());
   EXPECT_TRUE(executor.ok());
 
   v0::Value x, y;
@@ -373,6 +376,33 @@ TEST_F(ControlFlowExecutorTest, CreateStructInIntrinsicHandler) {
   EXPECT_EQ(result.DebugString(), expected_result.DebugString());
 }
 
+TEST_F(ControlFlowExecutorTest, ParallelMapOnSuccessAppliesFnToAllArguments) {
+  intrinsics::CustomFunction::FunctionMap fn_map;
+  fn_map["apply_fn"] = [](v0::Value arg) {
+    v0::Value result;
+    result.set_str(absl::StrFormat("fn(%s)", arg.str()));
+    return result;
+  };
+  std::shared_ptr<Executor> executor =
+      CreateTestControlFlowExecutor(/*inference_map=*/nullptr, &fn_map).value();
+
+  v0::Value fn_pb = CreateCustomFunction("apply_fn").value();
+  v0::Value comp_pb = CreateParallelMap(fn_pb).value();
+
+  Runner runner = Runner::Create(comp_pb, executor).value();
+
+  v0::Value x;
+  x.mutable_struct_()->add_element()->mutable_value()->set_str("foo");
+  x.mutable_struct_()->add_element()->mutable_value()->set_str("bar");
+  v0::Value result = runner.Run(x).value();
+
+  v0::Value expected_result;
+  auto good_struct = expected_result.mutable_struct_();
+  good_struct->add_element()->mutable_value()->set_str("fn(foo)");
+  good_struct->add_element()->mutable_value()->set_str("fn(bar)");
+  EXPECT_EQ(result.DebugString(), expected_result.DebugString());
+}
+
 TEST_F(ControlFlowExecutorTest, CreateSelectionInIntrinsicHandler) {
   class TestIntrinsic : public ControlFlowIntrinsicHandlerBase {
    public:
@@ -385,10 +415,9 @@ TEST_F(ControlFlowExecutorTest, CreateSelectionInIntrinsicHandler) {
     }
 
     // Selects tjhe first element of a struct.
-    absl::StatusOr<ValueRef> ExecuteCall(
-        const v0::Intrinsic& intrinsic_pb,
-        std::optional<ValueRef> arg,
-        Context* context) const final {
+    absl::StatusOr<ValueRef> ExecuteCall(const v0::Intrinsic& intrinsic_pb,
+                                         std::optional<ValueRef> arg,
+                                         Context* context) const final {
       if (!arg.has_value()) {
         return absl::InvalidArgumentError("Missing argument.");
       }
@@ -400,8 +429,8 @@ TEST_F(ControlFlowExecutorTest, CreateSelectionInIntrinsicHandler) {
       intrinsics::CreateCompleteHandlerSet(intrinsics::HandlerSetConfig());
   handler_set->AddHandler(new TestIntrinsic());
   absl::StatusOr<std::shared_ptr<Executor>> executor =
-      CreateControlFlowExecutor(
-          handler_set, CreateInlineExecutor(handler_set).value());
+      CreateControlFlowExecutor(handler_set,
+                                CreateInlineExecutor(handler_set).value());
   EXPECT_TRUE(executor.ok());
 
   v0::Value x, y;

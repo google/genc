@@ -65,6 +65,7 @@ cc_library(
         ":logical_not",
         ":loop_chain_combo",
         ":model_inference",
+        ":parallel_map",
         ":prompt_template",
         ":regex_partial_match",
         ":repeat",
@@ -235,5 +236,21 @@ cc_library(
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
+    ],
+)
+
+cc_library(
+    name = "parallel_map",
+    srcs = ["parallel_map.cc"],
+    hdrs = ["parallel_map.h"],
+    deps = [
+        ":intrinsic_uris",
+        "//generative_computing/cc/runtime:intrinsic_handler",
+        "//generative_computing/cc/runtime:status_macros",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:span",
     ],
 )

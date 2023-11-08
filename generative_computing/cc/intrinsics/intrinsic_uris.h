@@ -114,6 +114,9 @@ inline constexpr absl::string_view kBreakableChain = "breakable_chain";
 // Represents a logger, prints the value and returns the original value.
 inline constexpr absl::string_view kLogger = "logger";
 
+// Represents a map_fn that applies the the fn to nested Values in parallel.
+inline constexpr absl::string_view kParallelMap = "parallel_map";
+
 }  // namespace intrinsics
 }  // namespace generative_computing
 

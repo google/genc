@@ -177,6 +177,14 @@ absl::StatusOr<v0::Value> CreateBreakableChain(
   return chain_pb;
 }
 
+absl::StatusOr<v0::Value> CreateParallelMap(v0::Value map_fn) {
+  v0::Value map_pb;
+  v0::Intrinsic* const intrinsic_pb = map_pb.mutable_intrinsic();
+  intrinsic_pb->set_uri(std::string(intrinsics::kParallelMap));
+  *intrinsic_pb->mutable_static_parameter() = map_fn;
+  return map_pb;
+}
+
 absl::StatusOr<v0::Value> CreateLogger() {
   v0::Value logger_pb;
   v0::Intrinsic* const intrinsic_pb = logger_pb.mutable_intrinsic();

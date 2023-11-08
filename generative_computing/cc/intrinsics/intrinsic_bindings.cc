@@ -54,6 +54,9 @@ PYBIND11_MODULE(intrinsic_bindings, m) {
   intrinsics.attr("CONDITIONAL") = py::str(intrinsics::kConditional);
   intrinsics.attr("FALLBACK") = py::str(intrinsics::kFallback);
   intrinsics.attr("LOOP_CHAIN_COMBO") = py::str(intrinsics::kLoopChainCombo);
+  intrinsics.attr("LOGGER") = py::str(intrinsics::kLogger);
+  intrinsics.attr("CUSTOM_FUNCTION") = py::str(intrinsics::kCustomFunction);
+  intrinsics.attr("PARALLEL_MAP") = py::str(intrinsics::kParallelMap);
   intrinsics.attr("LOGICAL_NOT") = py::str(intrinsics::kLogicalNot);
   intrinsics.attr("MODEL_INFERENCE") = py::str(intrinsics::kModelInference);
   intrinsics.attr("PROMPT_TEMPLATE") = py::str(intrinsics::kPromptTemplate);

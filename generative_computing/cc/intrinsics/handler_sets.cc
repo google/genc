@@ -26,6 +26,7 @@ limitations under the License
 #include "generative_computing/cc/intrinsics/logical_not.h"
 #include "generative_computing/cc/intrinsics/loop_chain_combo.h"
 #include "generative_computing/cc/intrinsics/model_inference.h"
+#include "generative_computing/cc/intrinsics/parallel_map.h"
 #include "generative_computing/cc/intrinsics/prompt_template.h"
 #include "generative_computing/cc/intrinsics/regex_partial_match.h"
 #include "generative_computing/cc/intrinsics/repeat.h"
@@ -48,6 +49,7 @@ std::shared_ptr<IntrinsicHandlerSet> CreateCompleteHandlerSet(
       new intrinsics::CustomFunction(config.custom_function_map));
   handlers->AddHandler(
       new intrinsics::ModelInference(config.model_inference_map));
+  handlers->AddHandler(new intrinsics::ParallelMap());
   handlers->AddHandler(new intrinsics::LogicalNot());
   handlers->AddHandler(new intrinsics::PromptTemplate());
   handlers->AddHandler(new intrinsics::RegexPartialMatch());

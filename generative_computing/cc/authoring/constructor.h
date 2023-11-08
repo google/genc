@@ -68,6 +68,9 @@ absl::StatusOr<v0::Value> CreateRegexPartialMatch(
 absl::StatusOr<v0::Value> CreateWhile(v0::Value condition_fn,
                                       v0::Value body_fn);
 
+// Creates a parallel map that applies map_fn to a all input values.
+absl::StatusOr<v0::Value> CreateParallelMap(v0::Value map_fn);
+
 // Creates a for loop with the given num_steps, and a sequence of body_fns,
 // which will be executed sequentially each iteration, if any the function
 // inside body_fns is a conditional, and list evaluate to be true, it'll exit

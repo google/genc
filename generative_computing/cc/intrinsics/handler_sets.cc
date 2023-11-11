@@ -16,6 +16,7 @@ limitations under the License
 #include "generative_computing/cc/intrinsics/handler_sets.h"
 
 #include <memory>
+#include <vector>
 
 #include "generative_computing/cc/intrinsics/breakable_chain.h"
 #include "generative_computing/cc/intrinsics/conditional.h"
@@ -56,6 +57,11 @@ std::shared_ptr<IntrinsicHandlerSet> CreateCompleteHandlerSet(
   handlers->AddHandler(new intrinsics::Repeat());
   handlers->AddHandler(new intrinsics::While());
   handlers->AddHandler(new intrinsics::LoopChainCombo());
+
+  // Add all custom intrinsics provided via the handler config.
+  for (int i = 0; i < config.custom_intrinsics_list.size(); ++i) {
+    handlers->AddHandler(config.custom_intrinsics_list[i]);
+  }
   return handlers;
 }
 

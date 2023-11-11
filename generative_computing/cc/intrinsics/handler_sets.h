@@ -17,6 +17,7 @@ limitations under the License
 #define GENERATIVE_COMPUTING_CC_INTRINSICS_HANDLER_SETS_H_
 
 #include <memory>
+#include <vector>
 
 #include "generative_computing/cc/intrinsics/custom_function.h"
 #include "generative_computing/cc/intrinsics/delegate.h"
@@ -30,6 +31,7 @@ struct HandlerSetConfig {
   Delegate::RunnerMap delegate_map;
   ModelInference::InferenceMap model_inference_map;
   CustomFunction::FunctionMap custom_function_map;
+  std::vector<const IntrinsicHandler*> custom_intrinsics_list;
 };
 
 // Construct a new handler set.

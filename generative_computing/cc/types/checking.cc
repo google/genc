@@ -48,6 +48,20 @@ absl::Status CheckStructEqual(v0::StructType x, v0::StructType y) {
   return absl::OkStatus();
 }
 
+absl::Status CheckFunctionEqual(v0::FunctionType x, v0::FunctionType y) {
+  absl::Status status = CheckEqual(x.parameter(), y.parameter());
+  if (!status.ok()) {
+    return absl::InvalidArgumentError(absl::StrCat(
+        "Function parameter type mismatch: ", status.message()));
+  }
+  status = CheckEqual(x.result(), y.result());
+  if (!status.ok()) {
+    return absl::InvalidArgumentError(absl::StrCat(
+        "Function result type mismatch: ", status.message()));
+  }
+  return absl::OkStatus();
+}
+
 }  // namespace
 
 absl::Status CheckEqual(v0::Type x, v0::Type y) {
@@ -66,6 +80,14 @@ absl::Status CheckEqual(v0::Type x, v0::Type y) {
                                                      y.DebugString(), "."));
     }
     return CheckStructEqual(x.struct_(), y.struct_());
+  }
+  if (x.has_function()) {
+    if (!y.has_function()) {
+      return absl::InvalidArgumentError(absl::StrCat(
+          "Function ", x.DebugString(),
+          " vs. non-function ", y.DebugString(), "."));
+    }
+    return CheckFunctionEqual(x.function(), y.function());
   }
   return absl::UnimplementedError("Not implemented.");
 }

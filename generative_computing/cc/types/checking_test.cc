@@ -94,5 +94,35 @@ TEST_F(CheckingTest, EqualStructs) {
   EXPECT_TRUE(status.ok());
 }
 
+TEST_F(CheckingTest, EqualFunctions) {
+  v0::Type x, y;
+  x.mutable_function()->mutable_parameter()->set_scalar(v0::SCALAR_TYPE_INT32);
+  x.mutable_function()->mutable_result()->set_scalar(v0::SCALAR_TYPE_INT32);
+  y.mutable_function()->mutable_parameter()->set_scalar(v0::SCALAR_TYPE_INT32);
+  y.mutable_function()->mutable_result()->set_scalar(v0::SCALAR_TYPE_INT32);
+  absl::Status status = CheckEqual(x, y);
+  EXPECT_TRUE(status.ok());
+}
+
+TEST_F(CheckingTest, FunctionsWithMismatchingParameters) {
+  v0::Type x, y;
+  x.mutable_function()->mutable_parameter()->set_scalar(v0::SCALAR_TYPE_INT32);
+  x.mutable_function()->mutable_result()->set_scalar(v0::SCALAR_TYPE_INT32);
+  y.mutable_function()->mutable_parameter()->set_scalar(v0::SCALAR_TYPE_STRING);
+  y.mutable_function()->mutable_result()->set_scalar(v0::SCALAR_TYPE_INT32);
+  absl::Status status = CheckEqual(x, y);
+  EXPECT_TRUE(status.code() == absl::StatusCode::kInvalidArgument);
+}
+
+TEST_F(CheckingTest, FunctionsWithMismatchingResults) {
+  v0::Type x, y;
+  x.mutable_function()->mutable_parameter()->set_scalar(v0::SCALAR_TYPE_INT32);
+  x.mutable_function()->mutable_result()->set_scalar(v0::SCALAR_TYPE_INT32);
+  y.mutable_function()->mutable_parameter()->set_scalar(v0::SCALAR_TYPE_INT32);
+  y.mutable_function()->mutable_result()->set_scalar(v0::SCALAR_TYPE_STRING);
+  absl::Status status = CheckEqual(x, y);
+  EXPECT_TRUE(status.code() == absl::StatusCode::kInvalidArgument);
+}
+
 }  // namespace
 }  // namespace generative_computing

@@ -17,9 +17,9 @@ limitations under the License
 
 #include <iostream>
 #include <memory>
-#include <vector>
 #include <sstream>
 #include <streambuf>
+#include <vector>
 
 #include "googletest/include/gtest/gtest.h"
 #include "absl/status/status.h"
@@ -115,11 +115,11 @@ TEST_F(InlineExecutorTest, CustomFunctionInvokesUserDefinedFn) {
           .value();
 
   v0::Value fn_pb = CreateCustomFunction("append_foo").value();
-  Runner runner = Runner::Create(fn_pb, executor).value();
+  Runner runner = Runner::Create(executor).value();
 
   v0::Value arg_pb;
   arg_pb.set_str("bar");
-  v0::Value result = runner.Run(arg_pb).value();
+  v0::Value result = runner.Run(fn_pb, arg_pb).value();
   EXPECT_EQ(result.str(), "barfoo");
 }
 
@@ -132,11 +132,11 @@ TEST_F(InlineExecutorTest, ProcessUnivariatePromptTemplate) {
           "Q: What should I pack for a trip to {location}? A: ")
           .value();
 
-  Runner runner = Runner::Create(template_pb, executor).value();
+  Runner runner = Runner::Create(executor).value();
 
   v0::Value arg_pb;
   arg_pb.set_str("a grocery store");
-  v0::Value result = runner.Run(arg_pb).value();
+  v0::Value result = runner.Run(template_pb, arg_pb).value();
   EXPECT_EQ(result.str(),
             "Q: What should I pack for a trip to a grocery store? A: ");
 }
@@ -150,10 +150,10 @@ TEST_F(InlineExecutorTest, ProcessUnivariatePromptTemplateFailsWithEmptyStr) {
           "Q: What should I pack for a trip to {location}? A: ")
           .value();
 
-  Runner runner = Runner::Create(template_pb, executor).value();
+  Runner runner = Runner::Create(executor).value();
 
   v0::Value arg_pb;
-  absl::StatusOr<v0::Value> result = runner.Run(arg_pb);
+  absl::StatusOr<v0::Value> result = runner.Run(template_pb, arg_pb);
   EXPECT_FALSE(result.ok());
 }
 
@@ -167,7 +167,7 @@ TEST_F(InlineExecutorTest, ProcessMultivariatePromptTemplate) {
           "cheapest transportation to {location}. A: ")
           .value();
 
-  Runner runner = Runner::Create(template_pb, executor).value();
+  Runner runner = Runner::Create(executor).value();
 
   v0::Value arg_pb;
   // Variables in template can functions like keyword argument, therefore order
@@ -182,16 +182,15 @@ TEST_F(InlineExecutorTest, ProcessMultivariatePromptTemplate) {
   do_arg_pb->set_name("do");
   do_arg_pb->mutable_value()->set_str("pack");
 
-  v0::Value result = runner.Run(arg_pb).value();
+  v0::Value result = runner.Run(template_pb, arg_pb).value();
   EXPECT_EQ(result.str(),
             "Q: What should I pack for a trip to Tokyo? Also find me the "
             "cheapest transportation to Tokyo. A: ");
 }
 
 TEST_F(InlineExecutorTest, CreateStructAndSelection) {
-  absl::StatusOr<std::shared_ptr<Executor>> executor =
-      CreateInlineExecutor(
-          intrinsics::CreateCompleteHandlerSet(intrinsics::HandlerSetConfig()));
+  absl::StatusOr<std::shared_ptr<Executor>> executor = CreateInlineExecutor(
+      intrinsics::CreateCompleteHandlerSet(intrinsics::HandlerSetConfig()));
   EXPECT_TRUE(executor.ok());
 
   v0::Value x, y;
@@ -239,14 +238,14 @@ TEST_F(InlineExecutorTest, LoggerLogsAndLeavesValueUnchanged) {
       CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({})).value();
 
   v0::Value logger_pb = CreateLogger().value();
-  Runner runner = Runner::Create(logger_pb, executor).value();
+  Runner runner = Runner::Create(executor).value();
 
   std::streambuf* cout_streambuf = std::cout.rdbuf();
   std::ostringstream captured_output;
   std::cout.rdbuf(captured_output.rdbuf());
   v0::Value arg_pb;
   arg_pb.set_str("Boo!");
-  runner.Run(arg_pb).value();
+  runner.Run(logger_pb, arg_pb).value();
   std::cout.rdbuf(cout_streambuf);
 
   EXPECT_EQ(captured_output.str(), "Boo!\n");

@@ -27,25 +27,23 @@ limitations under the License
 
 namespace generative_computing {
 
-absl::StatusOr<Runner> Runner::CreateDefault(v0::Value computation) {
-  return Runner::Create(computation, /*executor=*/nullptr);
+absl::StatusOr<Runner> Runner::CreateDefault() {
+  return Runner::Create(/*executor=*/nullptr);
 }
 
-absl::StatusOr<Runner> Runner::Create(v0::Value computation,
-                                      std::shared_ptr<Executor> executor) {
+absl::StatusOr<Runner> Runner::Create(std::shared_ptr<Executor> executor) {
   // Create default local test executor.
   if (executor == nullptr) {
     executor = GENC_TRY(CreateDefaultLocalExecutor());
   }
-
-  OwnedValueId comp_val = GENC_TRY(executor->CreateValue(computation));
-  return Runner(computation, std::move(comp_val), executor);
+  return Runner(executor);
 }
 
-absl::StatusOr<v0::Value> Runner::Run(v0::Value arg) {
+absl::StatusOr<v0::Value> Runner::Run(v0::Value computation, v0::Value arg) {
+  OwnedValueId comp_val = GENC_TRY(executor_->CreateValue(computation));
   OwnedValueId arg_val = GENC_TRY(executor_->CreateValue(arg));
   OwnedValueId result_val =
-      GENC_TRY(executor_->CreateCall(comp_val_.ref(), arg_val.ref()));
+      GENC_TRY(executor_->CreateCall(comp_val.ref(), arg_val.ref()));
 
   v0::Value result;
   absl::Status status = executor_->Materialize(result_val.ref(), &result);

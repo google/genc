@@ -29,17 +29,24 @@ namespace generative_computing {
 class Runner final {
  public:
   // Creates a Runner with a default local executor.
-  static absl::StatusOr<Runner> CreateDefault();
+  static absl::StatusOr<Runner> CreateDefault(v0::Value computation);
 
   // Creates a Runner with custom executor.
-  static absl::StatusOr<Runner> Create(std::shared_ptr<Executor> executor);
+  static absl::StatusOr<Runner> Create(v0::Value computation,
+                                       std::shared_ptr<Executor> executor);
 
   // Runs the computation & returns the resulting value.
-  absl::StatusOr<v0::Value> Run(v0::Value computation, v0::Value arg);
+  absl::StatusOr<v0::Value> Run(v0::Value arg);
 
  private:
-  Runner(std::shared_ptr<Executor> executor) : executor_(executor) {}
+  Runner(v0::Value computation, OwnedValueId comp_val,
+         std::shared_ptr<Executor> executor)
+      : comp_pb_(computation),
+        comp_val_(std::move(comp_val)),
+        executor_(executor) {}
 
+  v0::Value comp_pb_;
+  OwnedValueId comp_val_;
   std::shared_ptr<Executor> executor_;
 };
 

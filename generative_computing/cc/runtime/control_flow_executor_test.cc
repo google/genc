@@ -91,13 +91,13 @@ TEST_F(ControlFlowExecutorTest, RepeatOnSuccessRunsComputationNTimes) {
 
   v0::Value repeat_pb = CreateRepeat(3, body_fn).value();
 
-  Runner runner = Runner::Create(executor).value();
+  Runner runner = Runner::Create(repeat_pb, executor).value();
 
   // Repeat loop is parameterized with input Value, each for loop the content of
   // Value evolves to next state, in this case, `foo` is appended per step.
   v0::Value arg;
   arg.set_str("");
-  v0::Value result = runner.Run(repeat_pb, arg).value();
+  v0::Value result = runner.Run(arg).value();
 
   EXPECT_EQ(result.str(), "foofoofoo");
 }
@@ -134,11 +134,11 @@ TEST_F(ControlFlowExecutorTest, TestChaining) {
   // 3. Run it.
   // These runtimes can be loaded behind server, mobile, and runs arbitrary
   // computation.
-  Runner runner = Runner::Create(executor).value();
+  Runner runner = Runner::Create(parameterized_chain, executor).value();
 
   v0::Value arg;
   arg.set_str("test_input");
-  v0::Value result = runner.Run(parameterized_chain, arg).value();
+  v0::Value result = runner.Run(arg).value();
 
   EXPECT_EQ(result.str(), "fn_2(fn_1(test_input))");
 }
@@ -169,10 +169,10 @@ TEST_F(ControlFlowExecutorTest, WhileLoopExecutionTest) {
       CreateTestControlFlowExecutor(&inference_map).value();
   v0::Value while_pb = CreateWhile(test_condition_fn, test_body_fn).value();
 
-  Runner runner = Runner::Create(executor).value();
+  Runner runner = Runner::Create(while_pb, executor).value();
   v0::Value arg;
   arg.set_str("");
-  v0::Value result = runner.Run(while_pb, arg).value();
+  v0::Value result = runner.Run(arg).value();
   EXPECT_EQ(result.str(), "12Action: Finish");
 }
 
@@ -220,10 +220,10 @@ TEST_F(ControlFlowExecutorTest, LoopChainComboAbleToLoopAndBreak) {
           .value();
 
   // Run it.
-  Runner runner = Runner::Create(executor).value();
+  Runner runner = Runner::Create(comp_pb, executor).value();
   v0::Value arg;
   arg.set_str("[START]");
-  v0::Value result = runner.Run(comp_pb, arg).value();
+  v0::Value result = runner.Run(arg).value();
   EXPECT_EQ(result.str(), "[START]foobarfoobarfoobar[FINISH]foo");
 }
 
@@ -261,10 +261,10 @@ TEST_F(ControlFlowExecutorTest, BreakableChainCanChainAndBreak) {
           .value();
 
   // Run it.
-  Runner runner = Runner::Create(executor).value();
+  Runner runner = Runner::Create(comp_pb, executor).value();
   v0::Value arg;
   arg.set_str("[START]");
-  v0::Value result = runner.Run(comp_pb, arg).value();
+  v0::Value result = runner.Run(arg).value();
   EXPECT_EQ(result.str(), "[START]foobar");
 }
 
@@ -389,12 +389,12 @@ TEST_F(ControlFlowExecutorTest, ParallelMapOnSuccessAppliesFnToAllArguments) {
   v0::Value fn_pb = CreateCustomFunction("apply_fn").value();
   v0::Value comp_pb = CreateParallelMap(fn_pb).value();
 
-  Runner runner = Runner::Create(executor).value();
+  Runner runner = Runner::Create(comp_pb, executor).value();
 
   v0::Value x;
   x.mutable_struct_()->add_element()->mutable_value()->set_str("foo");
   x.mutable_struct_()->add_element()->mutable_value()->set_str("bar");
-  v0::Value result = runner.Run(comp_pb, x).value();
+  v0::Value result = runner.Run(x).value();
 
   v0::Value expected_result;
   auto good_struct = expected_result.mutable_struct_();

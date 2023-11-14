@@ -24,12 +24,12 @@ namespace generative_computing {
 
 TEST(RunnerTest, ModelRunReturnsValue) {
   v0::Value comp_pb = CreateModelInference("test_model").value();
-  Runner runner = Runner::CreateDefault().value();
+  absl::StatusOr<Runner> runner = Runner::CreateDefault(comp_pb);
 
   v0::Value arg;
   arg.set_str("Boo!");
 
-  absl::StatusOr<v0::Value> result = runner.Run(comp_pb, arg);
+  absl::StatusOr<v0::Value> result = runner.value().Run(arg);
   EXPECT_EQ(result.value().str(),
             "This is an output from a test model in response to \"Boo!\".");
 }

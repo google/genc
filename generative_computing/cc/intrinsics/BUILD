@@ -56,6 +56,7 @@ cc_library(
     srcs = ["handler_sets.cc"],
     hdrs = ["handler_sets.h"],
     deps = [
+        ":basic_chain",
         ":breakable_chain",
         ":conditional",
         ":custom_function",
@@ -252,5 +253,19 @@ cc_library(
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_library(
+    name = "basic_chain",
+    srcs = ["basic_chain.cc"],
+    hdrs = ["basic_chain.h"],
+    deps = [
+        ":intrinsic_uris",
+        "//generative_computing/cc/runtime:intrinsic_handler",
+        "//generative_computing/cc/runtime:status_macros",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
     ],
 )

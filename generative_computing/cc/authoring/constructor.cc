@@ -172,7 +172,21 @@ absl::StatusOr<v0::Value> CreateBreakableChain(
       intrinsic_pb->mutable_static_parameter()->mutable_struct_();
   for (int i = 0; i < fns_list.size(); i++) {
     *args->add_element() =
-        GENC_TRY(CreateNamedValue(absl::StrFormat("step_%d", i), fns_list[i]));
+        GENC_TRY(CreateNamedValue(absl::StrFormat("fn_%d", i), fns_list[i]));
+  }
+  return chain_pb;
+}
+
+absl::StatusOr<v0::Value> CreateBasicChain(
+    std::vector<v0::Value> function_list) {
+  v0::Value chain_pb;
+  v0::Intrinsic* const intrinsic_pb = chain_pb.mutable_intrinsic();
+  intrinsic_pb->set_uri(std::string(intrinsics::kBasicChain));
+  v0::Struct* args =
+      intrinsic_pb->mutable_static_parameter()->mutable_struct_();
+  for (int i = 0; i < function_list.size(); i++) {
+    *args->add_element() = GENC_TRY(
+        CreateNamedValue(absl::StrFormat("fn_%d", i), function_list[i]));
   }
   return chain_pb;
 }

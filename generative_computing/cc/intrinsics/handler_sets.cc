@@ -18,6 +18,7 @@ limitations under the License
 #include <memory>
 #include <vector>
 
+#include "generative_computing/cc/intrinsics/basic_chain.h"
 #include "generative_computing/cc/intrinsics/breakable_chain.h"
 #include "generative_computing/cc/intrinsics/conditional.h"
 #include "generative_computing/cc/intrinsics/custom_function.h"
@@ -42,6 +43,7 @@ std::shared_ptr<IntrinsicHandlerSet> CreateCompleteHandlerSet(
   const std::shared_ptr<IntrinsicHandlerSet> handlers =
       std::make_shared<IntrinsicHandlerSet>();
   handlers->AddHandler(new intrinsics::BreakableChain());
+  handlers->AddHandler(new intrinsics::BasicChain());
   handlers->AddHandler(new intrinsics::Conditional());
   handlers->AddHandler(new intrinsics::Delegate(config.delegate_map));
   handlers->AddHandler(new intrinsics::Fallback());

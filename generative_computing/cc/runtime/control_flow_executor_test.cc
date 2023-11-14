@@ -105,14 +105,14 @@ TEST_F(ControlFlowExecutorTest, RepeatOnSuccessRunsComputationNTimes) {
 TEST_F(ControlFlowExecutorTest, TestChaining) {
   // 1. Define any custom function, e.g. a call to some models behind a server.
   // These are typically owned by you, and heavily customized.
-  intrinsics::ModelInference::InferenceMap inference_map;
-  inference_map["fn_1"] = [](v0::Value arg) {
+  intrinsics::CustomFunction::FunctionMap fn_map;
+  fn_map["fn_1"] = [](v0::Value arg) {
     v0::Value result;
     result.set_str(absl::StrFormat("fn_1(%s)", arg.str()));
     return result;
   };
 
-  inference_map["fn_2"] = [](v0::Value arg) {
+  fn_map["fn_2"] = [](v0::Value arg) {
     v0::Value result;
     result.set_str(absl::StrFormat("fn_2(%s)", arg.str()));
     return result;
@@ -120,16 +120,16 @@ TEST_F(ControlFlowExecutorTest, TestChaining) {
 
   // Make the runtime aware of these custom functions.
   std::shared_ptr<Executor> executor =
-      CreateTestControlFlowExecutor(&inference_map).value();
+      CreateTestControlFlowExecutor(/*inference_map=*/nullptr, &fn_map).value();
 
   // 2.Chaining of function calls.
   // Below are code you author & experiment with typically in python or c++,
   // whichever is your language choice. The performance is the same.
   std::vector<v0::Value> fn_chain =
-      std::vector<v0::Value>({CreateModelInference("fn_1").value(),
-                              CreateModelInference("fn_2").value()});
+      std::vector<v0::Value>({CreateCustomFunction("fn_1").value(),
+                              CreateCustomFunction("fn_2").value()});
   // Parameterize your chain.
-  v0::Value parameterized_chain = CreateChain(fn_chain).value();
+  v0::Value parameterized_chain = CreateBasicChain(fn_chain).value();
 
   // 3. Run it.
   // These runtimes can be loaded behind server, mobile, and runs arbitrary
@@ -140,7 +140,7 @@ TEST_F(ControlFlowExecutorTest, TestChaining) {
   arg.set_str("test_input");
   v0::Value result = runner.Run(arg).value();
 
-  EXPECT_EQ(result.str(), "fn_1(fn_2(test_input))");
+  EXPECT_EQ(result.str(), "fn_2(fn_1(test_input))");
 }
 
 TEST_F(ControlFlowExecutorTest, WhileLoopExecutionTest) {

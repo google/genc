@@ -38,7 +38,6 @@ cc_test(
         "//generative_computing/cc/intrinsics:custom_function",
         "//generative_computing/cc/intrinsics:handler_sets",
         "//generative_computing/cc/intrinsics:model_inference",
-        "//generative_computing/cc/intrinsics:parallel_map",
         "//generative_computing/proto/v0:computation_cc_proto",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",

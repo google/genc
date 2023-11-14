@@ -38,6 +38,8 @@ absl::StatusOr<v0::Value> CreateCall(v0::Value fn, v0::Value arg);
 absl::StatusOr<v0::Value> CreateReference(absl::string_view arg_name);
 
 // Given a list of functions [f, g, ...] create a chain f(g(...)).
+// `[[deprecated("use CreateBasicChain")]]`.
+// TODO(b/304905545): merge with CreateBasicChain.
 absl::StatusOr<v0::Value> CreateChain(std::vector<v0::Value> function_list);
 
 // Returns a repeat proto which will repeat body_fn for num_steps, sequentially,
@@ -77,6 +79,10 @@ absl::StatusOr<v0::Value> CreateParallelMap(v0::Value map_fn);
 // the for loop.
 absl::StatusOr<v0::Value> CreateLoopChainCombo(int num_steps,
                                                std::vector<v0::Value> body_fns);
+
+// Given a list of functions [f, g, ...] create a chain g(f(...)).
+absl::StatusOr<v0::Value> CreateBasicChain(
+    std::vector<v0::Value> function_list);
 
 // Creates a Logger, it takes an input logs it and returns the original input.
 absl::StatusOr<v0::Value> CreateLogger();

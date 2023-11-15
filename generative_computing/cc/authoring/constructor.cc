@@ -206,4 +206,20 @@ absl::StatusOr<v0::Value> CreateLogger() {
   return logger_pb;
 }
 
+absl::StatusOr<v0::Value> CreateStruct(std::vector<v0::NamedValue> value_list) {
+  v0::Value value_pb;
+  auto mutable_element = value_pb.mutable_struct_()->mutable_element();
+  for (const auto& named_value : value_list) {
+    *mutable_element->Add() = named_value;
+  }
+  return value_pb;
+}
+
+absl::StatusOr<v0::Value> CreateSelection(v0::Value source, int index) {
+  v0::Value value_pb;
+  v0::Selection* selection_pb = value_pb.mutable_selection();
+  selection_pb->set_index(index);
+  *selection_pb->mutable_source() = source;
+  return value_pb;
+}
 }  // namespace generative_computing

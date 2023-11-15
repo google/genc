@@ -83,6 +83,27 @@ class ConstructorsTest(absltest.TestCase):
     self.assertEqual(static_params[0].value.int_32, 5)
     self.assertEqual(static_params[1].value, model_call_pb)
 
+  def test_create_struct(self):
+    model_pb = constructors.create_model('model_name')
+    e_0 = constructors.create_named_value('e_0', model_pb)
+    e_1 = constructors.create_named_value('e_1', model_pb)
+    value_pb = constructors.create_struct([e_0, e_1])
+
+    elements = value_pb.struct.element
+    self.assertLen(elements, 2)
+    self.assertEqual(elements[0], e_0)
+    self.assertEqual(elements[1], e_1)
+
+  def test_create_selection(self):
+    model_pb = constructors.create_model('model_name')
+    e_0 = constructors.create_named_value('e_0', model_pb)
+    e_1 = constructors.create_named_value('e_1', model_pb)
+    struct_pb = constructors.create_struct([e_0, e_1])
+
+    value_pb = constructors.create_selection(struct_pb, 1)
+    self.assertEqual(value_pb.selection.source, struct_pb)
+    self.assertEqual(value_pb.selection.index, 1)
+
   def test_regex_partial_match(self):
     comp_pb = constructors.create_regex_partial_match('A: True')
     self.assertEqual(comp_pb.WhichOneof('value'), 'intrinsic')

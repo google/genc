@@ -117,10 +117,7 @@ def create_struct(comp_list):
   Returns:
     A computation that represents the struct.
   """
-  elements = []
-  for comp_pb in comp_list:
-    elements.append(pb.NamedValue(value=comp_pb))
-  return pb.Value(struct=pb.Struct(element=elements))
+  return constructor_bindings.create_struct(comp_list)
 
 
 def create_selection(source, index):
@@ -133,7 +130,20 @@ def create_selection(source, index):
   Returns:
     A computation that represents the selection.
   """
-  return pb.Value(selection=pb.Selection(source=source, index=index))
+  return constructor_bindings.create_selection(source, index)
+
+
+def create_named_value(name, value):
+  """Constructs a named value.
+
+  Args:
+    name: The name of the named value.
+    value: The value of the named value.
+
+  Returns:
+    A NamedValue.
+  """
+  return constructor_bindings.create_named_value(name, value)
 
 
 def create_chain(function_list):

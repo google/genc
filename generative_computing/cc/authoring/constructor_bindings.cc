@@ -99,11 +99,20 @@ PYBIND11_MODULE(constructor_bindings, m) {
         "Given a list of functions [f, g, ...] create a chain g(f(...)). "
         "Compared to CreateBasicChain, this chain can contain break point as "
         "part of the chain.");
+
   m.def("create_struct", &CreateStruct,
         "Constructs a struct from named values");
+
   m.def(
       "create_selection", &CreateSelection,
       "Constructs a selection to pick the i-th element from a source.struct_.");
+
+  m.def("create_conditional", &CreateConditional,
+        "Constructs a computation representing if/esle.");
+
+  m.def("create_fallback", &CreateFallback,
+        "Constructs a computation a fallback chain.");
+
   m.def("create_named_value", &CreateNamedValue, "Creates a NamedValue.");
 }
 

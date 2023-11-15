@@ -101,6 +101,15 @@ absl::StatusOr<v0::Value> CreateStruct(std::vector<v0::NamedValue> value_list);
 // Constructs a selection to pick the i-th element from a source.struct_.
 absl::StatusOr<v0::Value> CreateSelection(v0::Value source, int index);
 
+// Creates a fallback expression from a given list of functions. The first
+// successful one is the result; if failed, keep going down the list.
+absl::StatusOr<v0::Value> CreateFallback(std::vector<v0::Value> function_list);
+
+// Creates a conditional expression. condition evaluates to a boolean, if true,
+// positive_branch will be executed, else negative_branch.
+absl::StatusOr<v0::Value> CreateConditional(v0::Value condition,
+                                            v0::Value positive_branch,
+                                            v0::Value negative_branch);
 }  // namespace generative_computing
 
 #endif  // GENERATIVE_COMPUTING_CC_AUTHORING_CONSTRUCTOR_H_

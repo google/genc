@@ -16,7 +16,6 @@
 from absl.testing import absltest
 from langchain import chains
 from langchain import prompts
-from generative_computing.proto.v0 import computation_pb2 as pb
 from generative_computing.python import authoring
 from generative_computing.python.interop.langchain import create_computation
 from generative_computing.python.interop.langchain import custom_model
@@ -70,7 +69,6 @@ class CreateComputationTest(absltest.TestCase):
     llm2 = custom_model.CustomModel(uri="some_other_model")
     llm3 = model_cascade.ModelCascade(models=[llm1, llm2])
     comp3 = create_computation.create_computation(llm3)
-    self.assertIsInstance(comp3, pb.Value)
     comp4 = authoring.create_fallback([
         authoring.create_model("some_model"),
         authoring.create_model("some_other_model"),

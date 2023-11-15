@@ -14,8 +14,6 @@
 """Libraries for constructing computations."""
 
 from generative_computing.cc.authoring import constructor_bindings
-from generative_computing.cc.intrinsics import intrinsic_bindings
-from generative_computing.proto.v0 import computation_pb2 as pb
 
 
 # TODO(b/307573292): deprecate python constructors available via C++ bindings.
@@ -146,6 +144,7 @@ def create_named_value(name, value):
   return constructor_bindings.create_named_value(name, value)
 
 
+# TODO(b/304905545): deprecate in favor of CreateBasicChain.
 def create_chain(function_list):
   """Assembles the given list of functions [f, g, ....] into a chain f(g(...)).
 
@@ -175,17 +174,7 @@ def create_fallback(function_list):
   Returns:
     A computation that represents a fallback expression.
   """
-  static_parameters = []
-  for comp in function_list:
-    static_parameters.append(pb.NamedValue(name='candidate_fn', value=comp))
-  return pb.Value(
-      intrinsic=pb.Intrinsic(
-          uri=intrinsic_bindings.intrinsics.FALLBACK,
-          static_parameter=pb.Value(
-              struct=pb.Struct(element=static_parameters)
-          ),
-      )
-  )
+  return constructor_bindings.create_fallback(function_list)
 
 
 def create_conditional(condition, positive_branch, negative_branch):
@@ -202,20 +191,9 @@ def create_conditional(condition, positive_branch, negative_branch):
   Returns:
     A computation that represents the conditional expression.
   """
-  conditional = pb.Value(
-      intrinsic=pb.Intrinsic(
-          uri=intrinsic_bindings.intrinsics.CONDITIONAL,
-          static_parameter=pb.Value(
-              struct=pb.Struct(
-                  element=[
-                      pb.NamedValue(name='then', value=positive_branch),
-                      pb.NamedValue(name='else', value=negative_branch),
-                  ]
-              )
-          ),
-      )
+  return constructor_bindings.create_conditional(
+      condition, positive_branch, negative_branch
   )
-  return create_call(conditional, condition)
 
 
 def create_while(condition_fn, body_fn):

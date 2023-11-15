@@ -222,4 +222,34 @@ absl::StatusOr<v0::Value> CreateSelection(v0::Value source, int index) {
   *selection_pb->mutable_source() = source;
   return value_pb;
 }
+
+absl::StatusOr<v0::Value> CreateFallback(std::vector<v0::Value> function_list) {
+  v0::Value fallback_pb;
+  v0::Intrinsic* const intrinsic_pb = fallback_pb.mutable_intrinsic();
+  intrinsic_pb->set_uri(std::string(intrinsics::kFallback));
+  v0::Struct* args =
+      intrinsic_pb->mutable_static_parameter()->mutable_struct_();
+  for (const auto& fn_pb : function_list) {
+    *args->add_element() = GENC_TRY(CreateNamedValue("candidate_fn", fn_pb));
+  }
+  return fallback_pb;
+}
+
+absl::StatusOr<v0::Value> CreateConditional(v0::Value condition,
+                                            v0::Value positive_branch,
+                                            v0::Value negative_branch) {
+  v0::Value conditional_pb;
+  v0::Intrinsic* const intrinsic_pb = conditional_pb.mutable_intrinsic();
+  intrinsic_pb->set_uri(std::string(intrinsics::kConditional));
+  v0::Struct* args =
+      intrinsic_pb->mutable_static_parameter()->mutable_struct_();
+  *args->add_element() = GENC_TRY(CreateNamedValue("then", positive_branch));
+  *args->add_element() = GENC_TRY(CreateNamedValue("else", negative_branch));
+  // TODO(b/307573292): merge condition into intrinsics for cleaner semantics.
+  // Condition itself is an integral part of an if/else block, right now it's
+  // modeled a Call outside the conditional intrinsics, therefore semantically
+  // it's unclear.
+  return CreateCall(conditional_pb, condition);
+}
+
 }  // namespace generative_computing

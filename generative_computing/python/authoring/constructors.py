@@ -144,25 +144,6 @@ def create_named_value(name, value):
   return constructor_bindings.create_named_value(name, value)
 
 
-# TODO(b/304905545): deprecate in favor of CreateBasicChain.
-def create_chain(function_list):
-  """Assembles the given list of functions [f, g, ....] into a chain f(g(...)).
-
-  Args:
-    function_list: A list of functions [f, g, ...], each of which should be an
-      instance of pb.Value.
-
-  Returns:
-    A computation that represents a chain f(g(...)), with the functions applied
-    to the input in the order opposite to the order on the supplied list.
-  """
-  parameter_name = 'arg'
-  arg = create_reference(parameter_name)
-  for fn_pb in reversed(function_list):
-    arg = create_call(fn_pb, arg)
-  return create_lambda(parameter_name, arg)
-
-
 def create_fallback(function_list):
   """Contructs a fallback expression from a given list of functions.
 

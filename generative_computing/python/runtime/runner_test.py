@@ -39,11 +39,11 @@ class RunnerTest(absltest.TestCase):
     )
 
   def test_chain(self):
-    comp_pb = authoring.create_chain([
-        authoring.create_model('test_model'),
+    comp_pb = authoring.create_basic_chain([
         authoring.create_prompt_template(
             'Q: What should I pack for a trip to {location}? A: '
         ),
+        authoring.create_model('test_model'),
     ])
     comp = runner.Runner(comp_pb)
     result = comp('a grocery store')
@@ -60,9 +60,9 @@ class RunnerTest(absltest.TestCase):
         'This is an output from a test model in response to "{}".'.format(arg)
     )
     bad_model = authoring.create_model('ftp://nonexistent.model:000000')
-    good_chain = authoring.create_chain([
-        authoring.create_model('test_model'),
+    good_chain = authoring.create_basic_chain([
         authoring.create_prompt_template('Q: Tell me about {topic}. A: '),
+        authoring.create_model('test_model'),
     ])
     good_chain_output = (
         'This is an output from a test model in response to "Q: Tell me about'
@@ -125,8 +125,9 @@ class RunnerTest(absltest.TestCase):
             authoring.create_selection(arg, 0),
             authoring.create_call(
                 authoring.create_model('test_model'),
-                authoring.create_selection(arg, 1)),
-            authoring.create_reference('broken_undefined_variable_will_fail')
+                authoring.create_selection(arg, 1),
+            ),
+            authoring.create_reference('broken_undefined_variable_will_fail'),
         ),
     )
     comp = runner.Runner(comp_pb)
@@ -138,8 +139,7 @@ class RunnerTest(absltest.TestCase):
       comp(False, 'kiki')
 
   def test_regex_partial_match(self):
-    comp_pb = authoring.create_regex_partial_match(
-        'A: True|true')
+    comp_pb = authoring.create_regex_partial_match('A: True|true')
     comp = runner.Runner(comp_pb)
     result = comp('A: True. Explanation for true.')
     self.assertTrue(result)
@@ -150,20 +150,21 @@ class RunnerTest(absltest.TestCase):
 
   def test_partial_match_with_conditional(self):
     arg = authoring.create_reference('x')
-    scorer_chain = authoring.create_chain([
-        authoring.create_regex_partial_match('A: True|A: true|true|True'),
-        authoring.create_model('test_model'),
+    scorer_chain = authoring.create_basic_chain([
         authoring.create_prompt_template(
             'Q: Is following sentence political or sensitive? Who is going'
             ' to be the next president? A: {answer}'
         ),  # supply true or false in answer
+        authoring.create_model('test_model'),
+        authoring.create_regex_partial_match('A: True|A: true|true|True'),
     ])
     model = authoring.create_model('test_model')
     comp_pb = authoring.create_lambda(
         arg.reference.name,
         authoring.create_conditional(
-            authoring.create_call(scorer_chain,
-                                  authoring.create_selection(arg, 0)),
+            authoring.create_call(
+                scorer_chain, authoring.create_selection(arg, 0)
+            ),
             authoring.create_call(model, authoring.create_selection(arg, 1)),
             authoring.create_call(model, authoring.create_selection(arg, 2)),
         ),

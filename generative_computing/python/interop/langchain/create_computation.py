@@ -76,8 +76,8 @@ def create_computation_from_chain(chain):
   """
   comp = create_computation_from_llm(chain.llm)
   if chain.prompt:
-    comp = authoring.create_chain(
-        [comp, create_computation_from_prompt_template(chain.prompt)]
+    comp = authoring.create_basic_chain(
+        [create_computation_from_prompt_template(chain.prompt), comp]
     )
   return comp
 

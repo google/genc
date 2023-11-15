@@ -56,11 +56,11 @@ class CreateComputationTest(absltest.TestCase):
         ),
     )
     comp = create_computation.create_computation(my_chain)
-    expected_comp = authoring.create_chain([
-        authoring.create_model("some_model"),
+    expected_comp = authoring.create_basic_chain([
         authoring.create_prompt_template(
             "Q: What should I pack for a trip to {location}? A: ",
         ),
+        authoring.create_model("some_model"),
     ])
     self.assertEqual(str(comp), str(expected_comp))
 

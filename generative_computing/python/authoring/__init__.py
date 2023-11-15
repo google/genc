@@ -16,7 +16,6 @@
 from generative_computing.python.authoring.constructors import create_basic_chain
 from generative_computing.python.authoring.constructors import create_breakable_chain
 from generative_computing.python.authoring.constructors import create_call
-from generative_computing.python.authoring.constructors import create_chain
 from generative_computing.python.authoring.constructors import create_conditional
 from generative_computing.python.authoring.constructors import create_custom_function
 from generative_computing.python.authoring.constructors import create_fallback

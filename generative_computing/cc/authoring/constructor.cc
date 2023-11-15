@@ -78,17 +78,6 @@ absl::StatusOr<v0::Value> CreateReference(absl::string_view arg_name) {
   return value_pb;
 }
 
-absl::StatusOr<v0::Value> CreateChain(std::vector<v0::Value> function_list) {
-  std::string parameter_name = "arg";
-  v0::Value arg_pb = GENC_TRY(CreateReference(parameter_name));
-
-  for (std::vector<v0::Value>::reverse_iterator it = function_list.rbegin();
-       it != function_list.rend(); ++it) {
-    arg_pb = GENC_TRY(CreateCall(*it, arg_pb));
-  }
-  return CreateLambda(parameter_name, arg_pb);
-}
-
 absl::StatusOr<v0::Value> CreateCall(v0::Value fn, v0::Value arg) {
   v0::Value value_pb;
   v0::Call* call_pb = value_pb.mutable_call();
@@ -245,10 +234,6 @@ absl::StatusOr<v0::Value> CreateConditional(v0::Value condition,
       intrinsic_pb->mutable_static_parameter()->mutable_struct_();
   *args->add_element() = GENC_TRY(CreateNamedValue("then", positive_branch));
   *args->add_element() = GENC_TRY(CreateNamedValue("else", negative_branch));
-  // TODO(b/307573292): merge condition into intrinsics for cleaner semantics.
-  // Condition itself is an integral part of an if/else block, right now it's
-  // modeled a Call outside the conditional intrinsics, therefore semantically
-  // it's unclear.
   return CreateCall(conditional_pb, condition);
 }
 

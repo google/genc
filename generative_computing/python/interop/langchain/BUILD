@@ -17,7 +17,6 @@ py_library(
     deps = [
         ":custom_model",
         ":model_cascade",
-        "//generative_computing/proto/v0:computation_py_pb2",
         "//generative_computing/python/authoring",
     ],
 )

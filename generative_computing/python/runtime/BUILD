@@ -30,7 +30,6 @@ py_test(
     srcs = ["runner_test.py"],
     deps = [
         ":runner",
-        "//generative_computing/proto/v0:computation_py_pb2",
         "//generative_computing/python/authoring",
     ],
 )

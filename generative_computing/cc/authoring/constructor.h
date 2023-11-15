@@ -37,11 +37,6 @@ absl::StatusOr<v0::Value> CreateCall(v0::Value fn, v0::Value arg);
 // computation.
 absl::StatusOr<v0::Value> CreateReference(absl::string_view arg_name);
 
-// Given a list of functions [f, g, ...] create a chain f(g(...)).
-// `[[deprecated("use CreateBasicChain")]]`.
-// TODO(b/304905545): merge with CreateBasicChain.
-absl::StatusOr<v0::Value> CreateChain(std::vector<v0::Value> function_list);
-
 // Returns a repeat proto which will repeat body_fn for num_steps, sequentially,
 // the output of the current step is the input to next iteration.
 absl::StatusOr<v0::Value> CreateRepeat(int num_steps, v0::Value body_fn);
@@ -88,7 +83,7 @@ absl::StatusOr<v0::Value> CreateBasicChain(
 absl::StatusOr<v0::Value> CreateLogger();
 
 // Given a list of functions [f, g, ...] create a chain g(f(...)). Compared to
-// CreateChain, this chain can contain break point as part of the chain.
+// CreateBasicChain, this chain can contain break point as part of the chain.
 absl::StatusOr<v0::Value> CreateBreakableChain(std::vector<v0::Value> fns_list);
 
 // Creates a NamedValue.

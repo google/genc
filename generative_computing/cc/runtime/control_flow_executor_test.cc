@@ -146,8 +146,8 @@ TEST_F(ControlFlowExecutorTest, TestChaining) {
 TEST_F(ControlFlowExecutorTest, WhileLoopExecutionTest) {
   // Create a test condition_fn that pumps the while loop.
   v0::Value test_condition_fn =
-      CreateChain({CreateLogicalNot().value(),
-                   CreateRegexPartialMatch("Action: Finish").value()})
+      CreateBasicChain({CreateRegexPartialMatch("Action: Finish").value(),
+                        CreateLogicalNot().value()})
           .value();
 
   // Create a test body_fn.

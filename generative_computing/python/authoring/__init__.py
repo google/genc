@@ -13,14 +13,23 @@
 # limitations under the License.
 """Python wrappers for authoring computations."""
 
+from generative_computing.python.authoring.constructors import create_basic_chain
+from generative_computing.python.authoring.constructors import create_breakable_chain
 from generative_computing.python.authoring.constructors import create_call
 from generative_computing.python.authoring.constructors import create_chain
 from generative_computing.python.authoring.constructors import create_conditional
+from generative_computing.python.authoring.constructors import create_custom_function
 from generative_computing.python.authoring.constructors import create_fallback
 from generative_computing.python.authoring.constructors import create_lambda
+from generative_computing.python.authoring.constructors import create_logger
+from generative_computing.python.authoring.constructors import create_logical_not
+from generative_computing.python.authoring.constructors import create_loop_chain_combo
 from generative_computing.python.authoring.constructors import create_model
+from generative_computing.python.authoring.constructors import create_parallel_map
 from generative_computing.python.authoring.constructors import create_prompt_template
 from generative_computing.python.authoring.constructors import create_reference
 from generative_computing.python.authoring.constructors import create_regex_partial_match
+from generative_computing.python.authoring.constructors import create_repeat
 from generative_computing.python.authoring.constructors import create_selection
 from generative_computing.python.authoring.constructors import create_struct
+from generative_computing.python.authoring.constructors import create_while

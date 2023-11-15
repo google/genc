@@ -15,6 +15,7 @@ py_library(
     name = "runner",
     srcs = ["runner.py"],
     data = [
+        "//generative_computing/cc/authoring:constructor_bindings.so",
         "//generative_computing/cc/intrinsics:intrinsic_bindings.so",
         "//generative_computing/cc/runtime:executor_bindings.so",
     ],

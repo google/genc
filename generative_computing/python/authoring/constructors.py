@@ -13,10 +13,12 @@
 # limitations under the License.
 """Libraries for constructing computations."""
 
+from generative_computing.cc.authoring import constructor_bindings
 from generative_computing.cc.intrinsics import intrinsic_bindings
 from generative_computing.proto.v0 import computation_pb2 as pb
 
 
+# TODO(b/307573292): deprecate python constructors available via C++ bindings.
 def create_model(model_uri):
   """Creates a model computation with the given model URI.
 
@@ -26,12 +28,7 @@ def create_model(model_uri):
   Returns:
     A computation that represents the model.
   """
-  return pb.Value(
-      intrinsic=pb.Intrinsic(
-          uri=intrinsic_bindings.intrinsics.MODEL_INFERENCE,
-          static_parameter=pb.Value(str=model_uri),
-      )
-  )
+  return constructor_bindings.create_model(model_uri)
 
 
 def create_prompt_template(template_str):
@@ -43,12 +40,7 @@ def create_prompt_template(template_str):
   Returns:
     A computation that represents the prompt template.
   """
-  return pb.Value(
-      intrinsic=pb.Intrinsic(
-          uri=intrinsic_bindings.intrinsics.PROMPT_TEMPLATE,
-          static_parameter=pb.Value(str=template_str),
-      )
-  )
+  return constructor_bindings.create_prompt_template(template_str)
 
 
 def create_regex_partial_match(pattern_string):
@@ -60,12 +52,7 @@ def create_regex_partial_match(pattern_string):
   Returns:
     A computation that represents the regex partial match intrinsic.
   """
-  return pb.Value(
-      intrinsic=pb.Intrinsic(
-          uri=intrinsic_bindings.intrinsics.REGEX_PARTIAL_MATCH,
-          static_parameter=pb.Value(str=pattern_string),
-      )
-  )
+  return constructor_bindings.create_regex_partial_match(pattern_string)
 
 
 def create_reference(name):
@@ -79,7 +66,7 @@ def create_reference(name):
     correctly evaluated as a part of a lambda expression or similar construct
     in which this name is well-defined.
   """
-  return pb.Value(reference=pb.Reference(name=name))
+  return constructor_bindings.create_reference(name)
 
 
 def create_lambda(name, body):
@@ -92,7 +79,7 @@ def create_lambda(name, body):
   Returns:
     A computation that represents the lambda expression.
   """
-  return pb.Value(**{'lambda': pb.Lambda(parameter_name=name, result=body)})
+  return constructor_bindings.create_lambda(name, body)
 
 
 def create_repeat(num_steps, body_fn):
@@ -105,17 +92,7 @@ def create_repeat(num_steps, body_fn):
   Returns:
     A computation that represents the while loop.
   """
-  elements = [
-      pb.NamedValue(name='num_steps', value=pb.Value(str=str(num_steps))),
-      pb.NamedValue(name='body_fn', value=pb.Value(str=body_fn)),
-  ]
-
-  return pb.Value(
-      intrinsic=pb.Intrinsic(
-          uri=intrinsic_bindings.intrinsics.REPEAT,
-          static_parameter=pb.Value(struct=pb.Struct(element=elements)),
-      )
-  )
+  return constructor_bindings.create_repeat(num_steps, body_fn)
 
 
 def create_call(fn, arg):
@@ -128,7 +105,7 @@ def create_call(fn, arg):
   Returns:
     A computation that represents the function call.
   """
-  return pb.Value(call=pb.Call(function=fn, argument=arg))
+  return constructor_bindings.create_call(fn, arg)
 
 
 def create_struct(comp_list):
@@ -244,17 +221,83 @@ def create_while(condition_fn, body_fn):
   Returns:
     A computation that represents the while loop.
   """
-  while_loop = pb.Value(
-      intrinsic=pb.Intrinsic(
-          uri=intrinsic_bindings.intrinsics.WHILE,
-          static_parameter=pb.Value(
-              struct=pb.Struct(
-                  element=[
-                      pb.NamedValue(name='condition_fn', value=condition_fn),
-                      pb.NamedValue(name='body_fn', value=body_fn),
-                  ]
-              )
-          ),
-      )
-  )
-  return while_loop
+  return constructor_bindings.create_while(condition_fn, body_fn)
+
+
+def create_basic_chain(function_list):
+  """Constructs a basic chain expression.
+
+  Args:
+    function_list: A list of functions.
+
+  Returns:
+    A computation that represents the basic chain expression.
+  """
+  return constructor_bindings.create_basic_chain(function_list)
+
+
+def create_breakable_chain(function_list):
+  """Constructs a breakable chain expression.
+
+  Args:
+    function_list: A list of functions.
+
+  Returns:
+    A computation that represents a breakable chain expression.
+  """
+  return constructor_bindings.create_breakable_chain(function_list)
+
+
+def create_custom_function(fn_uri):
+  """Constructs a custom function expression.
+
+  Args:
+    fn_uri: The URI of the custom function.
+
+  Returns:
+    A computation that represents a custom function expression.
+  """
+  return constructor_bindings.create_custom_function(fn_uri)
+
+
+def create_logger():
+  """Constructs a logger expression.
+
+  Returns:
+    A computation that represents a logger expression.
+  """
+  return constructor_bindings.create_logger()
+
+
+def create_logical_not():
+  """Constructs a logical not expression.
+
+  Returns:
+    A computation that represents a logical not expression.
+  """
+  return constructor_bindings.create_logical_not()
+
+
+def create_loop_chain_combo(num_steps, function_list):
+  """Constructs a loop chain combo expression.
+
+  Args:
+    num_steps: Number of steps to repeat the calculation.
+    function_list: A list of functions.
+
+  Returns:
+    A computation that represents a typical reasoning loop expression.
+  """
+  return constructor_bindings.create_loop_chain_combo(num_steps, function_list)
+
+
+def create_parallel_map(map_fn):
+  """Constructs a parallel map expression.
+
+  Args:
+    map_fn: The map function to be applied to all input values.
+
+  Returns:
+    A computation that represents a parallel map expression.
+  """
+  return constructor_bindings.create_parallel_map(map_fn)

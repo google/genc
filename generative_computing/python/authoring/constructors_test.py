@@ -76,11 +76,12 @@ class ConstructorsTest(absltest.TestCase):
       )
 
   def test_repeat(self):
-    comp_pb = constructors.create_repeat(num_steps=5, body_fn='body_fn_name')
+    model_call_pb = constructors.create_model('model_name')
+    comp_pb = constructors.create_repeat(num_steps=5, body_fn=model_call_pb)
 
     static_params = comp_pb.intrinsic.static_parameter.struct.element
-    self.assertEqual(static_params[0].value.str, '5')
-    self.assertEqual(static_params[1].value.str, 'body_fn_name')
+    self.assertEqual(static_params[0].value.int_32, 5)
+    self.assertEqual(static_params[1].value, model_call_pb)
 
   def test_regex_partial_match(self):
     comp_pb = constructors.create_regex_partial_match('A: True')

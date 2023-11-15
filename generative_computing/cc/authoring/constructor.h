@@ -87,7 +87,7 @@ absl::StatusOr<v0::Value> CreateBasicChain(
 // Creates a Logger, it takes an input logs it and returns the original input.
 absl::StatusOr<v0::Value> CreateLogger();
 
-// Given a list of functions [f, g, ...] create a chain f(g(...)). Compared to
+// Given a list of functions [f, g, ...] create a chain g(f(...)). Compared to
 // CreateChain, this chain can contain break point as part of the chain.
 absl::StatusOr<v0::Value> CreateBreakableChain(std::vector<v0::Value> fns_list);
 

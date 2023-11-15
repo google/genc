@@ -1,3 +1,5 @@
+load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
+
 package(
     default_visibility = ["//visibility:public"],
 )
@@ -27,5 +29,18 @@ cc_test(
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/status:statusor",
         "@com_google_googletest//:gtest_main",
+    ],
+)
+
+pybind_extension(
+    name = "constructor_bindings",
+    srcs = ["constructor_bindings.cc"],
+    tags = ["generated_py_module=generative_computing.authoring"],
+    deps = [
+        ":constructor",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@pybind11_abseil//pybind11_abseil:absl_casters",
+        "@pybind11_abseil//pybind11_abseil:status_casters",
+        "@pybind11_protobuf//pybind11_protobuf:native_proto_caster",
     ],
 )

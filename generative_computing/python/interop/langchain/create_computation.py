@@ -15,6 +15,7 @@
 
 import langchain
 from generative_computing.python import authoring
+from generative_computing.python.interop.langchain import custom_chain
 from generative_computing.python.interop.langchain import custom_model
 from generative_computing.python.interop.langchain import model_cascade
 
@@ -82,6 +83,28 @@ def create_computation_from_chain(chain):
   return comp
 
 
+def create_computation_from_custom_chain(chain):
+  """Creates a `Computation` proto instance from a LangChain CustomChain.
+
+  Args:
+    chain: An instance of CustomChain object.
+
+  Returns:
+    A corresponding instance of `pb.Value`.
+  """
+
+  computation_list = []
+  for op in chain.chained_ops:
+    comp = op
+    if isinstance(op, custom_chain.CustomChain) or isinstance(
+        op, langchain.chains.llm.LLMChain
+    ):
+      comp = create_computation(comp)
+    computation_list.append(comp)
+
+  return authoring.create_basic_chain(computation_list)
+
+
 def create_computation(langchain_object):
   """Creates a `Computation` proto instance from a LangChain object.
 
@@ -100,6 +123,8 @@ def create_computation(langchain_object):
     return create_computation_from_prompt_template(langchain_object)
   if isinstance(langchain_object, langchain.chains.llm.LLMChain):
     return create_computation_from_chain(langchain_object)
+  if isinstance(langchain_object, langchain.chains.base.Chain):
+    return create_computation_from_custom_chain(langchain_object)
   raise TypeError(
       "Unrecognized type of LangChain object {}.".format(
           str(type(langchain_object))

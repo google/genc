@@ -6,6 +6,7 @@ py_library(
     visibility = ["//generative_computing/python:python_packages"],
     deps = [
         ":create_computation",
+        ":custom_chain",
         ":custom_model",
         ":model_cascade",
     ],
@@ -15,6 +16,7 @@ py_library(
     name = "create_computation",
     srcs = ["create_computation.py"],
     deps = [
+        ":custom_chain",
         ":custom_model",
         ":model_cascade",
         "//generative_computing/python/authoring",
@@ -26,6 +28,7 @@ py_test(
     srcs = ["create_computation_test.py"],
     deps = [
         ":create_computation",
+        ":custom_chain",
         ":custom_model",
         ":model_cascade",
         "//generative_computing/python/authoring",
@@ -41,6 +44,18 @@ py_test(
     name = "custom_model_test",
     srcs = ["custom_model_test.py"],
     deps = [":custom_model"],
+)
+
+py_library(
+    name = "custom_chain",
+    srcs = ["custom_chain.py"],
+    deps = ["//generative_computing/proto/v0:computation_py_pb2"],
+)
+
+py_test(
+    name = "custom_chain_test",
+    srcs = ["custom_chain_test.py"],
+    deps = [":custom_chain"],
 )
 
 py_library(

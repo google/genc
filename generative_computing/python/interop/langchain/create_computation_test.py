@@ -18,6 +18,7 @@ from langchain import chains
 from langchain import prompts
 from generative_computing.python import authoring
 from generative_computing.python.interop.langchain import create_computation
+from generative_computing.python.interop.langchain import custom_chain
 from generative_computing.python.interop.langchain import custom_model
 from generative_computing.python.interop.langchain import model_cascade
 
@@ -63,6 +64,27 @@ class CreateComputationTest(absltest.TestCase):
         authoring.create_model("some_model"),
     ])
     self.assertEqual(str(comp), str(expected_comp))
+
+  def test_nested_hybrid_custom_chain(self):
+    lc_llm_chain = chains.LLMChain(
+        llm=custom_model.CustomModel(uri="model1"),
+        prompt=prompts.PromptTemplate(
+            input_variables=["location"],
+            template="Q: What should I pack for a trip to {location}? A: ",
+        ),
+    )
+    genc_llm2 = authoring.create_model("model2")
+    my_chain = custom_chain.CustomChain(chained_ops=[lc_llm_chain, genc_llm2])
+    comp = create_computation.create_computation(my_chain)
+
+    expected_chain1 = authoring.create_basic_chain([
+        authoring.create_prompt_template(
+            "Q: What should I pack for a trip to {location}? A: ",
+        ),
+        authoring.create_model("model1"),
+    ])
+    expected_chain2 = authoring.create_basic_chain([expected_chain1, genc_llm2])
+    self.assertEqual(str(comp), str(expected_chain2))
 
   def test_cascade(self):
     llm1 = custom_model.CustomModel(uri="some_model")

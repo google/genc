@@ -11,9 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Interop libraries for LangChain."""
+"""Test for custom_chain.py."""
 
-from generative_computing.python.interop.langchain.create_computation import create_computation
-from generative_computing.python.interop.langchain.custom_chain import CustomChain
-from generative_computing.python.interop.langchain.custom_model import CustomModel
-from generative_computing.python.interop.langchain.model_cascade import ModelCascade
+from absl.testing import absltest
+from langchain.chains import base
+from generative_computing.python.interop.langchain import custom_chain
+
+
+class CustomModelTest(absltest.TestCase):
+
+  def test_creation(self):
+    my_chain = custom_chain.CustomChain(chained_ops=[])
+    self.assertIsInstance(my_chain, base.Chain)
+    self.assertEqual(my_chain.chained_ops, [])
+    self.assertEqual(my_chain._chain_type, 'genc_custom_chain')
+
+
+if __name__ == '__main__':
+  absltest.main()

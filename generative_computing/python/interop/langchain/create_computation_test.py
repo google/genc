@@ -74,7 +74,7 @@ class CreateComputationTest(absltest.TestCase):
         ),
     )
     genc_llm2 = authoring.create_model("model2")
-    my_chain = custom_chain.CustomChain(chained_ops=[lc_llm_chain, genc_llm2])
+    my_chain = custom_chain.CustomChain() | lc_llm_chain | genc_llm2
     comp = create_computation.create_computation(my_chain)
 
     expected_chain1 = authoring.create_basic_chain([

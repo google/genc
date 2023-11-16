@@ -31,6 +31,12 @@ class CustomChain(chains.base.Chain):
       Union[pb.Value, chains.base.Chain, chains.LLMChain, Any]
   ] = []
 
+  def __or__(
+      self, op: Union[pb.Value, chains.base.Chain, chains.LLMChain, Any]
+  ):
+    self.chained_ops.append(op)
+    return self
+
   @property
   def input_keys(self) -> List[str]:
     raise RuntimeError("This is a chain placeholder. keys are not needed")

@@ -16,7 +16,6 @@ limitations under the License
 #ifndef GENERATIVE_COMPUTING_CC_AUTHORING_CONSTRUCTOR_H_
 #define GENERATIVE_COMPUTING_CC_AUTHORING_CONSTRUCTOR_H_
 
-#include <string>
 #include <vector>
 
 #include "absl/status/statusor.h"
@@ -24,6 +23,43 @@ limitations under the License
 #include "generative_computing/proto/v0/computation.pb.h"
 
 namespace generative_computing {
+
+// Used to build chains with loops and breakpoints. Will always choose the
+// simpler and more efficient chain type based on chained computations.
+class SmartChain {
+ public:
+  explicit SmartChain(int num_iteration = 0) : num_iteration_(num_iteration) {}
+
+  // Enable Pipe operator op1 | op2 | op3 ...
+  SmartChain& operator|(const v0::Value& op) {
+    chained_ops_.push_back(op);
+    return *this;
+  }
+
+  SmartChain& operator|(const absl::StatusOr<v0::Value>& op) {
+    chained_ops_.push_back(op.value());
+    return *this;
+  }
+
+  SmartChain& operator|(SmartChain& other_chain) {
+    chained_ops_.push_back(other_chain.Build().value());
+    return *this;
+  }
+
+  // Sets number of iterations
+  SmartChain& operator|(int num_iteration) {
+    SetNumIteration(num_iteration);
+    return *this;
+  }
+
+  absl::StatusOr<v0::Value> Build();
+
+  void SetNumIteration(int i) { num_iteration_ = i; }
+
+ private:
+  int num_iteration_;
+  std::vector<v0::Value> chained_ops_;
+};
 
 // Given arg_name & computation body create a Lambda that applies a computation
 // to the provided argument.

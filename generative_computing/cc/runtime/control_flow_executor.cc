@@ -594,8 +594,8 @@ ControlFlowExecutor::EvaluateStruct(const v0::Struct& struct_pb,
                                     const std::shared_ptr<Scope>& scope) const {
   std::vector<std::shared_ptr<ExecutorValue>> elements;
   elements.reserve(struct_pb.element_size());
-  for (const v0::NamedValue& element_pb : struct_pb.element()) {
-    elements.emplace_back(GENC_TRY(Evaluate(element_pb.value(), scope)));
+  for (const v0::Value& element_pb : struct_pb.element()) {
+    elements.emplace_back(GENC_TRY(Evaluate(element_pb, scope)));
   }
   return std::make_shared<ExecutorValue>(std::move(elements));
 }

@@ -172,15 +172,14 @@ TEST_F(InlineExecutorTest, ProcessMultivariatePromptTemplate) {
   v0::Value arg_pb;
   // Variables in template can functions like keyword argument, therefore order
   // doesn't matter.
-  v0::NamedValue* location_arg_pb =
+  v0::Value* location_arg_pb =
       arg_pb.mutable_struct_()->mutable_element()->Add();
-  location_arg_pb->set_name("location");
-  location_arg_pb->mutable_value()->set_str("Tokyo");
+  location_arg_pb->set_label("location");
+  location_arg_pb->set_str("Tokyo");
 
-  v0::NamedValue* do_arg_pb =
-      arg_pb.mutable_struct_()->mutable_element()->Add();
-  do_arg_pb->set_name("do");
-  do_arg_pb->mutable_value()->set_str("pack");
+  v0::Value* do_arg_pb = arg_pb.mutable_struct_()->mutable_element()->Add();
+  do_arg_pb->set_label("do");
+  do_arg_pb->set_str("pack");
 
   v0::Value result = runner.Run(template_pb, arg_pb).value();
   EXPECT_EQ(result.str(),
@@ -214,8 +213,8 @@ TEST_F(InlineExecutorTest, CreateStructAndSelection) {
 
   v0::Value expected_result;
   auto good_struct = expected_result.mutable_struct_();
-  good_struct->add_element()->mutable_value()->set_str("foo");
-  good_struct->add_element()->mutable_value()->set_int_32(10);
+  good_struct->add_element()->set_str("foo");
+  good_struct->add_element()->set_int_32(10);
   EXPECT_EQ(result.DebugString(), expected_result.DebugString());
 
   absl::StatusOr<OwnedValueId> a_val =

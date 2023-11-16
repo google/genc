@@ -33,7 +33,7 @@ absl::Status Delegate::CheckWellFormed(
   if (!intrinsic_pb.static_parameter().has_struct_()) {
     return absl::InvalidArgumentError("Expect a struct.");
   }
-  if (!intrinsic_pb.static_parameter().struct_().element(0).value().has_str()) {
+  if (!intrinsic_pb.static_parameter().struct_().element(0).has_str()) {
     return absl::InvalidArgumentError("Expected an environment name string.");
   }
   return absl::OkStatus();
@@ -43,14 +43,14 @@ absl::StatusOr<ControlFlowIntrinsicHandlerInterface::ValueRef>
 Delegate::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
                       std::optional<ValueRef> arg, Context* context) const {
   const std::string& environment_name =
-      intrinsic_pb.static_parameter().struct_().element(0).value().str();
+      intrinsic_pb.static_parameter().struct_().element(0).str();
   if (!runner_map_.contains(environment_name)) {
     return absl::NotFoundError(
         absl::StrCat("No such runtime environment: ", environment_name));
   }
   RunnerFn runner_fn = runner_map_.at(environment_name);
   const v0::Value& func_pb =
-      intrinsic_pb.static_parameter().struct_().element(1).value();
+      intrinsic_pb.static_parameter().struct_().element(1);
   std::optional<v0::Value> optional_arg_pb;
   if (arg.has_value()) {
     v0::Value arg_pb;

@@ -294,8 +294,8 @@ TEST_F(ControlFlowExecutorTest, CreateStructAndSelection) {
 
   v0::Value expected_result;
   auto good_struct = expected_result.mutable_struct_();
-  good_struct->add_element()->mutable_value()->set_str("foo");
-  good_struct->add_element()->mutable_value()->set_str("bar");
+  good_struct->add_element()->set_str("foo");
+  good_struct->add_element()->set_str("bar");
   EXPECT_EQ(result.DebugString(), expected_result.DebugString());
 
   absl::StatusOr<OwnedValueId> a_val =
@@ -371,8 +371,8 @@ TEST_F(ControlFlowExecutorTest, CreateStructInIntrinsicHandler) {
 
   v0::Value expected_result;
   auto good_struct = expected_result.mutable_struct_();
-  good_struct->add_element()->mutable_value()->set_str("foo");
-  good_struct->add_element()->mutable_value()->set_str("bar");
+  good_struct->add_element()->set_str("foo");
+  good_struct->add_element()->set_str("bar");
   EXPECT_EQ(result.DebugString(), expected_result.DebugString());
 }
 
@@ -392,14 +392,14 @@ TEST_F(ControlFlowExecutorTest, ParallelMapOnSuccessAppliesFnToAllArguments) {
   Runner runner = Runner::Create(executor).value();
 
   v0::Value x;
-  x.mutable_struct_()->add_element()->mutable_value()->set_str("foo");
-  x.mutable_struct_()->add_element()->mutable_value()->set_str("bar");
+  x.mutable_struct_()->add_element()->set_str("foo");
+  x.mutable_struct_()->add_element()->set_str("bar");
   v0::Value result = runner.Run(comp_pb, x).value();
 
   v0::Value expected_result;
   auto good_struct = expected_result.mutable_struct_();
-  good_struct->add_element()->mutable_value()->set_str("fn(foo)");
-  good_struct->add_element()->mutable_value()->set_str("fn(bar)");
+  good_struct->add_element()->set_str("fn(foo)");
+  good_struct->add_element()->set_str("fn(bar)");
   EXPECT_EQ(result.DebugString(), expected_result.DebugString());
 }
 
@@ -434,8 +434,8 @@ TEST_F(ControlFlowExecutorTest, CreateSelectionInIntrinsicHandler) {
   EXPECT_TRUE(executor.ok());
 
   v0::Value x, y;
-  x.mutable_struct_()->add_element()->mutable_value()->set_str("foo");
-  x.mutable_struct_()->add_element()->mutable_value()->set_str("bar");
+  x.mutable_struct_()->add_element()->set_str("foo");
+  x.mutable_struct_()->add_element()->set_str("bar");
   y.mutable_intrinsic()->set_uri(std::string(kTestIntrinsic));
 
   absl::StatusOr<OwnedValueId> x_val = executor.value()->CreateValue(x);
@@ -450,7 +450,7 @@ TEST_F(ControlFlowExecutorTest, CreateSelectionInIntrinsicHandler) {
 
   v0::Value result;
   EXPECT_TRUE(executor.value()->Materialize(z_val.value().ref(), &result).ok());
-  EXPECT_EQ(result.DebugString(), x.struct_().element(0).value().DebugString());
+  EXPECT_EQ(result.DebugString(), x.struct_().element(0).DebugString());
 }
 
 }  // namespace generative_computing

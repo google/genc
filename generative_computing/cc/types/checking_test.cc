@@ -47,16 +47,14 @@ TEST_F(CheckingTest, UnequalScalars) {
 TEST_F(CheckingTest, ScalarAndStruct) {
   v0::Type x, y;
   x.set_scalar(v0::SCALAR_TYPE_INT32);
-  y.mutable_struct_()->add_element()->mutable_value()->set_scalar(
-      v0::SCALAR_TYPE_INT32);
+  y.mutable_struct_()->add_element()->set_scalar(v0::SCALAR_TYPE_INT32);
   absl::Status status = CheckEqual(x, y);
   EXPECT_TRUE(status.code() == absl::StatusCode::kInvalidArgument);
 }
 
 TEST_F(CheckingTest, StructAndScalar) {
   v0::Type x, y;
-  x.mutable_struct_()->add_element()->mutable_value()->set_scalar(
-      v0::SCALAR_TYPE_INT32);
+  x.mutable_struct_()->add_element()->set_scalar(v0::SCALAR_TYPE_INT32);
   y.set_scalar(v0::SCALAR_TYPE_INT32);
   absl::Status status = CheckEqual(x, y);
   EXPECT_TRUE(status.code() == absl::StatusCode::kInvalidArgument);
@@ -64,32 +62,25 @@ TEST_F(CheckingTest, StructAndScalar) {
 
 TEST_F(CheckingTest, StructsOfUnequalSizes) {
   v0::Type x, y;
-  x.mutable_struct_()->add_element()->mutable_value()->set_scalar(
-      v0::SCALAR_TYPE_INT32);
-  y.mutable_struct_()->add_element()->mutable_value()->set_scalar(
-      v0::SCALAR_TYPE_INT32);
-  y.mutable_struct_()->add_element()->mutable_value()->set_scalar(
-      v0::SCALAR_TYPE_INT32);
+  x.mutable_struct_()->add_element()->set_scalar(v0::SCALAR_TYPE_INT32);
+  y.mutable_struct_()->add_element()->set_scalar(v0::SCALAR_TYPE_INT32);
+  y.mutable_struct_()->add_element()->set_scalar(v0::SCALAR_TYPE_INT32);
   absl::Status status = CheckEqual(x, y);
   EXPECT_TRUE(status.code() == absl::StatusCode::kInvalidArgument);
 }
 
 TEST_F(CheckingTest, StructsWithMismatchingElementTypes) {
   v0::Type x, y;
-  x.mutable_struct_()->add_element()->mutable_value()->set_scalar(
-      v0::SCALAR_TYPE_INT32);
-  y.mutable_struct_()->add_element()->mutable_value()->set_scalar(
-      v0::SCALAR_TYPE_STRING);
+  x.mutable_struct_()->add_element()->set_scalar(v0::SCALAR_TYPE_INT32);
+  y.mutable_struct_()->add_element()->set_scalar(v0::SCALAR_TYPE_STRING);
   absl::Status status = CheckEqual(x, y);
   EXPECT_TRUE(status.code() == absl::StatusCode::kInvalidArgument);
 }
 
 TEST_F(CheckingTest, EqualStructs) {
   v0::Type x, y;
-  x.mutable_struct_()->add_element()->mutable_value()->set_scalar(
-      v0::SCALAR_TYPE_INT32);
-  y.mutable_struct_()->add_element()->mutable_value()->set_scalar(
-      v0::SCALAR_TYPE_INT32);
+  x.mutable_struct_()->add_element()->set_scalar(v0::SCALAR_TYPE_INT32);
+  y.mutable_struct_()->add_element()->set_scalar(v0::SCALAR_TYPE_INT32);
   absl::Status status = CheckEqual(x, y);
   EXPECT_TRUE(status.ok());
 }

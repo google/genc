@@ -31,7 +31,7 @@ ExtractStaticParameters(const v0::Value& value) {
   absl::flat_hash_map<std::string, v0::Value> kwargs;
   for (const auto& arg :
        value.intrinsic().static_parameter().struct_().element()) {
-    kwargs.insert({arg.name(), arg.value()});
+    kwargs.insert({arg.label(), arg});
   }
   return kwargs;
 }

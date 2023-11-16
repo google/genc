@@ -31,16 +31,6 @@ absl::Status While::CheckWellFormed(const v0::Intrinsic& intrinsic_pb) const {
   if (intrinsic_pb.static_parameter().struct_().element_size() != 2) {
     return absl::InvalidArgumentError("Missing required static parameters.");
   }
-  if ((intrinsic_pb.static_parameter().struct_().element(0).name() !=
-       "condition_fn") ||
-      (intrinsic_pb.static_parameter().struct_().element(1).name() !=
-       "body_fn")) {
-    return absl::InvalidArgumentError(absl::StrCat(
-        "Wrong static parameter names."
-        "Expected element 0: 'condition_fn' and element 1: 'body_fn'."
-        "Received: ",
-        intrinsic_pb.static_parameter().DebugString()));
-  }
   return absl::OkStatus();
 }
 
@@ -48,10 +38,10 @@ absl::StatusOr<ControlFlowIntrinsicHandlerInterface::ValueRef>
 While::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
                    std::optional<ValueRef> arg, Context* context) const {
   ValueRef condition_fn = GENC_TRY(context->CreateValue(
-      intrinsic_pb.static_parameter().struct_().element(0).value()));
+      intrinsic_pb.static_parameter().struct_().element(0)));
 
   ValueRef body_fn = GENC_TRY(context->CreateValue(
-      intrinsic_pb.static_parameter().struct_().element(1).value()));
+      intrinsic_pb.static_parameter().struct_().element(1)));
 
   bool condition_result = true;
   ValueRef state = arg.value();

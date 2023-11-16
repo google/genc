@@ -37,11 +37,10 @@ absl::Status SetScalarType(v0::Value* value_pb, v0::ScalarType scalar_type) {
 absl::Status CreateStructType(v0::Struct* struct_pb, v0::StructType* type_pb,
                               const InferenceOptions* options_or_null) {
   for (int i = 0; i < struct_pb->element_size(); ++i) {
-    v0::NamedValue* val_element_pb = struct_pb->mutable_element(i);
-    v0::StructType::Element* type_element_pb = type_pb->add_element();
-    GENC_TRY(InferTypes(val_element_pb->mutable_value(), options_or_null));
-    type_element_pb->set_name(val_element_pb->name());
-    type_element_pb->mutable_value()->CopyFrom(val_element_pb->value().type());
+    v0::Value* val_element_pb = struct_pb->mutable_element(i);
+    v0::Type* type_element_pb = type_pb->add_element();
+    GENC_TRY(InferTypes(val_element_pb, options_or_null));
+    type_element_pb->CopyFrom(val_element_pb->type());
   }
   return absl::OkStatus();
 }
@@ -74,12 +73,12 @@ absl::Status InferTypes(v0::Value* value_pb,
     return CheckEqual(value_pb->type(), type_pb);
   }
   if (value_pb->has_selection()) {
-    GENC_TRY(InferTypes(
-        value_pb->mutable_selection()->mutable_source(), options_or_null));
+    GENC_TRY(InferTypes(value_pb->mutable_selection()->mutable_source(),
+                        options_or_null));
     if (!value_pb->selection().source().type().has_struct_()) {
-      return absl::InvalidArgumentError(absl::StrCat(
-          "Selecting from a non-struct type ",
-          value_pb->selection().source().type().DebugString()));
+      return absl::InvalidArgumentError(
+          absl::StrCat("Selecting from a non-struct type ",
+                       value_pb->selection().source().type().DebugString()));
     }
     if (value_pb->selection().index() < 0) {
       return absl::InvalidArgumentError("Negative selection index.");
@@ -89,12 +88,11 @@ absl::Status InferTypes(v0::Value* value_pb,
       return absl::InvalidArgumentError(absl::StrCat(
           "Selection index ", value_pb->selection().index(),
           " out of range for a struct of size ",
-          value_pb->selection().source().type().struct_().element_size(),
-          "."));
+          value_pb->selection().source().type().struct_().element_size(), "."));
     }
     const v0::Type& selected_type =
         value_pb->selection().source().type().struct_().element(
-            value_pb->selection().index()).value();
+            value_pb->selection().index());
     if (!value_pb->has_type()) {
       value_pb->mutable_type()->CopyFrom(selected_type);
       return absl::OkStatus();

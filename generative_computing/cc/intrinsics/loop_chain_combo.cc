@@ -27,9 +27,8 @@ namespace intrinsics {
 
 absl::Status LoopChainCombo::CheckWellFormed(
     const v0::Intrinsic& intrinsic_pb) const {
-  if ((intrinsic_pb.static_parameter().struct_().element_size() < 2) ||
-      (intrinsic_pb.static_parameter().struct_().element(0).name() !=
-       "num_steps")) {
+  if (!intrinsic_pb.static_parameter().has_struct_() ||
+      intrinsic_pb.static_parameter().struct_().element_size() < 2) {
     return absl::InvalidArgumentError(absl::StrCat(
         "Expect at least 2 elementes in static parameter 'num_steps' "
         "and a listed of body_fns, got: ",
@@ -42,15 +41,14 @@ absl::StatusOr<ControlFlowIntrinsicHandlerInterface::ValueRef>
 LoopChainCombo::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
                             std::optional<ValueRef> arg,
                             Context* context) const {
-  int num_steps =
-      intrinsic_pb.static_parameter().struct_().element(0).value().int_32();
+  int num_steps = intrinsic_pb.static_parameter().struct_().element(0).int_32();
 
   auto params = intrinsic_pb.static_parameter().struct_().element();
   std::vector<ValueRef> body_fns_ref;
 
   // First param is reserved for num_steps
   for (auto it = params.begin() + 1; it != params.end(); it++) {
-    body_fns_ref.push_back(GENC_TRY(context->CreateValue(it->value())));
+    body_fns_ref.push_back(GENC_TRY(context->CreateValue(*it)));
   }
 
   ValueRef state = arg.value();

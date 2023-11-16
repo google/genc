@@ -48,8 +48,8 @@ ParallelMap::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
   results.reserve(args_pb.struct_().element_size());
   ValueRef fn_val =
       GENC_TRY(context->CreateValue(intrinsic_pb.static_parameter()));
-  for (const v0::NamedValue& e : args_pb.struct_().element()) {
-    ValueRef arg_val = GENC_TRY(context->CreateValue(e.value()));
+  for (const v0::Value& e : args_pb.struct_().element()) {
+    ValueRef arg_val = GENC_TRY(context->CreateValue(e));
     results.push_back(GENC_TRY(context->CreateCall(fn_val, arg_val)));
   }
   return context->CreateStruct(absl::MakeSpan(results));

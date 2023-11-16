@@ -123,7 +123,7 @@ class InlineExecutor : public ExecutorBase<ValueFuture> {
           auto elements = result_pb->mutable_struct_()->mutable_element();
           for (const auto& member_future : member_futures) {
             ExecutorValue val = GENC_TRY(Wait(member_future));
-            elements->Add()->mutable_value()->CopyFrom(val.value());
+            elements->Add()->CopyFrom(val.value());
           }
           return ExecutorValue(result_pb);
         },
@@ -143,7 +143,7 @@ class InlineExecutor : public ExecutorBase<ValueFuture> {
             return absl::OutOfRangeError("Selection index out of bounds.");
           }
           return ExecutorValue(std::make_shared<v0::Value>(
-              val.value().struct_().element(index).value()));
+              val.value().struct_().element(index)));
         },
         thread_pool_);
   }

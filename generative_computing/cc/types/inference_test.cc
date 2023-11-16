@@ -59,60 +59,56 @@ TEST_F(InferenceTest, ScalarWithIncorrectTypePreset) {
 
 TEST_F(InferenceTest, StructWithOneElement) {
   v0::Value val_pb;
-  val_pb.mutable_struct_()->add_element()->mutable_value()->set_str("bark");
+  val_pb.mutable_struct_()->add_element()->set_str("bark");
   absl::Status status = InferTypes(&val_pb);
   EXPECT_TRUE(status.ok());
   v0::Type expected_type;
-  expected_type.mutable_struct_()->add_element()->mutable_value()->set_scalar(
+  expected_type.mutable_struct_()->add_element()->set_scalar(
       v0::SCALAR_TYPE_STRING);
   EXPECT_EQ(val_pb.type().DebugString(), expected_type.DebugString());
-  EXPECT_EQ(val_pb.struct_().element(0).value().type().DebugString(),
-            expected_type.struct_().element(0).value().DebugString());
+  EXPECT_EQ(val_pb.struct_().element(0).type().DebugString(),
+            expected_type.struct_().element(0).DebugString());
 }
 
 TEST_F(InferenceTest, StructWithTwoElements) {
   v0::Value val_pb;
-  val_pb.mutable_struct_()->add_element()->mutable_value()->set_str("bark");
-  val_pb.mutable_struct_()->add_element()->mutable_value()->set_int_32(10);
+  val_pb.mutable_struct_()->add_element()->set_str("bark");
+  val_pb.mutable_struct_()->add_element()->set_int_32(10);
   absl::Status status = InferTypes(&val_pb);
   EXPECT_TRUE(status.ok());
   v0::Type expected_type;
-  expected_type.mutable_struct_()->add_element()->mutable_value()->set_scalar(
+  expected_type.mutable_struct_()->add_element()->set_scalar(
       v0::SCALAR_TYPE_STRING);
-  expected_type.mutable_struct_()->add_element()->mutable_value()->set_scalar(
+  expected_type.mutable_struct_()->add_element()->set_scalar(
       v0::SCALAR_TYPE_INT32);
   EXPECT_EQ(val_pb.type().DebugString(), expected_type.DebugString());
-  EXPECT_EQ(val_pb.struct_().element(0).value().type().DebugString(),
-            expected_type.struct_().element(0).value().DebugString());
-  EXPECT_EQ(val_pb.struct_().element(1).value().type().DebugString(),
-            expected_type.struct_().element(1).value().DebugString());
+  EXPECT_EQ(val_pb.struct_().element(0).type().DebugString(),
+            expected_type.struct_().element(0).DebugString());
+  EXPECT_EQ(val_pb.struct_().element(1).type().DebugString(),
+            expected_type.struct_().element(1).DebugString());
 }
 
 TEST_F(InferenceTest, NestedStruct) {
   v0::Value val_pb;
-  val_pb.mutable_struct_()->add_element()->mutable_value()->set_str("bark");
-  v0::Struct* const s = val_pb.mutable_struct_()
-                            ->add_element()
-                            ->mutable_value()
-                            ->mutable_struct_();
-  s->add_element()->mutable_value()->set_int_32(10);
-  s->add_element()->mutable_value()->set_str("oink");
+  val_pb.mutable_struct_()->add_element()->set_str("bark");
+  v0::Struct* const s =
+      val_pb.mutable_struct_()->add_element()->mutable_struct_();
+  s->add_element()->set_int_32(10);
+  s->add_element()->set_str("oink");
   absl::Status status = InferTypes(&val_pb);
   EXPECT_TRUE(status.ok());
   v0::Type expected_type;
-  expected_type.mutable_struct_()->add_element()->mutable_value()->set_scalar(
+  expected_type.mutable_struct_()->add_element()->set_scalar(
       v0::SCALAR_TYPE_STRING);
-  v0::StructType* const st = expected_type.mutable_struct_()
-                                 ->add_element()
-                                 ->mutable_value()
-                                 ->mutable_struct_();
-  st->add_element()->mutable_value()->set_scalar(v0::SCALAR_TYPE_INT32);
-  st->add_element()->mutable_value()->set_scalar(v0::SCALAR_TYPE_STRING);
+  v0::StructType* const st =
+      expected_type.mutable_struct_()->add_element()->mutable_struct_();
+  st->add_element()->set_scalar(v0::SCALAR_TYPE_INT32);
+  st->add_element()->set_scalar(v0::SCALAR_TYPE_STRING);
   EXPECT_EQ(val_pb.type().DebugString(), expected_type.DebugString());
-  EXPECT_EQ(val_pb.struct_().element(0).value().type().DebugString(),
-            expected_type.struct_().element(0).value().DebugString());
-  EXPECT_EQ(val_pb.struct_().element(1).value().type().DebugString(),
-            expected_type.struct_().element(1).value().DebugString());
+  EXPECT_EQ(val_pb.struct_().element(0).type().DebugString(),
+            expected_type.struct_().element(0).DebugString());
+  EXPECT_EQ(val_pb.struct_().element(1).type().DebugString(),
+            expected_type.struct_().element(1).DebugString());
 }
 
 TEST_F(InferenceTest, Selection) {
@@ -120,8 +116,8 @@ TEST_F(InferenceTest, Selection) {
   val_pb.mutable_selection()->set_index(1);
   v0::Struct* const s =
       val_pb.mutable_selection()->mutable_source()->mutable_struct_();
-  s->add_element()->mutable_value()->set_str("bark");
-  s->add_element()->mutable_value()->set_int_32(10);
+  s->add_element()->set_str("bark");
+  s->add_element()->set_int_32(10);
   absl::Status status = InferTypes(&val_pb);
   EXPECT_TRUE(status.ok());
   v0::Type expected_type;

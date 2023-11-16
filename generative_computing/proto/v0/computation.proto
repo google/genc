@@ -119,15 +119,20 @@ message Value {
     // simple scalars.
     // NOTE: This must be `Any` in order to avoid a dependency on TensorFlow.
     google.protobuf.Any tensor = 1;
-
-    // NEXT ID: 15
   }
 
   // The type of this value (currently optional; eventually required where it
   // cannot be automatically inferred from the context).
   Type type = 13;
 
+  // The label of the value, these labels are mostly for human readability and
+  // for debugging purposes, and are typically ignored by the runtime. One
+  // exception is prompt template processor, where labels can be used to define
+  // keyword arguments that could be reused in the template.
+  string label = 15;
+
   reserved 2;
+  // NEXT ID: 16
 }
 
 // A representation of a function call.
@@ -164,13 +169,6 @@ message Reference {
   string name = 1;
 }
 
-// A pair that consists of a value definition and a name, used in composite
-// constructs such as structs, `let` expressions, etc.
-message NamedValue {
-  string name = 1;
-  Value value = 2;
-}
-
 // A representation of a structured value; a tuple with a defined numner of
 // elements of abitrary types. Elements can be either materialized values, or
 // values represented as computations that must be evaluated (e.g., such as
@@ -179,7 +177,7 @@ message Struct {
   // The ordering of the elements is significant, regardless of whether they
   // are named or not, and must be preserved while processing to facilitate
   // selection by index (as defined below).
-  repeated NamedValue element = 2;
+  repeated Value element = 2;
   reserved 1;
 }
 
@@ -258,11 +256,7 @@ message FunctionType {
 
 // Represents a composite structure type (potentially nested).
 message StructType {
-  repeated Element element = 1;
-  message Element {
-    string name = 1;
-    Type value = 2;
-  }
+  repeated Type element = 1;
 }
 
 // Represents a type of a sequence (of an unknown number of identically-typed

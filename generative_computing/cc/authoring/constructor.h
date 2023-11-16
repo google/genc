@@ -86,12 +86,8 @@ absl::StatusOr<v0::Value> CreateLogger();
 // CreateBasicChain, this chain can contain break point as part of the chain.
 absl::StatusOr<v0::Value> CreateBreakableChain(std::vector<v0::Value> fns_list);
 
-// Creates a NamedValue.
-absl::StatusOr<v0::NamedValue> CreateNamedValue(std::string name,
-                                                v0::Value value);
-
 // Constructs a struct from named values
-absl::StatusOr<v0::Value> CreateStruct(std::vector<v0::NamedValue> value_list);
+absl::StatusOr<v0::Value> CreateStruct(std::vector<v0::Value> value_list);
 
 // Constructs a selection to pick the i-th element from a source.struct_.
 absl::StatusOr<v0::Value> CreateSelection(v0::Value source, int index);

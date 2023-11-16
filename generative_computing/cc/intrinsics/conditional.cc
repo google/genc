@@ -29,12 +29,9 @@ namespace intrinsics {
 
 absl::Status Conditional::CheckWellFormed(
     const v0::Intrinsic& intrinsic_pb) const {
-  if (intrinsic_pb.static_parameter().struct_().element_size() != 2) {
+  if (!intrinsic_pb.static_parameter().has_struct_() ||
+      intrinsic_pb.static_parameter().struct_().element_size() != 2) {
     return absl::InvalidArgumentError("Missing a pair of static parameters.");
-  }
-  if ((intrinsic_pb.static_parameter().struct_().element(0).name() != "then") ||
-      (intrinsic_pb.static_parameter().struct_().element(1).name() != "else")) {
-    return absl::InvalidArgumentError("Wrong static parameter names.");
   }
   return absl::OkStatus();
 }
@@ -52,9 +49,8 @@ Conditional::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
         absl::StrCat("Condition is not a Boolean: ", cond_pb.DebugString()));
   }
   return context->CreateValue(
-      cond_pb.boolean()
-          ? intrinsic_pb.static_parameter().struct_().element(0).value()
-          : intrinsic_pb.static_parameter().struct_().element(1).value());
+      cond_pb.boolean() ? intrinsic_pb.static_parameter().struct_().element(0)
+                        : intrinsic_pb.static_parameter().struct_().element(1));
 }
 
 }  // namespace intrinsics

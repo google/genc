@@ -25,7 +25,8 @@ namespace intrinsics {
 
 absl::Status BreakableChain::CheckWellFormed(
     const v0::Intrinsic& intrinsic_pb) const {
-  if ((intrinsic_pb.static_parameter().struct_().element_size() < 1)) {
+  if (!intrinsic_pb.static_parameter().has_struct_() ||
+      intrinsic_pb.static_parameter().struct_().element_size() < 1) {
     return absl::InvalidArgumentError(
         "Expect at least 1 function in chain, but got none.");
   }
@@ -40,7 +41,7 @@ BreakableChain::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
 
   ValueRef state = arg.value();
   for (const auto& fn : params) {
-    ValueRef fn_ref = GENC_TRY(context->CreateValue(fn.value()));
+    ValueRef fn_ref = GENC_TRY(context->CreateValue(fn));
     ValueRef next_state = GENC_TRY(context->CreateCall(fn_ref, state));
     v0::Value next_state_pb;
     GENC_TRY(context->Materialize(next_state, &next_state_pb));

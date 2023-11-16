@@ -64,8 +64,8 @@ absl::Status PromptTemplate::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
   } else {
     // Handle multivariate template.
     for (const auto& arg : arg.struct_().element()) {
-      replacements.emplace_back(absl::StrFormat("{%s}", arg.name()),
-                                arg.value().str());
+      replacements.emplace_back(absl::StrFormat("{%s}", arg.label()),
+                                arg.str());
     }
   }
 

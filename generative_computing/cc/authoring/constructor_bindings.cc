@@ -112,8 +112,6 @@ PYBIND11_MODULE(constructor_bindings, m) {
 
   m.def("create_fallback", &CreateFallback,
         "Constructs a computation a fallback chain.");
-
-  m.def("create_named_value", &CreateNamedValue, "Creates a NamedValue.");
 }
 
 }  // namespace

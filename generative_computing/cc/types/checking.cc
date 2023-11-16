@@ -38,8 +38,7 @@ absl::Status CheckStructEqual(v0::StructType x, v0::StructType y) {
                      " vs. ", y.element_size(), "."));
   }
   for (int i = 0; i < x.element_size(); ++i) {
-    absl::Status status =
-        CheckEqual(x.element(i).value(), y.element(i).value());
+    absl::Status status = CheckEqual(x.element(i), y.element(i));
     if (!status.ok()) {
       return absl::InvalidArgumentError(absl::StrCat(
           "Type mismatch at struct element ", i, ": ", status.message()));
@@ -51,13 +50,13 @@ absl::Status CheckStructEqual(v0::StructType x, v0::StructType y) {
 absl::Status CheckFunctionEqual(v0::FunctionType x, v0::FunctionType y) {
   absl::Status status = CheckEqual(x.parameter(), y.parameter());
   if (!status.ok()) {
-    return absl::InvalidArgumentError(absl::StrCat(
-        "Function parameter type mismatch: ", status.message()));
+    return absl::InvalidArgumentError(
+        absl::StrCat("Function parameter type mismatch: ", status.message()));
   }
   status = CheckEqual(x.result(), y.result());
   if (!status.ok()) {
-    return absl::InvalidArgumentError(absl::StrCat(
-        "Function result type mismatch: ", status.message()));
+    return absl::InvalidArgumentError(
+        absl::StrCat("Function result type mismatch: ", status.message()));
   }
   return absl::OkStatus();
 }
@@ -83,9 +82,9 @@ absl::Status CheckEqual(v0::Type x, v0::Type y) {
   }
   if (x.has_function()) {
     if (!y.has_function()) {
-      return absl::InvalidArgumentError(absl::StrCat(
-          "Function ", x.DebugString(),
-          " vs. non-function ", y.DebugString(), "."));
+      return absl::InvalidArgumentError(
+          absl::StrCat("Function ", x.DebugString(), " vs. non-function ",
+                       y.DebugString(), "."));
     }
     return CheckFunctionEqual(x.function(), y.function());
   }

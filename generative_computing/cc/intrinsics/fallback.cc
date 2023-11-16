@@ -28,7 +28,6 @@ namespace intrinsics {
 
 absl::Status Fallback::CheckWellFormed(
     const v0::Intrinsic& intrinsic_pb) const {
-  // TODO(b/305795076): check intrinsic_pb.struct_ contains only function types.
   return absl::OkStatus();
 }
 
@@ -37,10 +36,10 @@ Fallback::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
                       std::optional<ValueRef> arg, Context* context) const {
   absl::Status error_status =
       absl::UnavailableError("No candidate computations available.");
-  for (const v0::NamedValue& static_parameter_pb :
+  for (const v0::Value& fn_pb :
        intrinsic_pb.static_parameter().struct_().element()) {
     absl::StatusOr<ValueRef> result =
-        context->CreateValue(static_parameter_pb.value());
+        context->CreateValue(fn_pb);
     if (result.ok()) {
       result = context->CreateCall(result.value(), arg);
       if (result.ok()) {

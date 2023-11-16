@@ -40,12 +40,12 @@ class ConstructorsTest(absltest.TestCase):
     self.assertLen(comp_pb.intrinsic.static_parameter.struct.element, 2)
     for idx, model_name in enumerate(['a', 'b']):
       self.assertEqual(
-          comp_pb.intrinsic.static_parameter.struct.element[idx].name,
+          comp_pb.intrinsic.static_parameter.struct.element[idx].label,
           'candidate_fn',
       )
       self.assertEqual(
-          str(comp_pb.intrinsic.static_parameter.struct.element[idx].value),
-          str(constructors.create_model(model_name)),
+          comp_pb.intrinsic.static_parameter.struct.element[idx].intrinsic,
+          constructors.create_model(model_name).intrinsic,
       )
 
   def test_conditional(self):
@@ -63,16 +63,16 @@ class ConstructorsTest(absltest.TestCase):
     self.assertLen(conditional_pb.intrinsic.static_parameter.struct.element, 2)
     for idx, param_name, model_name in [(0, 'then', 'a'), (1, 'else', 'b')]:
       self.assertEqual(
-          conditional_pb.intrinsic.static_parameter.struct.element[idx].name,
+          conditional_pb.intrinsic.static_parameter.struct.element[idx].label,
           param_name,
       )
       self.assertEqual(
           str(
               conditional_pb.intrinsic.static_parameter.struct.element[
                   idx
-              ].value
+              ].intrinsic
           ),
-          str(constructors.create_model(model_name)),
+          str(constructors.create_model(model_name).intrinsic),
       )
 
   def test_repeat(self):
@@ -80,13 +80,14 @@ class ConstructorsTest(absltest.TestCase):
     comp_pb = constructors.create_repeat(num_steps=5, body_fn=model_call_pb)
 
     static_params = comp_pb.intrinsic.static_parameter.struct.element
-    self.assertEqual(static_params[0].value.int_32, 5)
-    self.assertEqual(static_params[1].value, model_call_pb)
+    self.assertEqual(static_params[0].int_32, 5)
+    self.assertEqual(static_params[1].intrinsic, model_call_pb.intrinsic)
 
   def test_create_struct(self):
-    model_pb = constructors.create_model('model_name')
-    e_0 = constructors.create_named_value('e_0', model_pb)
-    e_1 = constructors.create_named_value('e_1', model_pb)
+    e_0 = constructors.create_model('model_name')
+    e_0.label = 'e_0'
+    e_1 = constructors.create_model('model_name')
+    e_1.label = 'e_1'
     value_pb = constructors.create_struct([e_0, e_1])
 
     elements = value_pb.struct.element
@@ -95,9 +96,10 @@ class ConstructorsTest(absltest.TestCase):
     self.assertEqual(elements[1], e_1)
 
   def test_create_selection(self):
-    model_pb = constructors.create_model('model_name')
-    e_0 = constructors.create_named_value('e_0', model_pb)
-    e_1 = constructors.create_named_value('e_1', model_pb)
+    e_0 = constructors.create_model('model_name')
+    e_0.label = 'e_0'
+    e_1 = constructors.create_model('model_name')
+    e_1.label = 'e_1'
     struct_pb = constructors.create_struct([e_0, e_1])
 
     value_pb = constructors.create_selection(struct_pb, 1)
@@ -121,16 +123,16 @@ class ConstructorsTest(absltest.TestCase):
     self.assertLen(while_pb.intrinsic.static_parameter.struct.element, 2)
 
     for idx, param_name, fn in [
-        (0, 'condition_fn', str(test_condition_fn)),
-        (1, 'body_fn', str(test_body_fn)),
+        (0, 'condition_fn', test_condition_fn),
+        (1, 'body_fn', test_body_fn),
     ]:
       self.assertEqual(
-          while_pb.intrinsic.static_parameter.struct.element[idx].name,
+          while_pb.intrinsic.static_parameter.struct.element[idx].label,
           param_name,
       )
       self.assertEqual(
-          str(while_pb.intrinsic.static_parameter.struct.element[idx].value),
-          fn,
+          while_pb.intrinsic.static_parameter.struct.element[idx].intrinsic,
+          fn.intrinsic,
       )
 
 

@@ -46,13 +46,13 @@ absl::StatusOr<v0::Value> OpenAI::Call(const v0::Value& input) {
   std::string endpoint;
 
   // Unpack the keyword arguments.
-  for (const v0::NamedValue& arg : input.struct_().element()) {
-    if (arg.name() == "api_key") {
-      api_key = arg.value().str();
-    } else if (arg.name() == "endpoint") {
-      endpoint = arg.value().str();
-    } else if (arg.name() == "json_request") {
-      json_request = arg.value().str();
+  for (const v0::Value& arg : input.struct_().element()) {
+    if (arg.label() == "api_key") {
+      api_key = arg.str();
+    } else if (arg.label() == "endpoint") {
+      endpoint = arg.str();
+    } else if (arg.label() == "json_request") {
+      json_request = arg.str();
     }
   }
 
@@ -95,17 +95,17 @@ absl::StatusOr<v0::Value> OpenAI::CreateRequest(std::string api_key,
                                                 std::string json_request) {
   v0::Value request;
   v0::Struct* args = request.mutable_struct_();
-  v0::NamedValue* arg_api_key = args->add_element();
-  arg_api_key->set_name("api_key");
-  arg_api_key->mutable_value()->set_str(api_key);
+  v0::Value* arg_api_key = args->add_element();
+  arg_api_key->set_label("api_key");
+  arg_api_key->set_str(api_key);
 
-  v0::NamedValue* arg_endpoint = args->add_element();
-  arg_endpoint->set_name("endpoint");
-  arg_endpoint->mutable_value()->set_str(endpoint);
+  v0::Value* arg_endpoint = args->add_element();
+  arg_endpoint->set_label("endpoint");
+  arg_endpoint->set_str(endpoint);
 
-  v0::NamedValue* arg_json_request = args->add_element();
-  arg_json_request->set_name("json_request");
-  arg_json_request->mutable_value()->set_str(json_request);
+  v0::Value* arg_json_request = args->add_element();
+  arg_json_request->set_label("json_request");
+  arg_json_request->set_str(json_request);
   return request;
 }
 

@@ -22,10 +22,20 @@ limitations under the License
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 #include "generative_computing/cc/intrinsics/intrinsic_uris.h"
-#include "generative_computing/cc/runtime/status_macros.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 
 namespace generative_computing {
+
+namespace {
+
+v0::Value CreateLabeledValue(std::string label, const v0::Value& value) {
+  v0::Value labeled_value;
+  labeled_value = value;
+  labeled_value.set_label(label);
+  return labeled_value;
+}
+
+}  // namespace
 
 absl::StatusOr<v0::Value> CreateRepeat(int num_steps, v0::Value body_fn) {
   v0::Value repeat_pb;
@@ -33,12 +43,10 @@ absl::StatusOr<v0::Value> CreateRepeat(int num_steps, v0::Value body_fn) {
   intrinsic_pb->set_uri(std::string(intrinsics::kRepeat));
   v0::Struct* args =
       intrinsic_pb->mutable_static_parameter()->mutable_struct_();
-  v0::NamedValue* step_pb = args->add_element();
-  step_pb->set_name("num_steps");
-  step_pb->mutable_value()->set_int_32(num_steps);
-  v0::NamedValue* body_pb = args->add_element();
-  body_pb->set_name("body_fn");
-  *body_pb->mutable_value() = body_fn;
+  v0::Value* step_pb = args->add_element();
+  step_pb->set_label("num_steps");
+  step_pb->set_int_32(num_steps);
+  *args->add_element() = CreateLabeledValue("body_fn", body_fn);
   return repeat_pb;
 }
 
@@ -117,21 +125,9 @@ absl::StatusOr<v0::Value> CreateWhile(v0::Value condition_fn,
   intrinsic_pb->set_uri(std::string(intrinsics::kWhile));
   v0::Struct* args =
       intrinsic_pb->mutable_static_parameter()->mutable_struct_();
-  v0::NamedValue* condition_pb = args->add_element();
-  condition_pb->set_name("condition_fn");
-  *condition_pb->mutable_value() = condition_fn;
-  v0::NamedValue* body_pb = args->add_element();
-  body_pb->set_name("body_fn");
-  *body_pb->mutable_value() = body_fn;
+  *args->add_element() = CreateLabeledValue("condition_fn", condition_fn);
+  *args->add_element() = CreateLabeledValue("body_fn", body_fn);
   return while_pb;
-}
-
-absl::StatusOr<v0::NamedValue> CreateNamedValue(std::string name,
-                                                v0::Value value) {
-  v0::NamedValue named_value;
-  named_value.set_name(name);
-  *named_value.mutable_value() = value;
-  return named_value;
 }
 
 absl::StatusOr<v0::Value> CreateLoopChainCombo(
@@ -141,13 +137,13 @@ absl::StatusOr<v0::Value> CreateLoopChainCombo(
   intrinsic_pb->set_uri(std::string(intrinsics::kLoopChainCombo));
   v0::Struct* args =
       intrinsic_pb->mutable_static_parameter()->mutable_struct_();
-  v0::NamedValue* steps_pb = args->add_element();
-  steps_pb->set_name("num_steps");
-  steps_pb->mutable_value()->set_int_32(num_steps);
+  v0::Value* steps_pb = args->add_element();
+  steps_pb->set_label("num_steps");
+  steps_pb->set_int_32(num_steps);
 
   for (int i = 0; i < body_fns.size(); i++) {
     *args->add_element() =
-        GENC_TRY(CreateNamedValue(absl::StrFormat("fn_%d", i), body_fns[i]));
+        CreateLabeledValue(absl::StrFormat("fn_%d", i), body_fns[i]);
   }
   return combo_pb;
 }
@@ -161,7 +157,7 @@ absl::StatusOr<v0::Value> CreateBreakableChain(
       intrinsic_pb->mutable_static_parameter()->mutable_struct_();
   for (int i = 0; i < fns_list.size(); i++) {
     *args->add_element() =
-        GENC_TRY(CreateNamedValue(absl::StrFormat("fn_%d", i), fns_list[i]));
+        CreateLabeledValue(absl::StrFormat("fn_%d", i), fns_list[i]);
   }
   return chain_pb;
 }
@@ -174,8 +170,8 @@ absl::StatusOr<v0::Value> CreateBasicChain(
   v0::Struct* args =
       intrinsic_pb->mutable_static_parameter()->mutable_struct_();
   for (int i = 0; i < function_list.size(); i++) {
-    *args->add_element() = GENC_TRY(
-        CreateNamedValue(absl::StrFormat("fn_%d", i), function_list[i]));
+    *args->add_element() =
+        CreateLabeledValue(absl::StrFormat("fn_%d", i), function_list[i]);
   }
   return chain_pb;
 }
@@ -195,11 +191,11 @@ absl::StatusOr<v0::Value> CreateLogger() {
   return logger_pb;
 }
 
-absl::StatusOr<v0::Value> CreateStruct(std::vector<v0::NamedValue> value_list) {
+absl::StatusOr<v0::Value> CreateStruct(std::vector<v0::Value> value_list) {
   v0::Value value_pb;
   auto mutable_element = value_pb.mutable_struct_()->mutable_element();
-  for (const auto& named_value : value_list) {
-    *mutable_element->Add() = named_value;
+  for (const auto& value : value_list) {
+    *mutable_element->Add() = value;
   }
   return value_pb;
 }
@@ -219,7 +215,7 @@ absl::StatusOr<v0::Value> CreateFallback(std::vector<v0::Value> function_list) {
   v0::Struct* args =
       intrinsic_pb->mutable_static_parameter()->mutable_struct_();
   for (const auto& fn_pb : function_list) {
-    *args->add_element() = GENC_TRY(CreateNamedValue("candidate_fn", fn_pb));
+    *args->add_element() = CreateLabeledValue("candidate_fn", fn_pb);
   }
   return fallback_pb;
 }
@@ -232,8 +228,8 @@ absl::StatusOr<v0::Value> CreateConditional(v0::Value condition,
   intrinsic_pb->set_uri(std::string(intrinsics::kConditional));
   v0::Struct* args =
       intrinsic_pb->mutable_static_parameter()->mutable_struct_();
-  *args->add_element() = GENC_TRY(CreateNamedValue("then", positive_branch));
-  *args->add_element() = GENC_TRY(CreateNamedValue("else", negative_branch));
+  *args->add_element() = CreateLabeledValue("then", positive_branch);
+  *args->add_element() = CreateLabeledValue("else", negative_branch);
   return CreateCall(conditional_pb, condition);
 }
 

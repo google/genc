@@ -208,7 +208,11 @@ message Block {
   // to one-another can be nondeterministic. It is only the dependencies between
   // the elements that effectively determine the causal relationships that
   // constrain the order of execution.
-  Struct local = 1;
+  repeated Local local = 1;
+  message Local {
+    string name = 1;
+    Value value = 2;
+  }
 
   // The result returned by the block (required). The body of the result may
   // contain references to any of the elements in the `local` defined above.

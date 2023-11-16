@@ -410,8 +410,8 @@ ControlFlowExecutor::ConstCreateStruct(
 }
 
 absl::StatusOr<std::shared_ptr<ExecutorValue>>
-ControlFlowExecutor::ConstCreateSelection(
-    std::shared_ptr<ExecutorValue> value, uint32_t index) const {
+ControlFlowExecutor::ConstCreateSelection(std::shared_ptr<ExecutorValue> value,
+                                          uint32_t index) const {
   return CreateSelectionInternal(std::move(value), index);
 }
 
@@ -545,17 +545,16 @@ ControlFlowExecutor::EvaluateBlock(const v0::Block& block_pb,
                                    const std::shared_ptr<Scope>& scope) const {
   std::shared_ptr<Scope> current_scope = scope;
   auto local_pb_formatter = [](std::string* out,
-                               const v0::NamedValue& local_pb) {
+                               const v0::Block::Local& local_pb) {
     out->append(local_pb.name());
   };
-  for (int i = 0; i < block_pb.local().element_size(); ++i) {
-    const v0::NamedValue& local_pb = block_pb.local().element(i);
+  for (int i = 0; i < block_pb.local_size(); ++i) {
+    const v0::Block::Local& local_pb = block_pb.local(i);
     std::shared_ptr<ExecutorValue> value = GENC_TRY(
         Evaluate(local_pb.value(), current_scope),
         absl::StrCat(
             "while evaluating local [", local_pb.name(), "] in block locals [",
-            absl::StrJoin(block_pb.local().element(), ",", local_pb_formatter),
-            "]"));
+            absl::StrJoin(block_pb.local(), ",", local_pb_formatter), "]"));
     current_scope = std::make_shared<Scope>(
         std::make_tuple(local_pb.name(), std::move(value)),
         std::move(current_scope));

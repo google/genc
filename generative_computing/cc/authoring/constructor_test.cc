@@ -89,23 +89,5 @@ TEST(CreateWhileTest, ReturnsCorrectWhileProto) {
   EXPECT_EQ(kwargs.at("body_fn").intrinsic().uri(), "model_inference");
 }
 
-TEST(SmartChainTest, BuildsLoopChainComboViaPipe) {
-  v0::Value append_foo_fn = CreateModelInference("append_foo").value();
-  v0::Value append_bar_fn = CreateModelInference("append_bar").value();
-  v0::Value if_finish_then_break_fn = CreateRegexPartialMatch("FINISH").value();
-  v0::Value count_to_3_append_finish_fn =
-      CreateModelInference("append_finish_when_counts_reaches_3").value();
-  v0::Value expected_computation =
-      CreateLoopChainCombo(100, {append_foo_fn, if_finish_then_break_fn,
-                                 append_bar_fn, count_to_3_append_finish_fn})
-          .value();
-
-  SmartChain smart_chain = SmartChain() | append_foo_fn |
-                           if_finish_then_break_fn | append_bar_fn |
-                           count_to_3_append_finish_fn | 100;
-  v0::Value computation = smart_chain.Build().value();
-  EXPECT_EQ(computation.DebugString(), expected_computation.DebugString());
-}
-
 }  // namespace
 }  // namespace generative_computing

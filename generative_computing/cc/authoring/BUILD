@@ -19,6 +19,17 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "smart_chain",
+    srcs = ["smart_chain.cc"],
+    hdrs = ["smart_chain.h"],
+    deps = [
+        ":constructor",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status:statusor",
+    ],
+)
+
 cc_test(
     name = "constructor_test",
     srcs = ["constructor_test.cc"],
@@ -26,6 +37,18 @@ cc_test(
         ":constructor",
         "//generative_computing/proto/v0:computation_cc_proto",
         "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "smart_chain_test",
+    srcs = ["smart_chain_test.cc"],
+    deps = [
+        ":constructor",
+        ":smart_chain",
+        "//generative_computing/proto/v0:computation_cc_proto",
         "@com_google_absl//absl/status:statusor",
         "@com_google_googletest//:gtest_main",
     ],

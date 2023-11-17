@@ -37,14 +37,6 @@ v0::Value CreateLabeledValue(std::string label, const v0::Value& value) {
 
 }  // namespace
 
-absl::StatusOr<v0::Value> SmartChain::Build() {
-  // Enable BreakableChain.
-  if (num_iteration_ > 1) {
-    return CreateLoopChainCombo(num_iteration_, chained_ops_);
-  }
-  return CreateBasicChain(chained_ops_);
-}
-
 absl::StatusOr<v0::Value> CreateRepeat(int num_steps, v0::Value body_fn) {
   v0::Value repeat_pb;
   v0::Intrinsic* const intrinsic_pb = repeat_pb.mutable_intrinsic();

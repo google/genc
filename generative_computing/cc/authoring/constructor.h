@@ -24,52 +24,6 @@ limitations under the License
 
 namespace generative_computing {
 
-// Used to build chains with loops and breakpoints. Will always choose the
-// simpler and more efficient chain type based on chained computations.
-
-// Behavior:
-// 1. Within a single iteration chain execution, output of previous op is inputs
-// for next op.
-// 2. If number of iteration is set, the entire chain executed N times. Between
-// iterations, output of previous iteration is input to next iteration.
-// 3. If break conditions are set and met, execution will stop and return last
-// state before the break.
-// TODO(b/311432164): move into it's own file for clear layering.
-class SmartChain {
- public:
-  explicit SmartChain(int num_iteration = 0) : num_iteration_(num_iteration) {}
-
-  // Enable Pipe operator op1 | op2 | op3 ...
-  SmartChain& operator|(const v0::Value& op) {
-    chained_ops_.push_back(op);
-    return *this;
-  }
-
-  SmartChain& operator|(const absl::StatusOr<v0::Value>& op) {
-    chained_ops_.push_back(op.value());
-    return *this;
-  }
-
-  SmartChain& operator|(SmartChain& other_chain) {
-    chained_ops_.push_back(other_chain.Build().value());
-    return *this;
-  }
-
-  // Sets number of iterations
-  SmartChain& operator|(int num_iteration) {
-    SetNumIteration(num_iteration);
-    return *this;
-  }
-
-  absl::StatusOr<v0::Value> Build();
-
-  void SetNumIteration(int i) { num_iteration_ = i; }
-
- private:
-  int num_iteration_;
-  std::vector<v0::Value> chained_ops_;
-};
-
 // Given arg_name & computation body create a Lambda that applies a computation
 // to the provided argument.
 absl::StatusOr<v0::Value> CreateLambda(absl::string_view arg_name,

@@ -453,4 +453,33 @@ TEST_F(ControlFlowExecutorTest, CreateSelectionInIntrinsicHandler) {
   EXPECT_EQ(result.DebugString(), x.struct_().element(0).DebugString());
 }
 
+TEST_F(ControlFlowExecutorTest, CanProcessStruct) {
+  std::shared_ptr<Executor> executor = CreateTestControlFlowExecutor().value();
+
+  v0::Value template_pb =
+      CreatePromptTemplate(
+          "Q: What should I {do} for a trip to {location}? Also find me the "
+          "cheapest transportation to {location}. A: ")
+          .value();
+
+  Runner runner = Runner::Create(executor).value();
+
+  v0::Value arg_pb;
+  // Variables in template can functions like keyword argument, therefore order
+  // doesn't matter.
+  v0::Value* location_arg_pb =
+      arg_pb.mutable_struct_()->mutable_element()->Add();
+  location_arg_pb->set_label("location");
+  location_arg_pb->set_str("Tokyo");
+
+  v0::Value* do_arg_pb = arg_pb.mutable_struct_()->mutable_element()->Add();
+  do_arg_pb->set_label("do");
+  do_arg_pb->set_str("pack");
+
+  v0::Value result = runner.Run(template_pb, arg_pb).value();
+  EXPECT_EQ(result.str(),
+            "Q: What should I pack for a trip to Tokyo? Also find me the "
+            "cheapest transportation to Tokyo. A: ");
+}
+
 }  // namespace generative_computing

@@ -102,6 +102,10 @@ def create_computation_from_custom_chain(chain):
       comp = create_computation(comp)
     computation_list.append(comp)
 
+  if chain.num_iteration > 1:
+    return authoring.create_loop_chain_combo(
+        chain.num_iteration, computation_list
+    )
   return authoring.create_basic_chain(computation_list)
 
 

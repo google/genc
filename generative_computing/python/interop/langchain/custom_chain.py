@@ -13,12 +13,16 @@
 # limitations under the License.
 """A class that represents an arbitrary custom chain for use with LangChain APIs."""
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, TypeAlias, Union
 
 from langchain import chains
 from langchain.callbacks import manager
 
 from generative_computing.proto.v0 import computation_pb2 as pb
+
+ChainedOpType: TypeAlias = Union[
+    int, pb.Value, chains.base.Chain, chains.LLMChain, Any
+]
 
 
 class CustomChain(chains.base.Chain):
@@ -27,14 +31,14 @@ class CustomChain(chains.base.Chain):
   # Enables mix-n-match to extend the versatility of chain.
   # 1. chains can be nested, this generalizes the chain definition
   # 2. different types of chains can be mixed, GenC will make them compatible.
-  chained_ops: List[
-      Union[pb.Value, chains.base.Chain, chains.LLMChain, Any]
-  ] = []
+  chained_ops: List[ChainedOpType] = []
+  num_iteration: int = 0
 
-  def __or__(
-      self, op: Union[pb.Value, chains.base.Chain, chains.LLMChain, Any]
-  ):
-    self.chained_ops.append(op)
+  def __or__(self, op: ChainedOpType):
+    if isinstance(op, int):
+      self.num_iteration = op
+    else:
+      self.chained_ops.append(op)
     return self
 
   @property

@@ -15,6 +15,9 @@ py_library(
         "//generative_computing/cc/intrinsics:intrinsic_bindings.so",
         "//generative_computing/cc/runtime:executor_bindings.so",
     ],
+    visibility = [
+        "//generative_computing/python:python_packages",
+    ],
     deps = ["//generative_computing/proto/v0:computation_py_pb2"],
 )
 

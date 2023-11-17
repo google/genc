@@ -14,6 +14,7 @@
 """Utility function for creating `Computation` protos from LangChain objects."""
 
 import langchain
+from langchain import agents
 from generative_computing.python import authoring
 from generative_computing.python.interop.langchain import custom_chain
 from generative_computing.python.interop.langchain import custom_model
@@ -83,6 +84,61 @@ def create_computation_from_chain(chain):
   return comp
 
 
+def create_computation_from_agent(agent):
+  """Creates a `Computation` proto instance from a LangChain agent.
+
+  Args:
+    agent: An instance of `Agent`.
+
+  Returns:
+    A corresponding instance of `pb.Value`.
+  """
+  model_call = create_computation_from_llm(agent.llm_chain.llm)
+
+  print_result = authoring.constructors.create_logger()
+  stop_when_finish = authoring.constructors.create_regex_partial_match("Finish")
+  parse_thought_action = authoring.constructors.create_custom_function(
+      "/react/parse_thought_action"
+  )
+  format_observation = authoring.constructors.create_custom_function(
+      "/react/format_observation"
+  )
+
+  read_context = authoring.constructors.create_custom_function(
+      "/local_cache/read"
+  )
+  add_to_context = authoring.constructors.create_custom_function(
+      "/local_cache/write"
+  )
+
+  tool_computation = create_computation_from_custom_chain(
+      agent.tools_list[0].computation
+  )
+  react_loop = authoring.constructors.create_loop_chain_combo(
+      agent.max_iterations,
+      [
+          read_context,
+          model_call,
+          parse_thought_action,
+          print_result,
+          stop_when_finish,
+          add_to_context,
+          tool_computation,
+          format_observation,
+          print_result,
+          add_to_context,
+      ],
+  )
+
+  instruction_template = authoring.constructors.create_prompt_template(
+      agent.llm_chain.prompt.template
+  )
+  reagent_chain = authoring.constructors.create_basic_chain(
+      [instruction_template, add_to_context, print_result, react_loop]
+  )
+  return reagent_chain
+
+
 def create_computation_from_custom_chain(chain):
   """Creates a `Computation` proto instance from a LangChain CustomChain.
 
@@ -127,6 +183,8 @@ def create_computation(langchain_object):
     return create_computation_from_prompt_template(langchain_object)
   if isinstance(langchain_object, langchain.chains.llm.LLMChain):
     return create_computation_from_chain(langchain_object)
+  if isinstance(langchain_object, agents.agent.Agent):
+    return create_computation_from_agent(langchain_object)
   if isinstance(langchain_object, langchain.chains.base.Chain):
     return create_computation_from_custom_chain(langchain_object)
   raise TypeError(

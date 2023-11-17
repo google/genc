@@ -14,6 +14,8 @@
 """Interop libraries for LangChain."""
 
 from generative_computing.python.interop.langchain.create_computation import create_computation
+from generative_computing.python.interop.langchain.custom_agent import CustomAgent
 from generative_computing.python.interop.langchain.custom_chain import CustomChain
 from generative_computing.python.interop.langchain.custom_model import CustomModel
+from generative_computing.python.interop.langchain.custom_tool import CustomTool
 from generative_computing.python.interop.langchain.model_cascade import ModelCascade

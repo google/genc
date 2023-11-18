@@ -19,8 +19,8 @@ limitations under the License
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "absl/strings/str_cat.h"
 #include "generative_computing/cc/runtime/intrinsic_handler.h"
+#include "generative_computing/cc/runtime/status_macros.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 
 namespace generative_computing {
@@ -34,27 +34,19 @@ absl::Status Fallback::CheckWellFormed(
 absl::StatusOr<ControlFlowIntrinsicHandlerInterface::ValueRef>
 Fallback::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
                       std::optional<ValueRef> arg, Context* context) const {
-  absl::Status error_status =
+  absl::Status exe_status =
       absl::UnavailableError("No candidate computations available.");
   for (const v0::Value& fn_pb :
        intrinsic_pb.static_parameter().struct_().element()) {
-    absl::StatusOr<ValueRef> result =
-        context->CreateValue(fn_pb);
-    if (result.ok()) {
-      result = context->CreateCall(result.value(), arg);
-      if (result.ok()) {
-        error_status = context->Materialize(result.value(), nullptr);
-        if (error_status.ok()) {
-          return result;
-        }
-      } else {
-        error_status = result.status();
-      }
-    } else {
-      error_status = result.status();
+    ValueRef result = GENC_TRY(context->CreateValue(fn_pb));
+    result = GENC_TRY(context->CreateCall(result, arg));
+    v0::Value result_pb;
+    exe_status = context->Materialize(result, &result_pb);
+    if (exe_status.ok()) {
+      return context->CreateValue(result_pb);
     }
   }
-  return error_status;
+  return exe_status;
 }
 
 }  // namespace intrinsics

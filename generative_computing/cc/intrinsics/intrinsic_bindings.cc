@@ -52,8 +52,9 @@ PYBIND11_MODULE(intrinsic_bindings, m) {
   auto intrinsics = m.def_submodule("intrinsics");
   intrinsics.attr("BREAKABLE_CHAIN") = py::str(intrinsics::kBreakableChain);
   intrinsics.attr("CONDITIONAL") = py::str(intrinsics::kConditional);
+  intrinsics.attr("SERIAL_CHAIN") = py::str(intrinsics::kSerialChain);
   intrinsics.attr("FALLBACK") = py::str(intrinsics::kFallback);
-  intrinsics.attr("LOOP_CHAIN_COMBO") =
+  intrinsics.attr("RPEATED_CONDITIONAL_CHAIN") =
       py::str(intrinsics::kRepeatedConditionalChain);
   intrinsics.attr("LOGGER") = py::str(intrinsics::kLogger);
   intrinsics.attr("CUSTOM_FUNCTION") = py::str(intrinsics::kCustomFunction);

@@ -129,7 +129,7 @@ TEST_F(ControlFlowExecutorTest, TestChaining) {
       std::vector<v0::Value>({CreateCustomFunction("fn_1").value(),
                               CreateCustomFunction("fn_2").value()});
   // Parameterize your chain.
-  v0::Value parameterized_chain = CreateBasicChain(fn_chain).value();
+  v0::Value parameterized_chain = CreateSerialChain(fn_chain).value();
 
   // 3. Run it.
   // These runtimes can be loaded behind server, mobile, and runs arbitrary
@@ -146,7 +146,7 @@ TEST_F(ControlFlowExecutorTest, TestChaining) {
 TEST_F(ControlFlowExecutorTest, WhileLoopExecutionTest) {
   // Create a test condition_fn that pumps the while loop.
   v0::Value test_condition_fn =
-      CreateBasicChain({CreateRegexPartialMatch("Action: Finish").value(),
+      CreateSerialChain({CreateRegexPartialMatch("Action: Finish").value(),
                         CreateLogicalNot().value()})
           .value();
 

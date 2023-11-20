@@ -18,15 +18,15 @@ limitations under the License
 #include "generative_computing/cc/runtime/intrinsic_handler.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 
-#ifndef GENERATIVE_COMPUTING_CC_INTRINSICS_BASIC_CHAIN_H_
-#define GENERATIVE_COMPUTING_CC_INTRINSICS_BASIC_CHAIN_H_
+#ifndef GENERATIVE_COMPUTING_CC_INTRINSICS_SERIAL_CHAIN_H_
+#define GENERATIVE_COMPUTING_CC_INTRINSICS_SERIAL_CHAIN_H_
 
 namespace generative_computing {
 namespace intrinsics {
-class BasicChain : public ControlFlowIntrinsicHandlerBase {
+class SerialChain : public ControlFlowIntrinsicHandlerBase {
  public:
-  BasicChain() : ControlFlowIntrinsicHandlerBase(kBasicChain) {}
-  virtual ~BasicChain() {}
+  SerialChain() : ControlFlowIntrinsicHandlerBase(kSerialChain) {}
+  virtual ~SerialChain() {}
   absl::Status CheckWellFormed(const v0::Intrinsic& intrinsic_pb) const final;
   absl::StatusOr<ValueRef> ExecuteCall(const v0::Intrinsic& intrinsic_pb,
                                        std::optional<ValueRef> arg,
@@ -35,4 +35,4 @@ class BasicChain : public ControlFlowIntrinsicHandlerBase {
 }  // namespace intrinsics
 }  // namespace generative_computing
 
-#endif  // GENERATIVE_COMPUTING_CC_INTRINSICS_BASIC_CHAIN_H_
+#endif  // GENERATIVE_COMPUTING_CC_INTRINSICS_SERIAL_CHAIN_H_

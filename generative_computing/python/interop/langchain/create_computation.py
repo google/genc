@@ -78,7 +78,7 @@ def create_computation_from_chain(chain):
   """
   comp = create_computation_from_llm(chain.llm)
   if chain.prompt:
-    comp = authoring.create_basic_chain(
+    comp = authoring.create_serial_chain(
         [create_computation_from_prompt_template(chain.prompt), comp]
     )
   return comp
@@ -133,7 +133,7 @@ def create_computation_from_agent(agent):
   instruction_template = authoring.constructors.create_prompt_template(
       agent.llm_chain.prompt.template
   )
-  reagent_chain = authoring.constructors.create_basic_chain(
+  reagent_chain = authoring.constructors.create_serial_chain(
       [instruction_template, add_to_context, print_result, react_loop]
   )
   return reagent_chain
@@ -162,7 +162,7 @@ def create_computation_from_custom_chain(chain):
     return authoring.create_repeated_conditional_chain(
         chain.num_iteration, computation_list
     )
-  return authoring.create_basic_chain(computation_list)
+  return authoring.create_serial_chain(computation_list)
 
 
 def create_computation(langchain_object):

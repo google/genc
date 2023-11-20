@@ -30,7 +30,7 @@ absl::StatusOr<v0::Value> SmartChain::Build() {
     resulting_chain =
         GENC_TRY(CreateRepeatedConditionalChain(num_iteration_, chained_ops_));
   } else {
-    resulting_chain = GENC_TRY(CreateBasicChain(chained_ops_));
+    resulting_chain = GENC_TRY(CreateSerialChain(chained_ops_));
   }
 
   if (is_parallel_) {

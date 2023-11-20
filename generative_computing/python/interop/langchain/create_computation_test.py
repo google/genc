@@ -57,7 +57,7 @@ class CreateComputationTest(absltest.TestCase):
         ),
     )
     comp = create_computation.create_computation(my_chain)
-    expected_comp = authoring.create_basic_chain([
+    expected_comp = authoring.create_serial_chain([
         authoring.create_prompt_template(
             "Q: What should I pack for a trip to {location}? A: ",
         ),
@@ -77,7 +77,7 @@ class CreateComputationTest(absltest.TestCase):
     my_chain = custom_chain.CustomChain() | lc_llm_chain | genc_llm2 | 4
     langchain_computation = create_computation.create_computation(my_chain)
 
-    expected_sub_chain = authoring.create_basic_chain([
+    expected_sub_chain = authoring.create_serial_chain([
         authoring.create_prompt_template(
             "Q: What should I pack for a trip to {location}? A: ",
         ),

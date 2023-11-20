@@ -13,7 +13,6 @@
 # limitations under the License.
 """Python wrappers for authoring computations."""
 
-from generative_computing.python.authoring.constructors import create_basic_chain
 from generative_computing.python.authoring.constructors import create_breakable_chain
 from generative_computing.python.authoring.constructors import create_call
 from generative_computing.python.authoring.constructors import create_conditional
@@ -31,5 +30,6 @@ from generative_computing.python.authoring.constructors import create_regex_part
 from generative_computing.python.authoring.constructors import create_repeat
 from generative_computing.python.authoring.constructors import create_repeated_conditional_chain
 from generative_computing.python.authoring.constructors import create_selection
+from generative_computing.python.authoring.constructors import create_serial_chain
 from generative_computing.python.authoring.constructors import create_struct
 from generative_computing.python.authoring.constructors import create_while

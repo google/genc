@@ -39,7 +39,7 @@ class RunnerTest(absltest.TestCase):
     )
 
   def test_chain(self):
-    comp_pb = authoring.create_basic_chain([
+    comp_pb = authoring.create_serial_chain([
         authoring.create_prompt_template(
             'Q: What should I pack for a trip to {location}? A: '
         ),
@@ -60,7 +60,7 @@ class RunnerTest(absltest.TestCase):
         'This is an output from a test model in response to "{}".'.format(arg)
     )
     bad_model = authoring.create_model('ftp://nonexistent.model:000000')
-    good_chain = authoring.create_basic_chain([
+    good_chain = authoring.create_serial_chain([
         authoring.create_prompt_template('Q: Tell me about {topic}. A: '),
         authoring.create_model('test_model'),
     ])
@@ -150,7 +150,7 @@ class RunnerTest(absltest.TestCase):
 
   def test_partial_match_with_conditional(self):
     arg = authoring.create_reference('x')
-    scorer_chain = authoring.create_basic_chain([
+    scorer_chain = authoring.create_serial_chain([
         authoring.create_prompt_template(
             'Q: Is following sentence political or sensitive? Who is going'
             ' to be the next president? A: {answer}'

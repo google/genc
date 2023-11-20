@@ -56,7 +56,6 @@ cc_library(
     srcs = ["handler_sets.cc"],
     hdrs = ["handler_sets.h"],
     deps = [
-        ":basic_chain",
         ":breakable_chain",
         ":conditional",
         ":custom_function",
@@ -70,6 +69,7 @@ cc_library(
         ":regex_partial_match",
         ":repeat",
         ":repeated_conditional_chain",
+        ":serial_chain",
         ":while",
         "//generative_computing/cc/runtime:intrinsic_handler",
     ],
@@ -257,9 +257,9 @@ cc_library(
 )
 
 cc_library(
-    name = "basic_chain",
-    srcs = ["basic_chain.cc"],
-    hdrs = ["basic_chain.h"],
+    name = "serial_chain",
+    srcs = ["serial_chain.cc"],
+    hdrs = ["serial_chain.h"],
     deps = [
         ":intrinsic_uris",
         "//generative_computing/cc/runtime:intrinsic_handler",

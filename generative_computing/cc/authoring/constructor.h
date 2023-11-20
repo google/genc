@@ -76,7 +76,7 @@ absl::StatusOr<v0::Value> CreateRepeatedConditionalChain(
     int num_steps, std::vector<v0::Value> body_fns);
 
 // Given a list of functions [f, g, ...] create a chain g(f(...)).
-absl::StatusOr<v0::Value> CreateBasicChain(
+absl::StatusOr<v0::Value> CreateSerialChain(
     std::vector<v0::Value> function_list);
 
 // Creates a Logger, it takes an input logs it and returns the original input.

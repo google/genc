@@ -162,11 +162,11 @@ absl::StatusOr<v0::Value> CreateBreakableChain(
   return chain_pb;
 }
 
-absl::StatusOr<v0::Value> CreateBasicChain(
+absl::StatusOr<v0::Value> CreateSerialChain(
     std::vector<v0::Value> function_list) {
   v0::Value chain_pb;
   v0::Intrinsic* const intrinsic_pb = chain_pb.mutable_intrinsic();
-  intrinsic_pb->set_uri(std::string(intrinsics::kBasicChain));
+  intrinsic_pb->set_uri(std::string(intrinsics::kSerialChain));
   v0::Struct* args =
       intrinsic_pb->mutable_static_parameter()->mutable_struct_();
   for (int i = 0; i < function_list.size(); i++) {

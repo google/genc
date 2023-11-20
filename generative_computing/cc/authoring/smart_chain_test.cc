@@ -55,7 +55,7 @@ TEST(SmartChainTest, BuildsParallelChain) {
   v0::Value computation = smart_chain.Build().value();
 
   v0::Value serial_chain =
-      CreateBasicChain({append_foo_fn, append_bar_fn}).value();
+      CreateSerialChain({append_foo_fn, append_bar_fn}).value();
   v0::Value expected_computation = CreateParallelMap(serial_chain).value();
 
   EXPECT_EQ(computation.DebugString(), expected_computation.DebugString());

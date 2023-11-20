@@ -10,7 +10,7 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include "generative_computing/cc/intrinsics/basic_chain.h"
+#include "generative_computing/cc/intrinsics/serial_chain.h"
 
 #include <optional>
 
@@ -23,7 +23,7 @@ limitations under the License
 namespace generative_computing {
 namespace intrinsics {
 
-absl::Status BasicChain::CheckWellFormed(
+absl::Status SerialChain::CheckWellFormed(
     const v0::Intrinsic& intrinsic_pb) const {
   if (!intrinsic_pb.static_parameter().has_struct_() ||
       intrinsic_pb.static_parameter().struct_().element_size() < 1) {
@@ -34,7 +34,7 @@ absl::Status BasicChain::CheckWellFormed(
 }
 
 absl::StatusOr<ControlFlowIntrinsicHandlerInterface::ValueRef>
-BasicChain::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
+SerialChain::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
                         std::optional<ValueRef> arg, Context* context) const {
   auto params = intrinsic_pb.static_parameter().struct_().element();
 

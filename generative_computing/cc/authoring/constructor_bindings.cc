@@ -71,7 +71,7 @@ PYBIND11_MODULE(constructor_bindings, m) {
 
   m.def("create_call", &CreateCall, "Constructs a function call.");
 
-  m.def("create_basic_chain", &CreateBasicChain,
+  m.def("create_serial_chain", &CreateSerialChain,
         "Given a list of functions [f, g, ...] create a chain g(f(...)).");
 
   m.def("create_while", &CreateWhile,

@@ -112,11 +112,11 @@ inline constexpr absl::string_view kRepeatedConditionalChain =
 //  Chain by nature are compositional, one chain can contain other chains,
 inline constexpr absl::string_view kBreakableChain = "breakable_chain";
 
-// Represents a custom chain, a chain of fns, h, g, f... will be executed
+// Represents a serial chain, a chain of fns, h, g, f... will be executed
 // sequentially. h(g(f(x))).
 // Compared to BreakableChain, this chain doesn't break, it simply executes
 // functions one by one.
-inline constexpr absl::string_view kBasicChain = "basic_chain";
+inline constexpr absl::string_view kSerialChain = "serial_chain";
 
 // Represents a logger, prints the value and returns the original value.
 inline constexpr absl::string_view kLogger = "logger";

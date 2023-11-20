@@ -193,16 +193,16 @@ def create_while(condition_fn, body_fn):
   return constructor_bindings.create_while(condition_fn, body_fn)
 
 
-def create_basic_chain(function_list):
-  """Constructs a basic chain expression.
+def create_serial_chain(function_list):
+  """Constructs a serial chain expression.
 
   Args:
     function_list: A list of functions.
 
   Returns:
-    A computation that represents the basic chain expression.
+    A computation that represents the serial chain expression.
   """
-  return constructor_bindings.create_basic_chain(function_list)
+  return constructor_bindings.create_serial_chain(function_list)
 
 
 def create_breakable_chain(function_list):

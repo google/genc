@@ -16,6 +16,8 @@ limitations under the License
 #ifndef GENERATIVE_COMPUTING_CC_AUTHORING_SMART_CHAIN_H_
 #define GENERATIVE_COMPUTING_CC_AUTHORING_SMART_CHAIN_H_
 
+#include <stdbool.h>
+
 #include <vector>
 
 #include "absl/status/statusor.h"
@@ -27,16 +29,22 @@ namespace generative_computing {
 // choose the simpler and more efficient chain type based on chained
 // computations.
 
-// Behavior:
+// Chaining Behavior:
 // 1. Within a single iteration chain execution, output of previous op is inputs
 // for next op.
-// 2. If number of iteration is set, the entire chain executed N times. Between
-// iterations, output of previous iteration is input to next iteration.
-// 3. If break conditions are set and met, execution will stop and return last
+// 2. If break conditions are set and met, execution will stop and return last
 // state before the break.
+
+// Control Flow Behavior:
+// 3. If number of iteration is set, the entire chain executed N times. Between
+// iterations, output of previous iteration is input to next iteration.
+// 4. If is_parallel is set, the entire chain (loop included) will be used
+// as a parallel chain. If the constructed chain is denoted as function f(),
+// input is// struct(a,b,c), f(a), f(b), f(c) will be executed in parallel, and
+// output will output will be struct(f(a), f(b), f(c)).
 class SmartChain {
  public:
-  explicit SmartChain(int num_iteration = 0) : num_iteration_(num_iteration) {}
+  explicit SmartChain() {}
 
   // Enable Pipe operator op1 | op2 | op3 ...
   SmartChain& operator|(const v0::Value& op) {
@@ -63,9 +71,11 @@ class SmartChain {
   absl::StatusOr<v0::Value> Build();
 
   void SetNumIteration(int i) { num_iteration_ = i; }
+  void SetIsParallel(bool is_parallel) { is_parallel_ = is_parallel; }
 
  private:
-  int num_iteration_;
+  bool is_parallel_ = false;
+  int num_iteration_ = 0;
   std::vector<v0::Value> chained_ops_;
 };
 }  // namespace generative_computing

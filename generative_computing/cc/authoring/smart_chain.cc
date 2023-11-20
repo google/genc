@@ -19,15 +19,24 @@ limitations under the License
 
 #include "absl/status/statusor.h"
 #include "generative_computing/cc/authoring/constructor.h"
+#include "generative_computing/cc/runtime/status_macros.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 
 namespace generative_computing {
 
 absl::StatusOr<v0::Value> SmartChain::Build() {
+  v0::Value resulting_chain;
   if (num_iteration_ > 1) {
-    return CreateRepeatedConditionalChain(num_iteration_, chained_ops_);
+    resulting_chain =
+        GENC_TRY(CreateRepeatedConditionalChain(num_iteration_, chained_ops_));
+  } else {
+    resulting_chain = GENC_TRY(CreateBasicChain(chained_ops_));
   }
-  return CreateBasicChain(chained_ops_);
+
+  if (is_parallel_) {
+    resulting_chain = GENC_TRY(CreateParallelMap(resulting_chain));
+  }
+  return resulting_chain;
 }
 
 }  // namespace generative_computing

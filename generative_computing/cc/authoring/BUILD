@@ -25,6 +25,7 @@ cc_library(
     hdrs = ["smart_chain.h"],
     deps = [
         ":constructor",
+        "//generative_computing/cc/runtime:status_macros",
         "//generative_computing/proto/v0:computation_cc_proto",
         "@com_google_absl//absl/status:statusor",
     ],

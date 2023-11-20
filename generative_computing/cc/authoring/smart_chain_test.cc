@@ -46,5 +46,20 @@ TEST(SmartChainTest, CanBuildsRepeatedConditionalChain) {
   EXPECT_EQ(computation.DebugString(), expected_computation.DebugString());
 }
 
+TEST(SmartChainTest, BuildsParallelChain) {
+  v0::Value append_foo_fn = CreateModelInference("append_foo").value();
+  v0::Value append_bar_fn = CreateModelInference("append_bar").value();
+
+  SmartChain smart_chain = SmartChain() | append_foo_fn | append_bar_fn;
+  smart_chain.SetIsParallel(true);
+  v0::Value computation = smart_chain.Build().value();
+
+  v0::Value serial_chain =
+      CreateBasicChain({append_foo_fn, append_bar_fn}).value();
+  v0::Value expected_computation = CreateParallelMap(serial_chain).value();
+
+  EXPECT_EQ(computation.DebugString(), expected_computation.DebugString());
+}
+
 }  // namespace
 }  // namespace generative_computing

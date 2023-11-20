@@ -114,7 +114,7 @@ def create_computation_from_agent(agent):
   tool_computation = create_computation_from_custom_chain(
       agent.tools_list[0].computation
   )
-  react_loop = authoring.constructors.create_loop_chain_combo(
+  react_loop = authoring.constructors.create_repeated_conditional_chain(
       agent.max_iterations,
       [
           read_context,
@@ -159,7 +159,7 @@ def create_computation_from_custom_chain(chain):
     computation_list.append(comp)
 
   if chain.num_iteration > 1:
-    return authoring.create_loop_chain_combo(
+    return authoring.create_repeated_conditional_chain(
         chain.num_iteration, computation_list
     )
   return authoring.create_basic_chain(computation_list)

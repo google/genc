@@ -83,7 +83,7 @@ class CreateComputationTest(absltest.TestCase):
         ),
         authoring.create_model("model1"),
     ])
-    expected_chain = authoring.create_loop_chain_combo(
+    expected_chain = authoring.create_repeated_conditional_chain(
         4, [expected_sub_chain, genc_llm2]
     )
     self.assertEqual(langchain_computation, expected_chain)

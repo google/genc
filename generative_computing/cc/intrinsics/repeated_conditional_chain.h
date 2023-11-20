@@ -18,15 +18,16 @@ limitations under the License
 #include "generative_computing/cc/runtime/intrinsic_handler.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 
-#ifndef GENERATIVE_COMPUTING_CC_INTRINSICS_LOOP_CHAIN_COMBO_H_
-#define GENERATIVE_COMPUTING_CC_INTRINSICS_LOOP_CHAIN_COMBO_H_
+#ifndef GENERATIVE_COMPUTING_CC_INTRINSICS_REPEATED_CONDITIONAL_CHAIN_H_
+#define GENERATIVE_COMPUTING_CC_INTRINSICS_REPEATED_CONDITIONAL_CHAIN_H_
 
 namespace generative_computing {
 namespace intrinsics {
-class LoopChainCombo : public ControlFlowIntrinsicHandlerBase {
+class RepeatedConditionalChain : public ControlFlowIntrinsicHandlerBase {
  public:
-  LoopChainCombo() : ControlFlowIntrinsicHandlerBase(kLoopChainCombo) {}
-  virtual ~LoopChainCombo() {}
+  RepeatedConditionalChain()
+      : ControlFlowIntrinsicHandlerBase(kRepeatedConditionalChain) {}
+  virtual ~RepeatedConditionalChain() {}
   absl::Status CheckWellFormed(const v0::Intrinsic& intrinsic_pb) const final;
   absl::StatusOr<ValueRef> ExecuteCall(const v0::Intrinsic& intrinsic_pb,
                                        std::optional<ValueRef> arg,
@@ -35,4 +36,4 @@ class LoopChainCombo : public ControlFlowIntrinsicHandlerBase {
 }  // namespace intrinsics
 }  // namespace generative_computing
 
-#endif  // GENERATIVE_COMPUTING_CC_INTRINSICS_LOOP_CHAIN_COMBO_H_
+#endif  // GENERATIVE_COMPUTING_CC_INTRINSICS_REPEATED_CONDITIONAL_CHAIN_H_

@@ -101,7 +101,8 @@ inline constexpr absl::string_view kWhile = "while";
 // sequentially, if any of those function evaluates to be true, the for loop
 // will break. It takes one dynamic Value parameter, which serves as the input
 // to the loop.
-inline constexpr absl::string_view kLoopChainCombo = "loop_chain_combo";
+inline constexpr absl::string_view kRepeatedConditionalChain =
+    "repeated_conditional_chain";
 
 // Represents a custom chain, a chain of fns, h, g, f... will be executed
 // sequentially.

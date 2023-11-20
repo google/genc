@@ -64,12 +64,12 @@ cc_library(
         ":fallback",
         ":logger",
         ":logical_not",
-        ":loop_chain_combo",
         ":model_inference",
         ":parallel_map",
         ":prompt_template",
         ":regex_partial_match",
         ":repeat",
+        ":repeated_conditional_chain",
         ":while",
         "//generative_computing/cc/runtime:intrinsic_handler",
     ],
@@ -184,9 +184,9 @@ cc_library(
 )
 
 cc_library(
-    name = "loop_chain_combo",
-    srcs = ["loop_chain_combo.cc"],
-    hdrs = ["loop_chain_combo.h"],
+    name = "repeated_conditional_chain",
+    srcs = ["repeated_conditional_chain.cc"],
+    hdrs = ["repeated_conditional_chain.h"],
     deps = [
         ":intrinsic_uris",
         "//generative_computing/cc/runtime:intrinsic_handler",

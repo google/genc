@@ -88,8 +88,10 @@ PYBIND11_MODULE(constructor_bindings, m) {
   m.def("create_parallel_map", &CreateParallelMap,
         "Creates a parallel map that applies map_fn to a all input values.");
 
-  m.def("create_loop_chain_combo", &CreateLoopChainCombo,
-        "Creates a typical llm reasoning loop.");
+  m.def(
+      "create_repeated_conditional_chain", &CreateRepeatedConditionalChain,
+      "Creates a chain that can repeat and break which is a typical construct "
+      "for llm reasoning loop.");
 
   m.def("create_logger", &CreateLogger,
         "Creates a Logger, it takes an input logs it and returns the original "

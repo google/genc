@@ -22,7 +22,6 @@ from generative_computing.python.authoring.constructors import create_fallback
 from generative_computing.python.authoring.constructors import create_lambda
 from generative_computing.python.authoring.constructors import create_logger
 from generative_computing.python.authoring.constructors import create_logical_not
-from generative_computing.python.authoring.constructors import create_loop_chain_combo
 from generative_computing.python.authoring.constructors import create_model
 from generative_computing.python.authoring.constructors import create_named_value
 from generative_computing.python.authoring.constructors import create_parallel_map
@@ -30,6 +29,7 @@ from generative_computing.python.authoring.constructors import create_prompt_tem
 from generative_computing.python.authoring.constructors import create_reference
 from generative_computing.python.authoring.constructors import create_regex_partial_match
 from generative_computing.python.authoring.constructors import create_repeat
+from generative_computing.python.authoring.constructors import create_repeated_conditional_chain
 from generative_computing.python.authoring.constructors import create_selection
 from generative_computing.python.authoring.constructors import create_struct
 from generative_computing.python.authoring.constructors import create_while

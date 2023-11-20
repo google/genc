@@ -69,10 +69,11 @@ absl::StatusOr<v0::Value> CreateParallelMap(v0::Value map_fn);
 
 // Creates a for loop with the given num_steps, and a sequence of body_fns,
 // which will be executed sequentially each iteration, if any the function
-// inside body_fns is a conditional, and list evaluate to be true, it'll exit
-// the for loop.
-absl::StatusOr<v0::Value> CreateLoopChainCombo(int num_steps,
-                                               std::vector<v0::Value> body_fns);
+// inside body_fns is a conditional and evaluates to be true, loop will break
+// and return the state before the conditional; if it evaluates to be false,
+// chain will continue execution.
+absl::StatusOr<v0::Value> CreateRepeatedConditionalChain(
+    int num_steps, std::vector<v0::Value> body_fns);
 
 // Given a list of functions [f, g, ...] create a chain g(f(...)).
 absl::StatusOr<v0::Value> CreateBasicChain(

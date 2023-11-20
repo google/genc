@@ -53,7 +53,8 @@ PYBIND11_MODULE(intrinsic_bindings, m) {
   intrinsics.attr("BREAKABLE_CHAIN") = py::str(intrinsics::kBreakableChain);
   intrinsics.attr("CONDITIONAL") = py::str(intrinsics::kConditional);
   intrinsics.attr("FALLBACK") = py::str(intrinsics::kFallback);
-  intrinsics.attr("LOOP_CHAIN_COMBO") = py::str(intrinsics::kLoopChainCombo);
+  intrinsics.attr("LOOP_CHAIN_COMBO") =
+      py::str(intrinsics::kRepeatedConditionalChain);
   intrinsics.attr("LOGGER") = py::str(intrinsics::kLogger);
   intrinsics.attr("CUSTOM_FUNCTION") = py::str(intrinsics::kCustomFunction);
   intrinsics.attr("PARALLEL_MAP") = py::str(intrinsics::kParallelMap);

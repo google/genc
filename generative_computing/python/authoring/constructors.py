@@ -247,8 +247,8 @@ def create_logical_not():
   return constructor_bindings.create_logical_not()
 
 
-def create_loop_chain_combo(num_steps, function_list):
-  """Constructs a loop chain combo expression.
+def create_repeated_conditional_chain(num_steps, function_list):
+  """Constructs a repeated conditionalchain expression.
 
   Args:
     num_steps: Number of steps to repeat the calculation.
@@ -257,7 +257,9 @@ def create_loop_chain_combo(num_steps, function_list):
   Returns:
     A computation that represents a typical reasoning loop expression.
   """
-  return constructor_bindings.create_loop_chain_combo(num_steps, function_list)
+  return constructor_bindings.create_repeated_conditional_chain(
+      num_steps, function_list
+  )
 
 
 def create_parallel_map(map_fn):

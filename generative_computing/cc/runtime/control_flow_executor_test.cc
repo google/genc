@@ -176,7 +176,7 @@ TEST_F(ControlFlowExecutorTest, WhileLoopExecutionTest) {
   EXPECT_EQ(result.str(), "12Action: Finish");
 }
 
-TEST_F(ControlFlowExecutorTest, LoopChainComboAbleToLoopAndBreak) {
+TEST_F(ControlFlowExecutorTest, RepeatedConditionalChainCanToLoopAndBreak) {
   // Step up executor and test custom fns.
   intrinsics::ModelInference::InferenceMap inference_map;
   v0::Value test_body_fn = CreateModelInference("test_body_fn").value();
@@ -213,7 +213,7 @@ TEST_F(ControlFlowExecutorTest, LoopChainComboAbleToLoopAndBreak) {
   v0::Value count_to_3_append_finish_fn =
       CreateModelInference("append_finish_when_counts_reaches_3").value();
   v0::Value comp_pb =
-      CreateLoopChainCombo(
+      CreateRepeatedConditionalChain(
           100,
           std::vector<v0::Value>{append_foo_fn, if_finish_then_break_fn,
                                  append_bar_fn, count_to_3_append_finish_fn})

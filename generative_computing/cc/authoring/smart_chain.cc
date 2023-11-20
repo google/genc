@@ -25,7 +25,7 @@ namespace generative_computing {
 
 absl::StatusOr<v0::Value> SmartChain::Build() {
   if (num_iteration_ > 1) {
-    return CreateLoopChainCombo(num_iteration_, chained_ops_);
+    return CreateRepeatedConditionalChain(num_iteration_, chained_ops_);
   }
   return CreateBasicChain(chained_ops_);
 }

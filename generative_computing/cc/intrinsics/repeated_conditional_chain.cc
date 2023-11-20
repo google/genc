@@ -10,7 +10,7 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include "generative_computing/cc/intrinsics/loop_chain_combo.h"
+#include "generative_computing/cc/intrinsics/repeated_conditional_chain.h"
 
 #include <optional>
 #include <vector>
@@ -25,7 +25,7 @@ limitations under the License
 namespace generative_computing {
 namespace intrinsics {
 
-absl::Status LoopChainCombo::CheckWellFormed(
+absl::Status RepeatedConditionalChain::CheckWellFormed(
     const v0::Intrinsic& intrinsic_pb) const {
   if (!intrinsic_pb.static_parameter().has_struct_() ||
       intrinsic_pb.static_parameter().struct_().element_size() < 2) {
@@ -38,9 +38,9 @@ absl::Status LoopChainCombo::CheckWellFormed(
 }
 
 absl::StatusOr<ControlFlowIntrinsicHandlerInterface::ValueRef>
-LoopChainCombo::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
-                            std::optional<ValueRef> arg,
-                            Context* context) const {
+RepeatedConditionalChain::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
+                                      std::optional<ValueRef> arg,
+                                      Context* context) const {
   int num_steps = intrinsic_pb.static_parameter().struct_().element(0).int_32();
 
   auto params = intrinsic_pb.static_parameter().struct_().element();

@@ -130,11 +130,11 @@ absl::StatusOr<v0::Value> CreateWhile(v0::Value condition_fn,
   return while_pb;
 }
 
-absl::StatusOr<v0::Value> CreateLoopChainCombo(
+absl::StatusOr<v0::Value> CreateRepeatedConditionalChain(
     int num_steps, std::vector<v0::Value> body_fns) {
   v0::Value combo_pb;
   v0::Intrinsic* const intrinsic_pb = combo_pb.mutable_intrinsic();
-  intrinsic_pb->set_uri(std::string(intrinsics::kLoopChainCombo));
+  intrinsic_pb->set_uri(std::string(intrinsics::kRepeatedConditionalChain));
   v0::Struct* args =
       intrinsic_pb->mutable_static_parameter()->mutable_struct_();
   v0::Value* steps_pb = args->add_element();

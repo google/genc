@@ -37,9 +37,6 @@ absl::Status ModelInference::CheckWellFormed(
 absl::Status ModelInference::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
                                          const v0::Value& arg,
                                          v0::Value* result) const {
-  if (!arg.has_str()) {
-    return absl::InvalidArgumentError("Argument is not a string.");
-  }
   const std::string model_uri(intrinsic_pb.static_parameter().str());
   if (model_uri == "test_model") {
     result->set_str(

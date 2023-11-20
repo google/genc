@@ -12,18 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 name: GenC Continuous Integration
-on: [push, pull_request]
+on: [pull_request]
 jobs:
   Continuous-Integration-Linux:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
-      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v4
       - name: Build Docker Container
         run: docker build -t ci:latest $PWD
       - name: Run CI
         run: docker run --rm -v $PWD:/genc ci:latest bash -c "cd genc; bazel test generative_computing/..."
-      - run: echo "🍏 This job's status is ${{ job.status }}."

@@ -1,11 +1,12 @@
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
 
+package(
+    default_visibility = ["//visibility:public"],
+)
+
 py_library(
     name = "runtime",
     srcs = ["__init__.py"],
-    visibility = [
-        "//generative_computing:__subpackages__",
-    ],
     deps = [
         ":runner",
     ],

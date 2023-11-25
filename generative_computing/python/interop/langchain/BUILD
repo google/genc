@@ -1,5 +1,9 @@
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
 
+package(
+    default_visibility = ["//visibility:public"],
+)
+
 package_group(
     name = "langchain_interop",
     packages = [
@@ -10,9 +14,6 @@ package_group(
 py_library(
     name = "langchain",
     srcs = ["__init__.py"],
-    visibility = [
-        "//generative_computing/python:python_packages",
-    ],
     deps = [
         ":create_computation",
         ":custom_agent",
@@ -60,9 +61,6 @@ py_test(
 py_library(
     name = "custom_chain",
     srcs = ["custom_chain.py"],
-    visibility = [
-        "//generative_computing/python:python_packages",
-    ],
     deps = ["//generative_computing/proto/v0:computation_py_pb2"],
 )
 
@@ -75,9 +73,6 @@ py_test(
 py_library(
     name = "custom_tool",
     srcs = ["custom_tool.py"],
-    visibility = [
-        "//generative_computing/python:python_packages",
-    ],
     deps = [
         "//generative_computing/proto/v0:computation_py_pb2",
         "//generative_computing/python/interop/langchain:custom_chain",
@@ -96,9 +91,6 @@ py_test(
 py_library(
     name = "custom_agent",
     srcs = ["custom_agent.py"],
-    visibility = [
-        "//generative_computing/python:python_packages",
-    ],
     deps = ["//generative_computing/python/interop/langchain:custom_tool"],
 )
 

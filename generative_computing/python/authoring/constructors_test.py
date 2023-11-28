@@ -135,6 +135,16 @@ class ConstructorsTest(absltest.TestCase):
           fn.intrinsic,
       )
 
+  def test_lambdas(self):
+    model = constructors.create_model('test_model')
+    comp1 = constructors.create_lambda_from_fn(
+        'x',
+        lambda x: constructors.create_call(model, x))
+    comp2 = constructors.create_lambda(
+        'x',
+        constructors.create_call(model, constructors.create_reference('x')))
+    self.assertEqual(str(comp1), str(comp2))
+
 
 if __name__ == '__main__':
   absltest.main()

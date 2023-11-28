@@ -80,6 +80,26 @@ def create_lambda(name, body):
   return constructor_bindings.create_lambda(name, body)
 
 
+def create_lambda_from_fn(parameter_name, body_fn):
+  """Constructs a lambda expression from a parameter and one-argument function.
+
+  Constructs a reference named `parameter_name`, and feeds it as an argument
+  to function `body_fn` to produce the result computation, then packages both
+  as a lambda.
+
+  Args:
+    parameter_name: The name of the parameter.
+    body_fn: A function that constructs the body of the lambda from parameter
+      reference computation fed at input.
+
+  Returns:
+    A computation that represents the lambda expression.
+  """
+  reference = constructor_bindings.create_reference(parameter_name)
+  body = body_fn(reference)
+  return constructor_bindings.create_lambda(parameter_name, body)
+
+
 def create_repeat(num_steps, body_fn):
   """Constructs a while loop, stop_fn is evaluated before entering the loop.
 

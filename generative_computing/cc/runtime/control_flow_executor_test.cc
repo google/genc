@@ -147,7 +147,7 @@ TEST_F(ControlFlowExecutorTest, WhileLoopExecutionTest) {
   // Create a test condition_fn that pumps the while loop.
   v0::Value test_condition_fn =
       CreateSerialChain({CreateRegexPartialMatch("Action: Finish").value(),
-                        CreateLogicalNot().value()})
+                         CreateLogicalNot().value()})
           .value();
 
   // Create a test body_fn.
@@ -480,6 +480,95 @@ TEST_F(ControlFlowExecutorTest, CanProcessStruct) {
   EXPECT_EQ(result.str(),
             "Q: What should I pack for a trip to Tokyo? Also find me the "
             "cheapest transportation to Tokyo. A: ");
+}
+
+TEST_F(ControlFlowExecutorTest, CanModelComplexChainAsBlock) {
+  intrinsics::CustomFunction::FunctionMap fn_map;
+  fn_map["add_1"] = [](v0::Value arg) {
+    v0::Value result;
+    result.set_int_32(arg.int_32() + 1);
+    return result;
+  };
+
+  fn_map["add_2"] = [](v0::Value arg) {
+    v0::Value result;
+    result.set_int_32(arg.int_32() + 2);
+    return result;
+  };
+
+  fn_map["add_3"] = [](v0::Value arg) {
+    v0::Value result;
+    result.set_int_32(arg.int_32() + 3);
+    return result;
+  };
+
+  fn_map["sum"] = [](v0::Value arg) {
+    v0::Value result;
+    int sum = 0;
+    for (const auto& val : arg.struct_().element()) {
+      sum += val.int_32();
+    }
+    result.set_int_32(sum);
+    return result;
+  };
+
+  std::shared_ptr<Executor> executor =
+      CreateTestControlFlowExecutor(/*inference_map=*/nullptr, &fn_map).value();
+  Runner runner = Runner::Create(executor).value();
+
+  v0::Value add_1 = CreateCustomFunction("add_1").value();
+  v0::Value add_2 = CreateCustomFunction("add_2").value();
+
+  v0::Value result_pb;
+  v0::Block* block = result_pb.mutable_block();
+
+  // 1. define the inputs
+  v0::Block::Local* input_1 = block->add_local();
+  input_1->set_name("input_1");
+  *input_1->mutable_value() =
+      CreateSelection(CreateReference("arg").value(), 0).value();
+
+  v0::Block::Local* input_2 = block->add_local();
+  input_2->set_name("input_2");
+  *input_2->mutable_value() =
+      CreateSelection(CreateReference("arg").value(), 1).value();
+
+  // 2. input_1 --> add_1 --> add_2 --> chain_1_output (=4)
+  v0::Value chain_1 = CreateSerialChain({add_1, add_2}).value();
+  v0::Block::Local* chain_1_output = block->add_local();
+  chain_1_output->set_name("chain_1_output");
+  *chain_1_output->mutable_value() =
+      CreateCall(chain_1, CreateReference("input_1").value()).value();
+
+  // 2. input_2 --> add_3 --> chain_2_output (=5)
+  v0::Value chain_2 = CreateCustomFunction("add_3").value();
+  v0::Block::Local* chain_2_output = block->add_local();
+  chain_2_output->set_name("chain_2_output");
+  *chain_2_output->mutable_value() =
+      CreateCall(chain_2, CreateReference("input_2").value()).value();
+
+  // 3. collect input_1 (1), chain_1_output (4), chain_2_output (5) as a Struct.
+  v0::Value combined_output;
+  *combined_output.mutable_struct_()->add_element() =
+      CreateReference("input_1").value();
+  *combined_output.mutable_struct_()->add_element() =
+      CreateReference("chain_1_output").value();
+  *combined_output.mutable_struct_()->add_element() =
+      CreateReference("chain_2_output").value();
+
+  // 4. Sum it up
+  *block->mutable_result() =
+      CreateCall(CreateCustomFunction("sum").value(), combined_output).value();
+
+  // 5. Parameterize the chain
+  v0::Value computation = CreateLambda("arg", result_pb).value();
+
+  // Finally run the computation
+  v0::Value input;
+  input.mutable_struct_()->add_element()->set_int_32(1);
+  input.mutable_struct_()->add_element()->set_int_32(2);
+  v0::Value result = runner.Run(computation, input).value();
+  EXPECT_EQ(result.int_32(), 10);
 }
 
 }  // namespace generative_computing

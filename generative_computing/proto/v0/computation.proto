@@ -110,6 +110,9 @@ message Value {
     // The preferred representation for int numeric values.
     int32 int_32 = 14;
 
+    // The preferred representation for float numeric values.
+    float float_32 = 18;
+
     // The preferred representation for media values, e.g. image/audio.
     bytes media = 5;
 

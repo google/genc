@@ -2,9 +2,12 @@
 
 package(
     default_visibility = [
-        "//generative_computing/google:__subpackages__",
+        #"//generative_computing/google:__subpackages__",
+        "//visibility:public",
     ],
 )
+
+licenses(["notice"])
 
 cc_library(
     name = "react",

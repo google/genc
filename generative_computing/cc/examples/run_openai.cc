@@ -19,10 +19,10 @@ limitations under the License
 #include <memory>
 #include <string>
 
-#include "base/init_google.h"
+
 #include "absl/flags/flag.h"
+#include "absl/flags/parse.h"
 #include "absl/status/statusor.h"
-#include "absl/strings/string_view.h"
 #include "generative_computing/cc/authoring/constructor.h"
 #include "generative_computing/cc/interop/backends/openai/openai.h"
 #include "generative_computing/cc/runtime/executor.h"
@@ -32,7 +32,7 @@ limitations under the License
 #include "generative_computing/proto/v0/computation.pb.h"
 // Demo calling OpenAI ChatGPT as backend.
 ABSL_FLAG(std::string, api_key, "", "OpenAI API key.");
-// //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
+
 namespace generative_computing {
 
 constexpr char kEndPoint[] =
@@ -50,7 +50,7 @@ absl::StatusOr<v0::Value> RunOpenAI(std::string api_key,
 }  // namespace generative_computing
 
 int main(int argc, char* argv[]) {
-  InitGoogle(argv[0], &argc, &argv, true);
+  absl::ParseCommandLine(argc, argv);
   std::string json_request = R"pb(
     { "prompt": "tell me a story!", "max_tokens": 50 }
   )pb";

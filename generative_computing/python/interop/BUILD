@@ -5,6 +5,7 @@ py_library(
     srcs = ["__init__.py"],
     visibility = [
         "//generative_computing:__subpackages__",
+        "//shopping/serving/ai/lm_server/shared/genc_provider:__subpackages__",
     ],
     deps = ["//generative_computing/python/interop/langchain"],
 )

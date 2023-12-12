@@ -62,6 +62,7 @@ py_library(
     srcs = ["custom_chain.py"],
     visibility = [
         "//generative_computing/python:python_packages",
+        "//shopping/serving/ai/lm_server/shared/genc_provider:__subpackages__",
     ],
     deps = ["//generative_computing/proto/v0:computation_py_pb2"],
 )
@@ -77,6 +78,7 @@ py_library(
     srcs = ["custom_tool.py"],
     visibility = [
         "//generative_computing/python:python_packages",
+        "//shopping/serving/ai/lm_server/shared/genc_provider:__subpackages__",
     ],
     deps = [
         "//generative_computing/proto/v0:computation_py_pb2",
@@ -98,6 +100,7 @@ py_library(
     srcs = ["custom_agent.py"],
     visibility = [
         "//generative_computing/python:python_packages",
+        "//shopping/serving/ai/lm_server/shared/genc_provider:__subpackages__",
     ],
     deps = ["//generative_computing/python/interop/langchain:custom_tool"],
 )

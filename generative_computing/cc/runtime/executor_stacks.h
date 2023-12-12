@@ -24,7 +24,13 @@ limitations under the License
 
 namespace generative_computing {
 
+// Creates a default executors with out-of-box components initialized.
+// Use this for convenience that can run all the examples, tutorials. For
+// advanced uses, use CreateLocalExecutor to setup custom executors.
+absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultExecutor();
+
 // Constructs a local executor for a given set of intrinsic handlers.
+// Use this when you have a set of custom handlers to add that is non default.
 absl::StatusOr<std::shared_ptr<Executor>> CreateLocalExecutor(
     std::shared_ptr<IntrinsicHandlerSet> handler_set);
 

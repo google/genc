@@ -109,8 +109,9 @@ cc_library(
         ":inline_executor",
         ":intrinsic_handler",
         ":status_macros",
+        "//generative_computing/cc/interop/backends:openai",
         "//generative_computing/cc/intrinsics:handler_sets",
-        "@com_google_absl//absl/status",
+        "//generative_computing/cc/modules/agents:react",
         "@com_google_absl//absl/status:statusor",
     ],
 )

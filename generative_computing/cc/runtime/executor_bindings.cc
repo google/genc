@@ -112,8 +112,8 @@ PYBIND11_MODULE(executor_bindings, m) {
           py::call_guard<py::gil_scoped_release>());
 
   // Executor construction methods.
-  m.def("create_default_local_executor", &CreateDefaultLocalExecutor,
-        "Creates a defaul local executor.");
+  m.def("create_default_executor", &CreateDefaultExecutor,
+        "Creates a defaul executor with predefined components.");
 }
 
 }  // namespace

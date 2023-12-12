@@ -80,7 +80,7 @@ class Runner(object):
         default local executor will be created.
     """
     if executor is None:
-      self._executor = executor_bindings.create_default_local_executor()
+      self._executor = executor_bindings.create_default_executor()
     else:
       self._executor = executor
     self._comp_pb = comp_pb

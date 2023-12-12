@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include "generative_computing/cc/interop/backends/openai/openai.h"
+#include "generative_computing/cc/interop/backends/openai.h"
 
 #include <cstddef>
 #include <string>

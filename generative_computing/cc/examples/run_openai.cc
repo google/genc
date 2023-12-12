@@ -19,16 +19,15 @@ limitations under the License
 #include <memory>
 #include <string>
 
-
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "absl/status/statusor.h"
 #include "generative_computing/cc/authoring/constructor.h"
-#include "generative_computing/cc/interop/backends/openai/openai.h"
+#include "generative_computing/cc/interop/backends/openai.h"
 #include "generative_computing/cc/runtime/executor.h"
+#include "generative_computing/cc/runtime/executor_stacks.h"
 #include "generative_computing/cc/runtime/runner.h"
 #include "generative_computing/cc/runtime/status_macros.h"
-#include "generative_computing/cc/interop/backends/openai/openai_executor_stacks.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 // Demo calling OpenAI ChatGPT as backend.
 ABSL_FLAG(std::string, api_key, "", "OpenAI API key.");
@@ -40,7 +39,7 @@ constexpr char kEndPoint[] =
 
 absl::StatusOr<v0::Value> RunOpenAI(std::string api_key,
                                     std::string json_request) {
-  std::shared_ptr<Executor> executor = GENC_TRY(CreateOpenaiExecutor());
+  std::shared_ptr<Executor> executor = GENC_TRY(CreateDefaultExecutor());
   v0::Value model_call = GENC_TRY(CreateModelInference("/openai/chatgpt"));
   Runner runner = GENC_TRY(Runner::Create(executor));
   v0::Value arg =

@@ -17,3 +17,16 @@ cc_library(
         "@curl",
     ],
 )
+
+cc_library(
+    name = "vertex_ai",
+    srcs = ["vertex_ai.cc"],
+    hdrs = ["vertex_ai.h"],
+    deps = [
+        "//generative_computing/cc/intrinsics:model_inference",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@curl",
+    ],
+)

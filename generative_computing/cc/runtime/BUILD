@@ -110,6 +110,7 @@ cc_library(
         ":intrinsic_handler",
         ":status_macros",
         "//generative_computing/cc/interop/backends:openai",
+        "//generative_computing/cc/interop/backends:vertex_ai",
         "//generative_computing/cc/intrinsics:handler_sets",
         "//generative_computing/cc/modules/agents:react",
         "@com_google_absl//absl/status:statusor",

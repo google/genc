@@ -11,21 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Tracing-based authoring libraries (under construction)."""
+"""Tracing context for authoring."""
 
-import inspect
 from generative_computing.cc.authoring import constructor_bindings
 from generative_computing.proto.v0 import computation_pb2 as pb
+from generative_computing.python import base
 
 
-class AuthoringContext(object):
+class TracingContext(base.Context):
   """A tracing context for invocations of the `Computation` class."""
 
   def __init__(self):
     self._name_to_ir = {}
     self._ir_str_to_name = {}
 
-  def call(self, portable_ir, *args, **kwargs):
+  def call(self, portable_ir: pb.Value, *args, **kwargs):
     """Processed the call to `portable_ir` in this authoring context.
 
     Args:
@@ -63,62 +63,3 @@ class AuthoringContext(object):
       self._ir_str_to_name[ir_str] = name
       self._name_to_ir[name] = ir
     return constructor_bindings.create_reference(name)
-
-
-context_stack = []
-
-
-class Computation(object):
-  """Represents a portable computation constructed as a result of tracing."""
-
-  def __init__(self, fn):
-    sig = inspect.signature(fn)
-    params = sig.parameters.values()
-    if not params:
-      raise NotImplementedError('At least one parameter is required.')
-    for param in params:
-      if (param.kind != param.POSITIONAL_OR_KEYWORD):
-        raise NotImplementedError('Only positional parameters are supported.')
-      if (param.default != inspect.Parameter.empty):
-        raise NotImplementedError('Default values are not supported.')
-    if context_stack:
-      raise NotImplementedError('Embedded functions are not yet supported.')
-    my_context = AuthoringContext()
-    context_stack.append(my_context)
-    arg = constructor_bindings.create_reference('arg')
-    if len(params) > 1:
-      arg_list = []
-      for index, _ in enumerate(params):
-        arg_list.append(constructor_bindings.create_selection(arg, index))
-      result = fn(*arg_list)
-    else:
-      result = fn(arg)
-    my_locals = my_context.locals
-    context_stack.clear()
-    if my_locals:
-      result = pb.Value(block=pb.Block(
-          local=[pb.Block.Local(name=k, value=v) for k, v in my_locals.items()],
-          result=result))
-    self._portable_ir = constructor_bindings.create_lambda('arg', result)
-
-  @property
-  def portable_ir(self):
-    return self._portable_ir
-
-  def __call__(self, *args, **kwargs):
-    if not context_stack:
-      raise NotImplementedError('Calls are supported only while tracing.')
-    current_context = context_stack[0]
-    return current_context.call(self._portable_ir, *args, **kwargs)
-
-
-def computation(fn):
-  """Decorator that builds a portable computation by tracing a Python function.
-
-  Args:
-    fn: The function to trace.
-
-  Returns:
-    An instance of `Computation`
-  """
-  return Computation(fn)

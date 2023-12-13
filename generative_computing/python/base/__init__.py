@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Python wrappers for runtime components."""
+"""API for this Python package."""
 
-from generative_computing.python.runtime.runner import Runner
-from generative_computing.python.runtime.synchronous_context import set_default_executor
+from generative_computing.python.base.computation import Computation
+from generative_computing.python.base.context import Context
+from generative_computing.python.base.context import context_stack

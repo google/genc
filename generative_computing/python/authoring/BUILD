@@ -4,7 +4,10 @@ py_library(
     name = "authoring",
     srcs = ["__init__.py"],
     visibility = ["//generative_computing/python:python_packages"],
-    deps = [":constructors"],
+    deps = [
+        ":constructors",
+        ":tracing_decorator",
+    ],
 )
 
 py_library(
@@ -28,8 +31,8 @@ py_test(
 )
 
 py_library(
-    name = "tracing",
-    srcs = ["tracing.py"],
+    name = "tracing_context",
+    srcs = ["tracing_context.py"],
     data = [
         "//generative_computing/cc/authoring:constructor_bindings.so",
         "//generative_computing/cc/intrinsics:intrinsic_bindings.so",
@@ -38,14 +41,36 @@ py_library(
     visibility = [
         "//generative_computing/python:python_packages",
     ],
-    deps = ["//generative_computing/proto/v0:computation_py_pb2"],
+    deps = [
+        "//generative_computing/proto/v0:computation_py_pb2",
+        "//generative_computing/python/base",
+    ],
+)
+
+py_library(
+    name = "tracing_decorator",
+    srcs = ["tracing_decorator.py"],
+    data = [
+        "//generative_computing/cc/authoring:constructor_bindings.so",
+        "//generative_computing/cc/intrinsics:intrinsic_bindings.so",
+        "//generative_computing/cc/runtime:executor_bindings.so",
+    ],
+    visibility = [
+        "//generative_computing/python:python_packages",
+    ],
+    deps = [
+        ":tracing_context",
+        "//generative_computing/proto/v0:computation_py_pb2",
+        "//generative_computing/python/base",
+    ],
 )
 
 py_test(
     name = "tracing_test",
     srcs = ["tracing_test.py"],
     deps = [
-        ":tracing",
+        ":tracing_context",
+        ":tracing_decorator",
         "//generative_computing/python/runtime",
     ],
 )

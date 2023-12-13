@@ -8,6 +8,7 @@ py_library(
     ],
     deps = [
         ":runner",
+        ":synchronous_context",
     ],
 )
 
@@ -31,5 +32,25 @@ py_test(
     deps = [
         ":runner",
         "//generative_computing/python/authoring",
+    ],
+)
+
+py_library(
+    name = "synchronous_context",
+    srcs = ["synchronous_context.py"],
+    deps = [
+        ":runner",
+        "//generative_computing/proto/v0:computation_py_pb2",
+        "//generative_computing/python/base",
+    ],
+)
+
+py_test(
+    name = "synchronous_context_test",
+    srcs = ["synchronous_context_test.py"],
+    deps = [
+        ":synchronous_context",
+        "//generative_computing/python/authoring:tracing_context",
+        "//generative_computing/python/authoring:tracing_decorator",
     ],
 )

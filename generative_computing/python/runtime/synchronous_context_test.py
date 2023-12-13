@@ -11,16 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Tests for tracing classes."""
+"""Test for synchronous_context.py."""
 
 from absl.testing import absltest
-from generative_computing.python import runtime
 from generative_computing.python.authoring import tracing_decorator
+from generative_computing.python.runtime import synchronous_context
 
 
 class TracingTest(absltest.TestCase):
 
   def test_something(self):
+    synchronous_context.set_default_executor()
 
     @tracing_decorator.traced_computation
     def foo(x, y):
@@ -31,9 +32,7 @@ class TracingTest(absltest.TestCase):
     def bar(x, y, z):
       return foo(foo(x, y), z)
 
-    bar_runner = runtime.Runner(bar.portable_ir)
-    result = bar_runner('a', 'b', 'c')
-    self.assertEqual(result, 'c')
+    self.assertEqual(bar('a', 'b', 'c'), 'c')
 
 
 if __name__ == '__main__':

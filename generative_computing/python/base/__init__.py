@@ -16,3 +16,5 @@
 from generative_computing.python.base.computation import Computation
 from generative_computing.python.base.context import Context
 from generative_computing.python.base.context import context_stack
+from generative_computing.python.base.to_from_value_proto import from_value_proto
+from generative_computing.python.base.to_from_value_proto import to_value_proto

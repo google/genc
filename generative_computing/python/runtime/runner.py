@@ -15,54 +15,7 @@
 
 from generative_computing.cc.runtime import executor_bindings
 from generative_computing.proto.v0 import computation_pb2 as pb
-
-
-def _to_value_proto(arg):
-  """Creates an executor value proto that corresponds to the given argument.
-
-  Args:
-    arg: A regular Python argument.
-
-  Returns:
-    A corresponding instance of `pb.Value`.
-
-  Raises:
-    TypeError: if the argument is of an unsupported type.
-  """
-  if isinstance(arg, pb.Value):
-    return arg
-  if isinstance(arg, str):
-    return pb.Value(**{'str': arg})
-  if isinstance(arg, bool):
-    return pb.Value(boolean=arg)
-  raise TypeError('Unsupported Python argument type {}.'.format(type(arg)))
-
-
-# TODO(b/305092775): consider deprecate this.
-def _from_value_proto(result_pb):
-  """Creates a Python value object that corresponds to the given value proto.
-
-  Args:
-    result_pb: An instance of `pb.Value`.
-
-  Returns:
-    A corresponding Python object.
-
-  Raises:
-    TypeError: if the `result_pb` is of an unsupported type.
-  """
-  which_result = result_pb.WhichOneof('value')
-  if not which_result:
-    return None
-  if which_result == 'str':
-    return result_pb.str
-  if which_result == 'boolean':
-    return result_pb.boolean
-  if which_result == 'media':
-    return result_pb.media
-  if which_result == 'struct':
-    return result_pb.struct
-  raise TypeError('Unsupported value proto type {}.'.format(which_result))
+from generative_computing.python.base import to_from_value_proto
 
 
 # TODO(b/305092775): deprecate Python Runner methods, provide C++ bindings.
@@ -105,15 +58,18 @@ class Runner(object):
         arg_val = None
       elif len(args) > 1:
         elements = [
-            self._executor.create_value(_to_value_proto(x)) for x in args
+            self._executor.create_value(to_from_value_proto.to_value_proto(x))
+            for x in args
         ]
         arg_val = self._executor.create_struct([x.ref for x in elements])
       else:
-        arg_val = self._executor.create_value(_to_value_proto(args[0]))
+        arg_val = self._executor.create_value(
+            to_from_value_proto.to_value_proto(args[0])
+        )
       result_val = self._executor.create_call(
           self._comp_val.ref, arg_val.ref if arg_val else None
       )
       result_pb = self._executor.materialize(result_val.ref)
-      return _from_value_proto(result_pb)
+      return to_from_value_proto.from_value_proto(result_pb)
     except Exception as err:
       raise RuntimeError(str(err)) from err

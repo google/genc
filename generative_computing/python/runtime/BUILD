@@ -23,6 +23,7 @@ py_library(
     deps = [
         "//generative_computing/proto/v0:computation_py_pb2",
         "//generative_computing/proto/v0:executor_py_pb2",
+        "//generative_computing/python/base:to_from_value_proto",
     ],
 )
 

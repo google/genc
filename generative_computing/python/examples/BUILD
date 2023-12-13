@@ -1,4 +1,10 @@
-load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_python//python:defs.bzl", "py_binary", "py_test")
+
+py_test(
+    name = "authoring_demo",
+    srcs = ["authoring_demo.py"],
+    deps = ["//generative_computing"],
+)
 
 py_binary(
     name = "langchain_demo",

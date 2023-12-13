@@ -15,7 +15,9 @@
 
 from absl.testing import absltest
 from generative_computing.python import runtime
+from generative_computing.python.authoring import constructors
 from generative_computing.python.authoring import tracing_decorator
+from generative_computing.python.authoring import tracing_intrinsics
 
 
 class TracingTest(absltest.TestCase):
@@ -34,6 +36,12 @@ class TracingTest(absltest.TestCase):
     bar_runner = runtime.Runner(bar.portable_ir)
     result = bar_runner('a', 'b', 'c')
     self.assertEqual(result, 'c')
+
+  def test_something_else(self):
+    comp = tracing_intrinsics.model_inference['/device/ulm1b']
+    self.assertEqual(
+        str(comp.portable_ir), str(constructors.create_model('/device/ulm1b'))
+    )
 
 
 if __name__ == '__main__':

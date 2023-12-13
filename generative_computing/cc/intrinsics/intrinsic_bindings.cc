@@ -52,19 +52,20 @@ PYBIND11_MODULE(intrinsic_bindings, m) {
   auto intrinsics = m.def_submodule("intrinsics");
   intrinsics.attr("BREAKABLE_CHAIN") = py::str(intrinsics::kBreakableChain);
   intrinsics.attr("CONDITIONAL") = py::str(intrinsics::kConditional);
-  intrinsics.attr("SERIAL_CHAIN") = py::str(intrinsics::kSerialChain);
-  intrinsics.attr("FALLBACK") = py::str(intrinsics::kFallback);
-  intrinsics.attr("RPEATED_CONDITIONAL_CHAIN") =
-      py::str(intrinsics::kRepeatedConditionalChain);
-  intrinsics.attr("LOGGER") = py::str(intrinsics::kLogger);
   intrinsics.attr("CUSTOM_FUNCTION") = py::str(intrinsics::kCustomFunction);
-  intrinsics.attr("PARALLEL_MAP") = py::str(intrinsics::kParallelMap);
+  intrinsics.attr("DELEGATE") = py::str(intrinsics::kDelegate);
+  intrinsics.attr("FALLBACK") = py::str(intrinsics::kFallback);
+  intrinsics.attr("LOGGER") = py::str(intrinsics::kLogger);
   intrinsics.attr("LOGICAL_NOT") = py::str(intrinsics::kLogicalNot);
   intrinsics.attr("MODEL_INFERENCE") = py::str(intrinsics::kModelInference);
   intrinsics.attr("PROMPT_TEMPLATE") = py::str(intrinsics::kPromptTemplate);
+  intrinsics.attr("PARALLEL_MAP") = py::str(intrinsics::kParallelMap);
   intrinsics.attr("REGEX_PARTIAL_MATCH") =
       py::str(intrinsics::kRegexPartialMatch);
   intrinsics.attr("REPEAT") = py::str(intrinsics::kRepeat);
+  intrinsics.attr("REPEATED_CONDITIONAL_CHAIN") =
+      py::str(intrinsics::kRepeatedConditionalChain);
+  intrinsics.attr("SERIAL_CHAIN") = py::str(intrinsics::kSerialChain);
   intrinsics.attr("WHILE") = py::str(intrinsics::kWhile);
 }
 

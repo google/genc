@@ -35,3 +35,4 @@ from generative_computing.python.authoring.constructors import create_serial_cha
 from generative_computing.python.authoring.constructors import create_struct
 from generative_computing.python.authoring.constructors import create_while
 from generative_computing.python.authoring.tracing_decorator import traced_computation
+from generative_computing.python.authoring.tracing_intrinsics import *

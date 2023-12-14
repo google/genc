@@ -43,9 +43,11 @@ absl::StatusOr<v0::Value> RunLlamaOnVertex(std::string api_key,
   std::shared_ptr<Executor> executor = GENC_TRY(CreateDefaultExecutor());
   v0::Value model_call =
       GENC_TRY(CreateModelInference("/vertex_ai/model_garden"));
+
   Runner runner = GENC_TRY(Runner::Create(executor));
   v0::Value arg =
       GENC_TRY(VertexAI::CreateRequest(api_key, kEndPoint, json_request));
+
   return runner.Run(model_call, arg);
 }
 }  // namespace generative_computing

@@ -23,6 +23,7 @@ limitations under the License
 #include "generative_computing/cc/intrinsics/custom_function.h"
 #include "generative_computing/cc/intrinsics/delegate.h"
 #include "generative_computing/cc/intrinsics/fallback.h"
+#include "generative_computing/cc/intrinsics/inja_template.h"
 #include "generative_computing/cc/intrinsics/logger.h"
 #include "generative_computing/cc/intrinsics/logical_not.h"
 #include "generative_computing/cc/intrinsics/model_inference.h"
@@ -48,6 +49,7 @@ std::shared_ptr<IntrinsicHandlerSet> CreateCompleteHandlerSet(
   handlers->AddHandler(new intrinsics::Delegate(config.delegate_map));
   handlers->AddHandler(new intrinsics::Fallback());
   handlers->AddHandler(new intrinsics::Logger);
+  handlers->AddHandler(new intrinsics::InjaTemplate());
   handlers->AddHandler(
       new intrinsics::CustomFunction(config.custom_function_map));
   handlers->AddHandler(

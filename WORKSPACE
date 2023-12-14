@@ -16,6 +16,19 @@ git_repository(
 )
 
 git_repository(
+    name = "pantor_inja",
+    remote = "https://github.com/pantor/inja.git",
+    tag = "v3.4.0",
+    build_file = "//bazel:inja.BUILD",
+)
+
+git_repository(
+    name = "nlohmann_json",
+    remote = "https://github.com/nlohmann/json.git",
+    tag = "v3.11.3",
+)
+
+git_repository(
     name = "rules_license",
     remote = "https://github.com/bazelbuild/rules_license.git",
     tag = "0.0.4",

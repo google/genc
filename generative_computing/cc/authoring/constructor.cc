@@ -233,4 +233,12 @@ absl::StatusOr<v0::Value> CreateConditional(v0::Value condition,
   return CreateCall(conditional_pb, condition);
 }
 
+absl::StatusOr<v0::Value> CreateInjaTemplate(absl::string_view template_str) {
+  v0::Value value_pb;
+  v0::Intrinsic* const intrinsic_pb = value_pb.mutable_intrinsic();
+  intrinsic_pb->set_uri(std::string(intrinsics::kInjaTemplate));
+  intrinsic_pb->mutable_static_parameter()->set_str(std::string(template_str));
+  return value_pb;
+}
+
 }  // namespace generative_computing

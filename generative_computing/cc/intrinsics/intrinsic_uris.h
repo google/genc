@@ -124,6 +124,11 @@ inline constexpr absl::string_view kLogger = "logger";
 // Represents a map_fn that applies the the fn to nested Values in parallel.
 inline constexpr absl::string_view kParallelMap = "parallel_map";
 
+// Represents an inja template, which is a more powerful template engine
+// compared to PromptTemplate. Input json & template can utilize the JSON;
+// outputs formatted string.
+inline constexpr absl::string_view kInjaTemplate = "inja_template";
+
 }  // namespace intrinsics
 }  // namespace generative_computing
 

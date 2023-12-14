@@ -16,7 +16,6 @@ limitations under the License
 #include "generative_computing/cc/authoring/constructor.h"
 
 #include <string>
-#include <vector>
 
 #include "googletest/include/gtest/gtest.h"
 #include "absl/container/flat_hash_map.h"
@@ -87,6 +86,13 @@ TEST(CreateWhileTest, ReturnsCorrectWhileProto) {
 
   EXPECT_EQ(kwargs.at("condition_fn").intrinsic().uri(), "regex_partial_match");
   EXPECT_EQ(kwargs.at("body_fn").intrinsic().uri(), "model_inference");
+}
+
+TEST(CreateInjaTempalte, ReturnsCorrectComputationProto) {
+  std::string test_template = "test_template";
+  v0::Value inja_pb = CreateInjaTemplate(test_template).value();
+  EXPECT_EQ(inja_pb.intrinsic().uri(), "inja_template");
+  EXPECT_EQ(inja_pb.intrinsic().static_parameter().str(), test_template);
 }
 
 }  // namespace

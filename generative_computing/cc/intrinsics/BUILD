@@ -52,6 +52,37 @@ cc_library(
 )
 
 cc_library(
+    name = "inja_template",
+    srcs = ["inja_template.cc"],
+    hdrs = ["inja_template.h"],
+    deps = [
+        ":intrinsic_uris",
+        "//generative_computing/cc/modules/templates:inja_status_or",
+        "//generative_computing/cc/runtime:intrinsic_handler",
+        "//generative_computing/cc/runtime:status_macros",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
+        "@nlohmann_json//:json",
+    ],
+)
+
+cc_test(
+    name = "inja_template_test",
+    srcs = ["inja_template_test.cc"],
+    deps = [
+        ":handler_sets",
+        "//generative_computing/cc/authoring:constructor",
+        "//generative_computing/cc/runtime:executor",
+        "//generative_computing/cc/runtime:inline_executor",
+        "//generative_computing/cc/runtime:runner",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "handler_sets",
     srcs = ["handler_sets.cc"],
     hdrs = ["handler_sets.h"],
@@ -61,6 +92,7 @@ cc_library(
         ":custom_function",
         ":delegate",
         ":fallback",
+        ":inja_template",
         ":logger",
         ":logical_not",
         ":model_inference",

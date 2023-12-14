@@ -21,6 +21,7 @@ limitations under the License
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
 #include "generative_computing/cc/runtime/status_macros.h"
 
 namespace generative_computing {
@@ -28,14 +29,10 @@ namespace testing {
 
 using ::generative_computing::v0::Value;
 
-absl::StatusOr<Value> WrapFnNameAroundValue(std::string fn_name,
-                                            const Value& value) {
+absl::StatusOr<std::string> WrapFnNameAroundValue(std::string fn_name,
+                                                  const Value& value) {
   std::string formatted_value_str = GENC_TRY(FormatValueAsString(value));
-  std::string formatted_str =
-      absl::StrFormat("%s(%s)", fn_name, formatted_value_str);
-  Value output_value;
-  output_value.set_str(formatted_str);
-  return output_value;
+  return absl::StrFormat("%s(%s)", fn_name, formatted_value_str);
 }
 
 // Returns the content of value, if value contains struct, returns the content
@@ -70,5 +67,18 @@ absl::StatusOr<std::string> FormatValueAsString(const Value& value) {
                        value.value_case(), "]"));
   }
 }
+
+Value StrAsValue(std::string str) {
+  v0::Value value;
+  value.set_str(str);
+  return value;
+}
+
+Value MediaAsValue(absl::string_view media) {
+  v0::Value value;
+  value.set_media(media);
+  return value;
+}
+
 }  // namespace testing
 }  // namespace generative_computing

@@ -42,9 +42,18 @@ TEST(WrapFnNameAroundValueTest, WrapsFnNameAroundValueCorrectly) {
   strcut_input->add_element()->set_str("str");
   strcut_input->add_element()->set_boolean(true);
 
-  v0::Value result = testing::WrapFnNameAroundValue("fn", value).value();
-  EXPECT_EQ(result.str(), "fn(str,true)");
+  std::string result = testing::WrapFnNameAroundValue("fn", value).value();
+  EXPECT_EQ(result, "fn(str,true)");
 }
 
+TEST(StrAsValueTest, ReturnsValue) {
+  v0::Value value = testing::StrAsValue("test");
+  EXPECT_EQ(value.str(), "test");
+}
+
+TEST(MediaAsValueTest, ReturnsValue) {
+  v0::Value value = testing::MediaAsValue("test_media_bytes");
+  EXPECT_EQ(value.media(), "test_media_bytes");
+}
 }  // namespace
 }  // namespace generative_computing

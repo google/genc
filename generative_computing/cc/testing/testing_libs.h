@@ -17,15 +17,23 @@ limitations under the License
 #define GENERATIVE_COMPUTING_CC_TESTING_TESTING_LIBS_H_
 // Common libs used for simplify testing code or running mock examples.
 #include <string>
+
 #include "absl/status/statusor.h"
+#include "absl/strings/string_view.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 
 namespace generative_computing {
 namespace testing {
 
-// Returns a Value contains a str fn_name(formatted_value).
-absl::StatusOr<generative_computing::v0::Value> WrapFnNameAroundValue(
+// Returns a str in format of fn_name(formatted_value).
+absl::StatusOr<std::string> WrapFnNameAroundValue(
     std::string fn_name, const generative_computing::v0::Value& value);
+
+// Returns a Value wraps the input str.
+generative_computing::v0::Value StrAsValue(std::string str);
+
+// Returns a Value wraps the input media bytes.
+generative_computing::v0::Value MediaAsValue(absl::string_view media);
 
 // Returns the content of value, if value contains struct, returns the content
 // of the struct separated by ','. used for testing purpose.

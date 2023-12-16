@@ -230,3 +230,14 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_library(
+    name = "cardinalities",
+    srcs = ["cardinalities.cc"],
+    hdrs = ["cardinalities.h"],
+    deps = [
+        "@com_google_absl//absl/container:btree",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+    ],
+)

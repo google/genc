@@ -21,9 +21,9 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     git
 
-RUN pip3 install --no-cache-dir --upgrade \
-    pip \
-    setuptools
+COPY requirements.txt /requirements.txt
+
+RUN pip3 install --require-hashes -r requirements.txt
 
 RUN ln -s -f $(which ${PYTHON}) /usr/local/bin/python
 RUN python3 --version
@@ -51,7 +51,3 @@ RUN mv bazel-archive-keyring.gpg /usr/share/keyrings
 RUN echo "deb [arch=amd64 signed-by=/usr/share/keyrings/bazel-archive-keyring.gpg] https://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list
 
 RUN apt update && apt install -y bazel
-
-RUN pip3 install --no-cache-dir --upgrade \
-    absl-py~=0.10 \
-    langchain

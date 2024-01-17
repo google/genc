@@ -99,7 +99,7 @@ py_library(
     visibility = [
         "//generative_computing/python:python_packages",
     ],
-    deps = ["//generative_computing/python/interop/langchain:custom_tool"],
+    deps = [":custom_tool"],
 )
 
 py_test(

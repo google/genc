@@ -133,10 +133,16 @@ def create_computation_from_agent(agent):
   instruction_template = authoring.constructors.create_prompt_template(
       agent.llm_chain.prompt.template
   )
-  reagent_chain = authoring.constructors.create_serial_chain(
-      [instruction_template, add_to_context, print_result, react_loop]
-  )
-  return reagent_chain
+
+  reagent_steps = [
+      instruction_template,
+      add_to_context,
+      print_result,
+      react_loop,
+  ]
+  if agent.return_intermediate_steps:
+    reagent_steps.append(read_context)
+  return authoring.constructors.create_serial_chain(reagent_steps)
 
 
 def create_computation_from_custom_chain(chain):

@@ -45,6 +45,9 @@ class CustomAgent(langchain.agents.agent.Agent):
   max_iterations: int
   """The maximum depth of a reasoning chain."""
 
+  return_intermediate_steps: bool = False
+  """Whether to return the agent's trajectory of intermediate steps."""
+
   def _run(
       self,
       *unused_args: Any,

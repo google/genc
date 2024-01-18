@@ -50,7 +50,7 @@ absl::StatusOr<v0::Value> ReAct::ExtractPythonCode(v0::Value input) {
 absl::StatusOr<v0::Value> ReAct::ExtractJsCode(v0::Value input) {
   RE2::Options options;
   options.set_dot_nl(true);
-  RE2 code_block_regex(R"(```(?:javascript)?(.*?)```)", options);
+  RE2 code_block_regex(R"(```(?:javascript|js)?(.*?)```)", options);
 
   std::string output;
   if (RE2::PartialMatch(input.str(), code_block_regex, &output)) {

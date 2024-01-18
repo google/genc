@@ -110,6 +110,9 @@ def create_computation_from_agent(agent):
   add_to_context = authoring.constructors.create_custom_function(
       "/local_cache/write"
   )
+  evict_context = authoring.constructors.create_custom_function(
+      "/local_cache/remove"
+  )
 
   tool_computation = create_computation_from_custom_chain(
       agent.tools_list[0].computation
@@ -121,8 +124,8 @@ def create_computation_from_agent(agent):
           model_call,
           parse_thought_action,
           print_result,
-          stop_when_finish,
           add_to_context,
+          stop_when_finish,
           tool_computation,
           format_observation,
           print_result,
@@ -135,6 +138,8 @@ def create_computation_from_agent(agent):
   )
 
   reagent_steps = [
+      # Remove previous context before processing new round of request.
+      evict_context,
       instruction_template,
       add_to_context,
       print_result,

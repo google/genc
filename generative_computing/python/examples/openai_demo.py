@@ -59,8 +59,10 @@ def main(argv: Sequence[str]) -> None:
   model_call = authoring.create_model("/openai/chatgpt")
   comp = runtime.Runner(comp_pb=model_call)
   result = json.loads(comp(openai_arg))
-
-  print(result["choices"][0]["message"]["content"])
+  if result.get("error"):
+    print(result.get("error"))
+  else:
+    print(result["choices"][0]["message"]["content"])
 
 
 if __name__ == "__main__":

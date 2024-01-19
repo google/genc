@@ -52,5 +52,7 @@ RUN echo "deb [arch=amd64 signed-by=/usr/share/keyrings/bazel-archive-keyring.gp
 
 RUN apt update && apt install -y bazel-6.3.2
 
+RUN ln -s -f /usr/bin/bazel-6.3.2 /usr/bin/bazel
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends default-jdk

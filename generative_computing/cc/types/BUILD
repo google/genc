@@ -48,6 +48,7 @@ cc_test(
         ":inference",
         "//generative_computing/proto/v0:computation_cc_proto",
         "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",
     ],
 )

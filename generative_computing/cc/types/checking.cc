@@ -68,23 +68,21 @@ absl::Status CheckEqual(v0::Type x, v0::Type y) {
     if (!y.has_scalar()) {
       return absl::InvalidArgumentError(
           absl::StrCat("Scalar ", v0::ScalarType_Name(x.scalar()),
-                       " vs. non-scalar ", y.DebugString(), "."));
+                       " vs. non-scalar ", y, "."));
     }
     return CheckScalarEqual(x.scalar(), y.scalar());
   }
   if (x.has_struct_()) {
     if (!y.has_struct_()) {
-      return absl::InvalidArgumentError(absl::StrCat("Struct ", x.DebugString(),
-                                                     " vs. non-struct ",
-                                                     y.DebugString(), "."));
+      return absl::InvalidArgumentError(
+          absl::StrCat("Struct ", x, " vs. non-struct ", y, "."));
     }
     return CheckStructEqual(x.struct_(), y.struct_());
   }
   if (x.has_function()) {
     if (!y.has_function()) {
       return absl::InvalidArgumentError(
-          absl::StrCat("Function ", x.DebugString(), " vs. non-function ",
-                       y.DebugString(), "."));
+          absl::StrCat("Function ", x, " vs. non-function ", y, "."));
     }
     return CheckFunctionEqual(x.function(), y.function());
   }

@@ -78,7 +78,7 @@ absl::Status InferTypes(v0::Value* value_pb,
     if (!value_pb->selection().source().type().has_struct_()) {
       return absl::InvalidArgumentError(
           absl::StrCat("Selecting from a non-struct type ",
-                       value_pb->selection().source().type().DebugString()));
+                       value_pb->selection().source().type()));
     }
     if (value_pb->selection().index() < 0) {
       return absl::InvalidArgumentError("Negative selection index.");

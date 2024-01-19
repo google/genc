@@ -17,6 +17,7 @@ limitations under the License
 
 #include "googletest/include/gtest/gtest.h"
 #include "absl/status/status.h"
+#include "absl/strings/str_cat.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 
 namespace generative_computing {
@@ -65,9 +66,9 @@ TEST_F(InferenceTest, StructWithOneElement) {
   v0::Type expected_type;
   expected_type.mutable_struct_()->add_element()->set_scalar(
       v0::SCALAR_TYPE_STRING);
-  EXPECT_EQ(val_pb.type().DebugString(), expected_type.DebugString());
-  EXPECT_EQ(val_pb.struct_().element(0).type().DebugString(),
-            expected_type.struct_().element(0).DebugString());
+  EXPECT_EQ(absl::StrCat(val_pb.type()), absl::StrCat(expected_type));
+  EXPECT_EQ(absl::StrCat(val_pb.struct_().element(0).type()),
+            absl::StrCat(expected_type.struct_().element(0)));
 }
 
 TEST_F(InferenceTest, StructWithTwoElements) {
@@ -81,11 +82,11 @@ TEST_F(InferenceTest, StructWithTwoElements) {
       v0::SCALAR_TYPE_STRING);
   expected_type.mutable_struct_()->add_element()->set_scalar(
       v0::SCALAR_TYPE_INT32);
-  EXPECT_EQ(val_pb.type().DebugString(), expected_type.DebugString());
-  EXPECT_EQ(val_pb.struct_().element(0).type().DebugString(),
-            expected_type.struct_().element(0).DebugString());
-  EXPECT_EQ(val_pb.struct_().element(1).type().DebugString(),
-            expected_type.struct_().element(1).DebugString());
+  EXPECT_EQ(absl::StrCat(val_pb.type()), absl::StrCat(expected_type));
+  EXPECT_EQ(absl::StrCat(val_pb.struct_().element(0).type()),
+            absl::StrCat(expected_type.struct_().element(0)));
+  EXPECT_EQ(absl::StrCat(val_pb.struct_().element(1).type()),
+            absl::StrCat(expected_type.struct_().element(1)));
 }
 
 TEST_F(InferenceTest, NestedStruct) {
@@ -104,11 +105,11 @@ TEST_F(InferenceTest, NestedStruct) {
       expected_type.mutable_struct_()->add_element()->mutable_struct_();
   st->add_element()->set_scalar(v0::SCALAR_TYPE_INT32);
   st->add_element()->set_scalar(v0::SCALAR_TYPE_STRING);
-  EXPECT_EQ(val_pb.type().DebugString(), expected_type.DebugString());
-  EXPECT_EQ(val_pb.struct_().element(0).type().DebugString(),
-            expected_type.struct_().element(0).DebugString());
-  EXPECT_EQ(val_pb.struct_().element(1).type().DebugString(),
-            expected_type.struct_().element(1).DebugString());
+  EXPECT_EQ(absl::StrCat(val_pb.type()), absl::StrCat(expected_type));
+  EXPECT_EQ(absl::StrCat(val_pb.struct_().element(0).type()),
+            absl::StrCat(expected_type.struct_().element(0)));
+  EXPECT_EQ(absl::StrCat(val_pb.struct_().element(1).type()),
+            absl::StrCat(expected_type.struct_().element(1)));
 }
 
 TEST_F(InferenceTest, Selection) {
@@ -122,7 +123,7 @@ TEST_F(InferenceTest, Selection) {
   EXPECT_TRUE(status.ok());
   v0::Type expected_type;
   expected_type.set_scalar(v0::SCALAR_TYPE_INT32);
-  EXPECT_EQ(val_pb.type().DebugString(), expected_type.DebugString());
+  EXPECT_EQ(absl::StrCat(val_pb.type()), absl::StrCat(expected_type));
 }
 
 }  // namespace

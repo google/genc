@@ -12,30 +12,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
+package src.java.org.generativecomputing.interop.network;
 
-package org.generativecomputing;
-
-/** */
-final class OwnedValueId {
-
-  public static OwnedValueId create(long nativeHandle) {
-    return new OwnedValueId(nativeHandle);
+/**
+ * An exception class used to propagate http request exceptions to callers. TODO(pagarwl): Add
+ * canonical status codes in network layer of generative computing.
+ */
+public final class HttpException extends Exception {
+  public HttpException(String message) {
+    super(message);
   }
 
-  public ValueId ref() {
-    return ValueId.create(ref(this.nativeHandle));
-  }
-
-  private OwnedValueId(long nativeHandle) {
-    this.nativeHandle = nativeHandle;
-  }
-
-  private long nativeHandle;
-
-  private static native long ref(long nativeHandle);
-
-  static {
-    // libapp.so needs to be linked or app will crash.
-    System.loadLibrary("app");
+  public HttpException(String message, Throwable cause) {
+    super(message, cause);
   }
 }

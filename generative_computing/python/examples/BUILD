@@ -29,6 +29,5 @@ py_binary(
         "//generative_computing/proto/v0:computation_py_pb2",
         "//generative_computing/python/authoring",
         "//generative_computing/python/runtime",
-        "@nlohmann_json//:json",
     ],
 )

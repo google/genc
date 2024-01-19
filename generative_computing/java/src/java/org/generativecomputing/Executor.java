@@ -63,7 +63,7 @@ final class Executor {
   private static native void dispose(long nativeHandle, long value);
 
   static {
-    // libnative.so needs to be linked or app will crash.
-    System.loadLibrary("native");
+    // libapp.so needs to be linked or app will crash.
+    System.loadLibrary("app");
   }
 }

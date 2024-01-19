@@ -13,29 +13,21 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-package org.generativecomputing;
+#ifndef GENERATIVE_COMPUTING_CC_RUNTIME_ANDROID_ANDROID_EXECUTOR_STACKS_H_
+#define GENERATIVE_COMPUTING_CC_RUNTIME_ANDROID_ANDROID_EXECUTOR_STACKS_H_
 
-/** */
-final class OwnedValueId {
+#include <jni.h>
 
-  public static OwnedValueId create(long nativeHandle) {
-    return new OwnedValueId(nativeHandle);
-  }
+#include <memory>
 
-  public ValueId ref() {
-    return ValueId.create(ref(this.nativeHandle));
-  }
+#include "absl/status/statusor.h"
+#include "generative_computing/cc/runtime/executor.h"
 
-  private OwnedValueId(long nativeHandle) {
-    this.nativeHandle = nativeHandle;
-  }
+namespace generative_computing {
 
-  private long nativeHandle;
+absl::StatusOr<std::shared_ptr<Executor>> CreateAndroidExecutor(
+    JavaVM* jvm, jobject open_ai_client);
 
-  private static native long ref(long nativeHandle);
+}  // namespace generative_computing
 
-  static {
-    // libapp.so needs to be linked or app will crash.
-    System.loadLibrary("app");
-  }
-}
+#endif  // GENERATIVE_COMPUTING_CC_RUNTIME_ANDROID_ANDROID_EXECUTOR_STACKS_H_

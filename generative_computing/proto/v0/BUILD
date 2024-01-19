@@ -25,6 +25,11 @@ py_proto_library(
     deps = [":computation_proto"],
 )
 
+java_lite_proto_library(
+    name = "computation_java_proto_lite",
+    deps = [":computation_proto"],
+)
+
 proto_library(
     name = "executor_proto",
     srcs = ["executor.proto"],
@@ -38,5 +43,10 @@ cc_proto_library(
 
 py_proto_library(
     name = "executor_py_pb2",
+    deps = [":executor_proto"],
+)
+
+java_lite_proto_library(
+    name = "executor_java_proto_lite",
     deps = [":executor_proto"],
 )

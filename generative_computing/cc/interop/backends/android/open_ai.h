@@ -13,29 +13,20 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-package org.generativecomputing;
+#ifndef GENERATIVE_COMPUTING_CC_INTEROP_BACKENDS_OPEN_AI_H_
+#define GENERATIVE_COMPUTING_CC_INTEROP_BACKENDS_OPEN_AI_H_
 
-/** */
-final class OwnedValueId {
+#include <jni.h>
 
-  public static OwnedValueId create(long nativeHandle) {
-    return new OwnedValueId(nativeHandle);
-  }
+#include "absl/status/statusor.h"
+#include "generative_computing/proto/v0/computation.pb.h"
 
-  public ValueId ref() {
-    return ValueId.create(ref(this.nativeHandle));
-  }
+namespace generative_computing {
 
-  private OwnedValueId(long nativeHandle) {
-    this.nativeHandle = nativeHandle;
-  }
+absl::StatusOr<v0::Value> OpenAiCall(JavaVM* jvm, jobject open_ai_client,
+                                     const v0::Value& func,
+                                     const v0::Value& arg);
 
-  private long nativeHandle;
+}  // namespace generative_computing
 
-  private static native long ref(long nativeHandle);
-
-  static {
-    // libapp.so needs to be linked or app will crash.
-    System.loadLibrary("app");
-  }
-}
+#endif  // GENERATIVE_COMPUTING_CC_INTEROP_BACKENDS_OPEN_AI_H_

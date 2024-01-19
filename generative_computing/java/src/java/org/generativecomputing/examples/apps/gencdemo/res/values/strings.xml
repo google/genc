@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">Generative Computing Demo App</string>
+    <string name="od_button_name" translatable="false">Generate</string>
+    <string name="default_input" translatable="false">Write a poem about android</string>
+    <string name="input_hint" translatable="false">Type a query here</string>
+</resources>

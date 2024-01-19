@@ -388,11 +388,6 @@ cc_library(
     }),
     defines = ["CURL_STATICLIB"],
     includes = ["include"],
-    linkopts = select({
-        "//conditions:default": [
-            "-lrt",
-        ],
-    }),
     visibility = ["//visibility:public"],
     deps = [
         "@zlib",

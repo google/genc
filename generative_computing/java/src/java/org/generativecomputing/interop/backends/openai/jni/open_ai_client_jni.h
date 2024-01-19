@@ -12,30 +12,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
+#ifndef GENERATIVE_COMPUTING_JAVA_SRC_JAVA_ORG_GENERATIVECOMPUTING_INTEROP_BACKENDS_OPENAI_JNI_OPEN_AI_CLIENT_JNI_H_
+#define GENERATIVE_COMPUTING_JAVA_SRC_JAVA_ORG_GENERATIVECOMPUTING_INTEROP_BACKENDS_OPENAI_JNI_OPEN_AI_CLIENT_JNI_H_
 
-package org.generativecomputing;
+#include <jni.h>
 
-/** */
-final class OwnedValueId {
+#include <string>
 
-  public static OwnedValueId create(long nativeHandle) {
-    return new OwnedValueId(nativeHandle);
-  }
+namespace generative_computing {
 
-  public ValueId ref() {
-    return ValueId.create(ref(this.nativeHandle));
-  }
+std::string CallOpenAiClient(JavaVM *jvm, jobject open_ai_client,
+                             std::string request);
 
-  private OwnedValueId(long nativeHandle) {
-    this.nativeHandle = nativeHandle;
-  }
-
-  private long nativeHandle;
-
-  private static native long ref(long nativeHandle);
-
-  static {
-    // libapp.so needs to be linked or app will crash.
-    System.loadLibrary("app");
-  }
 }
+
+#endif  // GENERATIVE_COMPUTING_JAVA_SRC_JAVA_ORG_GENERATIVECOMPUTING_INTEROP_BACKENDS_OPENAI_JNI_OPEN_AI_CLIENT_JNI_H_

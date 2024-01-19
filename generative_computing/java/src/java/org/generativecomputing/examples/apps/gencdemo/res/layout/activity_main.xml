@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+      <LinearLayout
+         android:layout_width="match_parent"
+         android:orientation="vertical"
+         android:layout_height="wrap_content">
+
+      <EditText
+      android:id="@+id/query"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:importantForAutofill="no" android:inputType="text"
+      android:hint="@string/input_hint"
+      android:text="@string/default_input"/>
+
+  <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+      <Button
+        android:id="@+id/od"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/od_button_name"/>
+  </LinearLayout>
+
+  <TextView
+      android:id="@+id/response"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="" />
+
+  <TextView
+      android:id="@+id/verbose"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:typeface="monospace"
+      android:textColor="#147109"
+      android:text="" />
+
+      </LinearLayout>
+
+</ScrollView>
+

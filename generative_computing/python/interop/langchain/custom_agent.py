@@ -17,6 +17,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, Sequence
 
 import langchain
+from langchain import pydantic_v1
 
 from generative_computing.python.interop.langchain import custom_tool
 
@@ -84,7 +85,7 @@ class CustomAgent(langchain.agents.agent.Agent):
     """Validate that appropriate tools are passed in."""
     pass
 
-  @langchain.pydantic_v1.root_validator()
+  @pydantic_v1.root_validator()
   def validate_prompt(cls, values: Dict[Any, Any]) -> Dict[Any, Any]:  # pylint: disable=no-self-argument
     """Validate that prompt matches format."""
     return values

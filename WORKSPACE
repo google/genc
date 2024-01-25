@@ -256,3 +256,13 @@ http_archive(
 
 load("@robolectric//bazel:robolectric.bzl", "robolectric_repositories")
 robolectric_repositories()
+
+load("@rules_python//python:pip.bzl","pip_parse")
+pip_parse(
+    name = "notebooks",
+    requirements_lock = "//generative_computing/python/examples/colabs:requirements.txt",
+)
+load("//notebooks//:requirements.bzl", "install_deps")
+install_deps()
+
+

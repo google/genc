@@ -1,0 +1,29 @@
+load("@rules_python//python:defs.bzl", "py_binary")
+
+# TODO(ndodda): describe this package.
+load("@notebooks//:requirements.bzl", "requirement")
+
+alias(
+    name = "jupyter_core",
+    actual = requirement("jupyter_core"),
+)
+
+py_binary(
+    name = "jupyter",
+    srcs = ["jupyter.py"],
+    data = [":openai_demo.ipynb"],
+    tags = [
+        "nobuilder",
+        "notap",
+    ],
+    visibility = [
+        "//generative_computing/python:python_packages",
+    ],
+    deps = [
+        requirement("notebook"),
+        ":jupyter_core",
+        "//generative_computing/proto/v0:computation_py_pb2",
+        "//generative_computing/python/authoring",
+        "//generative_computing/python/runtime",
+    ],
+)

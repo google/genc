@@ -37,6 +37,11 @@ absl::StatusOr<v0::Value> CreateConditional(v0::Value condition,
                                             v0::Value positive_branch,
                                             v0::Value negative_branch);
 
+// Creates a conditional expression with parameterized input.
+absl::StatusOr<v0::Value> CreateLambdaForConditional(v0::Value condition,
+                                               v0::Value positive_branch,
+                                               v0::Value negative_branch);
+
 // Returns a custom function proto with the given fn URI.
 absl::StatusOr<v0::Value> CreateCustomFunction(absl::string_view fn_uri);
 

@@ -143,6 +143,45 @@ TEST_F(ControlFlowExecutorTest, TestChaining) {
   EXPECT_EQ(result.str(), "fn_2(fn_1(test_input))");
 }
 
+TEST_F(ControlFlowExecutorTest, ConditionalSelectTheRightBranchForExecution) {
+  intrinsics::ModelInference::InferenceMap inference_map;
+
+  inference_map["append_foo"] = [](const v0::Value& arg) {
+    v0::Value result;
+    result.set_str(absl::StrCat(arg.str(), "foo"));
+    return result;
+  };
+
+  inference_map["append_bar"] = [](const v0::Value& arg) {
+    v0::Value result;
+    result.set_str(absl::StrCat(arg.str(), "bar"));
+    return result;
+  };
+
+  std::shared_ptr<Executor> executor =
+      CreateTestControlFlowExecutor(&inference_map).value();
+  Runner runner = Runner::Create(executor).value();
+
+  // Create the operators
+  v0::Value fn_detector = CreateRegexPartialMatch("append_foo_fn").value();
+  v0::Value append_foo_fn = CreateModelInference("append_foo").value();
+  v0::Value append_bar_fn = CreateModelInference("append_bar").value();
+
+  v0::Value comp_pb =
+      CreateLambdaForConditional(fn_detector, append_foo_fn, append_bar_fn)
+          .value();
+
+  // Run it.
+  v0::Value arg;
+  arg.set_str("call append_bar_fn:");
+  v0::Value result = runner.Run(comp_pb, arg).value();
+  EXPECT_EQ(result.str(), "call append_bar_fn:bar");
+
+  arg.set_str("call append_foo_fn:");
+  result = runner.Run(comp_pb, arg).value();
+  EXPECT_EQ(result.str(), "call append_foo_fn:foo");
+}
+
 TEST_F(ControlFlowExecutorTest, WhileLoopExecutionTest) {
   // Create a test condition_fn that pumps the while loop.
   v0::Value test_condition_fn =

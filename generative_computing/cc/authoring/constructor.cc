@@ -22,6 +22,7 @@ limitations under the License
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 #include "generative_computing/cc/intrinsics/intrinsic_uris.h"
+#include "generative_computing/cc/runtime/status_macros.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 
 namespace generative_computing {
@@ -231,6 +232,17 @@ absl::StatusOr<v0::Value> CreateConditional(v0::Value condition,
   *args->add_element() = CreateLabeledValue("then", positive_branch);
   *args->add_element() = CreateLabeledValue("else", negative_branch);
   return CreateCall(conditional_pb, condition);
+}
+
+absl::StatusOr<v0::Value> CreateLambdaForConditional(
+    v0::Value condition, v0::Value positive_branch, v0::Value negative_branch) {
+  v0::Value arg_ref = GENC_TRY(CreateReference("arg"));
+
+  return CreateLambda("arg",
+                      GENC_TRY(CreateConditional(
+                          GENC_TRY(CreateCall(condition, arg_ref)),
+                          GENC_TRY(CreateCall(positive_branch, arg_ref)),
+                          GENC_TRY(CreateCall(negative_branch, arg_ref)))));
 }
 
 absl::StatusOr<v0::Value> CreateInjaTemplate(absl::string_view template_str) {

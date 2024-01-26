@@ -12,6 +12,7 @@ cc_library(
     hdrs = ["constructor.h"],
     deps = [
         "//generative_computing/cc/intrinsics:intrinsic_uris",
+        "//generative_computing/cc/runtime:status_macros",
         "//generative_computing/proto/v0:computation_cc_proto",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",

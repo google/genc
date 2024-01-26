@@ -37,6 +37,19 @@ TEST(ParseThoughtActionTest, OnSuccessReturnsFormatedThoughtActionPair) {
       "Thought: I need to find the square root of 4.\nAction: Math[sqrt(4)]\n");
 }
 
+TEST(ParseThoughtActionTest, CanHandleNewLine) {
+  std::string test_str =
+      "Thought: \nI need to find the square root of 4.\nAction: \n"
+      "Math[sqrt(4)]\nObservation: \n2\n";
+
+  v0::Value input_pb;
+  input_pb.set_str(test_str);
+
+  EXPECT_EQ(
+      ReAct::ParseThoughtAction(input_pb).value().str(),
+      "Thought: I need to find the square root of 4.\nAction: Math[sqrt(4)]\n");
+}
+
 TEST(FormatObservationTest, OnSuccessReturnsFormatedObservation) {
   std::string test_str = "test_obs";
 

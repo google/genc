@@ -108,7 +108,7 @@ absl::StatusOr<v0::Value> ReAct::ParseThoughtAction(v0::Value input) {
   std::string sanitized_input =
       BeforeFirstObservationOrOriginalText(input.str());
   RE2 thought_pattern("Thought:\\s*(?:\n)?(.*?)\n", RE2::Quiet);
-  RE2 action_pattern("Action:\\s*(?:\n)?(.*?)(?:\n)?$", RE2::Quiet);
+  RE2 action_pattern("Action:\\s*(?:\n)?([^\\n]+)", RE2::Quiet);
 
   std::string thought;
   std::string action;

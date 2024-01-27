@@ -95,5 +95,18 @@ TEST(CreateInjaTempalte, ReturnsCorrectComputationProto) {
   EXPECT_EQ(inja_pb.intrinsic().static_parameter().str(), test_template);
 }
 
+TEST(CreateRestCall, ReturnsCorrectComputationProto) {
+  std::string test_api_key = "test_api_key";
+  std::string test_uri = "https://test/uri";
+  v0::Value rest_call_pb = CreateRestCall(test_uri, test_api_key).value();
+  EXPECT_EQ(rest_call_pb.intrinsic().uri(), "rest_call");
+  EXPECT_EQ(
+      rest_call_pb.intrinsic().static_parameter().struct_().element(0).str(),
+      test_uri);
+  EXPECT_EQ(
+      rest_call_pb.intrinsic().static_parameter().struct_().element(1).str(),
+      test_api_key);
+}
+
 }  // namespace
 }  // namespace generative_computing

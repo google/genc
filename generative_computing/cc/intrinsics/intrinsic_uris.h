@@ -129,6 +129,9 @@ inline constexpr absl::string_view kParallelMap = "parallel_map";
 // outputs formatted string.
 inline constexpr absl::string_view kInjaTemplate = "inja_template";
 
+// Represents a REST call.
+inline constexpr absl::string_view kRestCall = "rest_call";
+
 }  // namespace intrinsics
 }  // namespace generative_computing
 

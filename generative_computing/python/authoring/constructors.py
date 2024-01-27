@@ -249,6 +249,19 @@ def create_custom_function(fn_uri):
   return constructor_bindings.create_custom_function(fn_uri)
 
 
+def create_rest_call(uri, api_key):
+  """Constructs a rest call.
+
+  Args:
+    uri: The REST endpoint URI.
+    api_key: The API key.
+
+  Returns:
+    A computation that represents rest call.
+  """
+  return constructor_bindings.create_rest_call(uri, api_key)
+
+
 def create_logger():
   """Constructs a logger expression.
 

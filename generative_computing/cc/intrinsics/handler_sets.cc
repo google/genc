@@ -32,6 +32,7 @@ limitations under the License
 #include "generative_computing/cc/intrinsics/regex_partial_match.h"
 #include "generative_computing/cc/intrinsics/repeat.h"
 #include "generative_computing/cc/intrinsics/repeated_conditional_chain.h"
+#include "generative_computing/cc/intrinsics/rest_call.h"
 #include "generative_computing/cc/intrinsics/serial_chain.h"
 #include "generative_computing/cc/intrinsics/while.h"
 #include "generative_computing/cc/runtime/intrinsic_handler.h"
@@ -59,6 +60,7 @@ std::shared_ptr<IntrinsicHandlerSet> CreateCompleteHandlerSet(
   handlers->AddHandler(new intrinsics::PromptTemplate());
   handlers->AddHandler(new intrinsics::RegexPartialMatch());
   handlers->AddHandler(new intrinsics::Repeat());
+  handlers->AddHandler(new intrinsics::RestCall());
   handlers->AddHandler(new intrinsics::While());
   handlers->AddHandler(new intrinsics::RepeatedConditionalChain());
 

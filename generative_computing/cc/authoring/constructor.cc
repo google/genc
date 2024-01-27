@@ -253,4 +253,22 @@ absl::StatusOr<v0::Value> CreateInjaTemplate(absl::string_view template_str) {
   return value_pb;
 }
 
+absl::StatusOr<v0::Value> CreateRestCall(absl::string_view uri,
+                                         absl::string_view api_key) {
+  v0::Value rest_call_pb;
+  v0::Intrinsic* const intrinsic_pb = rest_call_pb.mutable_intrinsic();
+  intrinsic_pb->set_uri(std::string(intrinsics::kRestCall));
+  v0::Struct* args =
+      intrinsic_pb->mutable_static_parameter()->mutable_struct_();
+  v0::Value* uri_pb = args->add_element();
+  uri_pb->set_label("uri");
+  uri_pb->set_str(std::string(uri));
+
+  v0::Value* api_key_pb = args->add_element();
+  api_key_pb->set_label("api_key");
+  api_key_pb->set_str(std::string(api_key));
+
+  return rest_call_pb;
+}
+
 }  // namespace generative_computing

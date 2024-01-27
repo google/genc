@@ -101,6 +101,7 @@ cc_library(
         ":regex_partial_match",
         ":repeat",
         ":repeated_conditional_chain",
+        ":rest_call",
         ":serial_chain",
         ":while",
         "//generative_computing/cc/runtime:intrinsic_handler",
@@ -299,5 +300,20 @@ cc_library(
         "//generative_computing/proto/v0:computation_cc_proto",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
+    ],
+)
+
+cc_library(
+    name = "rest_call",
+    srcs = ["rest_call.cc"],
+    hdrs = ["rest_call.h"],
+    deps = [
+        ":intrinsic_uris",
+        "//generative_computing/cc/runtime:intrinsic_handler",
+        "//generative_computing/cc/runtime:status_macros",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@curl",
     ],
 )

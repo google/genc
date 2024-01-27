@@ -116,7 +116,11 @@ PYBIND11_MODULE(constructor_bindings, m) {
         "Constructs a computation a fallback chain.");
 
   m.def("create_inja_template", &CreateInjaTemplate,
-        "Returns an inja template that can run encode input string.");
+        "Returns an inja template that encodes a template with input JSON "
+        "string.");
+
+  m.def("create_rest_call", &CreateInjaTemplate,
+        "Returns an operator that makes rest calls");
 }
 
 }  // namespace

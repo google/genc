@@ -39,8 +39,8 @@ absl::StatusOr<v0::Value> CreateConditional(v0::Value condition,
 
 // Creates a conditional expression with parameterized input.
 absl::StatusOr<v0::Value> CreateLambdaForConditional(v0::Value condition,
-                                               v0::Value positive_branch,
-                                               v0::Value negative_branch);
+                                                     v0::Value positive_branch,
+                                                     v0::Value negative_branch);
 
 // Returns a custom function proto with the given fn URI.
 absl::StatusOr<v0::Value> CreateCustomFunction(absl::string_view fn_uri);
@@ -105,6 +105,10 @@ absl::StatusOr<v0::Value> CreateStruct(std::vector<v0::Value> value_list);
 // Creates a while loop with the given condition_fn, body_fn.
 absl::StatusOr<v0::Value> CreateWhile(v0::Value condition_fn,
                                       v0::Value body_fn);
+
+// Creates an operator that calls a rest endpoint using curl.
+absl::StatusOr<v0::Value> CreateRestCall(absl::string_view uri,
+                                         absl::string_view api_key);
 
 // Populate the computation.proto in `intrinsics` to represent a model
 // inference call to a model `model_uri`.

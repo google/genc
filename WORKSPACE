@@ -262,7 +262,7 @@ pip_parse(
     name = "notebooks",
     requirements_lock = "//generative_computing/python/examples/colabs:requirements.txt",
 )
-load("//notebooks//:requirements.bzl", "install_deps")
+load("@notebooks//:requirements.bzl", "install_deps")
 install_deps()
 
 

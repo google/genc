@@ -16,6 +16,7 @@ limitations under the License
 #include "generative_computing/java/src/native/executor_jni.h"
 
 #include "generative_computing/c/runtime/c_api.h"
+#include "generative_computing/c/runtime/gc_buffer.h"
 #include "generative_computing/cc/runtime/executor.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 #include "generative_computing/proto/v0/executor.pb.h"
@@ -88,8 +89,12 @@ JNIEXPORT jlong JNICALL Java_org_generativecomputing_Executor_createValue(
     size_t sz = env->GetArrayLength(value);
     if (sz > 0) {
       jvalue_data = env->GetByteArrayElements(value, nullptr);
-      value_proto.reset(
-          GC_NewBufferFromString(static_cast<void*>(jvalue_data), sz));
+      GC_Buffer* buf = GC_NewBufferFromString(
+          static_cast<void*>(jvalue_data), sz);
+      if (buf == nullptr) {
+        return 0;
+      }
+      value_proto.reset(buf);
     }
   }
   GC_OwnedValueId* owned_value_id =

@@ -27,8 +27,10 @@ GC_Buffer* GC_NewBuffer() { return new GC_Buffer{nullptr, 0, nullptr}; }
 
 GC_Buffer* GC_NewBufferFromString(const void* proto, size_t proto_len) {
   void* copy = malloc(proto_len);
+  if (copy == nullptr) {
+    return nullptr;
+  }
   std::memcpy(copy, proto, proto_len);
-
   GC_Buffer* buf = new GC_Buffer;
   buf->data = copy;
   buf->length = proto_len;

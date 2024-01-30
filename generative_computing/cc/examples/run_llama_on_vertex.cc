@@ -23,13 +23,15 @@ limitations under the License
 #include "absl/flags/parse.h"
 #include "absl/status/statusor.h"
 #include "generative_computing/cc/authoring/constructor.h"
-#include "generative_computing/cc/interop/backends/vertex_ai.h"
 #include "generative_computing/cc/runtime/executor.h"
 #include "generative_computing/cc/runtime/executor_stacks.h"
 #include "generative_computing/cc/runtime/runner.h"
 #include "generative_computing/cc/runtime/status_macros.h"
 #include "generative_computing/proto/v0/computation.pb.h"
-// Demo calling VertexAI as backend.
+
+// Demo calling VertexAI Model Garden as backend.
+// To launch a model on Model Garden https://cloud.google.com/model-garden
+// To get API key run `gcloud auth print-access-token`
 ABSL_FLAG(std::string, api_key, "", "VertexAI Auth Token.");
 
 namespace generative_computing {
@@ -38,17 +40,15 @@ constexpr char kEndPoint[] =
     "https://us-west1-aiplatform.googleapis.com/v1/projects/25764558840/"
     "locations/us-west1/endpoints/462560143758852096:predict";
 
-absl::StatusOr<v0::Value> RunLlamaOnVertex(std::string api_key,
-                                           std::string json_request) {
+absl::StatusOr<v0::Value> RunLlamaOnVertex(std::string json_request) {
+  std::string api_key = absl::GetFlag(FLAGS_api_key);
   std::shared_ptr<Executor> executor = GENC_TRY(CreateDefaultExecutor());
-  v0::Value model_call =
-      GENC_TRY(CreateModelInference("/vertex_ai/model_garden"));
+  v0::Value rest_call = GENC_TRY(CreateRestCall(kEndPoint, api_key));
 
   Runner runner = GENC_TRY(Runner::Create(executor));
-  v0::Value arg =
-      GENC_TRY(VertexAI::CreateRequest(api_key, kEndPoint, json_request));
-
-  return runner.Run(model_call, arg);
+  v0::Value arg;
+  arg.set_str(json_request);
+  return runner.Run(rest_call, arg);
 }
 }  // namespace generative_computing
 
@@ -60,9 +60,8 @@ int main(int argc, char* argv[]) {
       [ { "prompt": "tell me something" }]
     }
   )pb";
-  std::string api_key = absl::GetFlag(FLAGS_api_key);
   generative_computing::v0::Value output =
-      generative_computing::RunLlamaOnVertex(api_key, json_request).value();
+      generative_computing::RunLlamaOnVertex(json_request).value();
   std::cout << output.DebugString() << "\n";
   return 0;
 }

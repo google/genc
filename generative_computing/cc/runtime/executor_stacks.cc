@@ -19,7 +19,6 @@ limitations under the License
 
 #include "absl/status/statusor.h"
 #include "generative_computing/cc/interop/backends/openai.h"
-#include "generative_computing/cc/interop/backends/vertex_ai.h"
 #include "generative_computing/cc/intrinsics/handler_sets.h"
 #include "generative_computing/cc/modules/agents/react.h"
 #include "generative_computing/cc/runtime/control_flow_executor.h"
@@ -38,9 +37,6 @@ absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultExecutor() {
 
   // OAI models
   GENC_TRY(OpenAI::SetInferenceMap(config.model_inference_map));
-
-  // VertexAI models
-  GENC_TRY(VertexAI::SetInferenceMap(config.model_inference_map));
 
   return CreateLocalExecutor(intrinsics::CreateCompleteHandlerSet(config));
 }

@@ -26,7 +26,6 @@ cc_binary(
     srcs = ["run_llama_on_vertex.cc"],
     deps = [
         "//generative_computing/cc/authoring:constructor",
-        "//generative_computing/cc/interop/backends:vertex_ai",
         "//generative_computing/cc/runtime:executor",
         "//generative_computing/cc/runtime:executor_stacks",
         "//generative_computing/cc/runtime:runner",

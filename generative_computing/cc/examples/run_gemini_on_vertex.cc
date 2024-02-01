@@ -22,7 +22,6 @@ limitations under the License
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "absl/status/statusor.h"
-#include "absl/strings/str_cat.h"
 #include "generative_computing/cc/authoring/constructor.h"
 #include "generative_computing/cc/runtime/executor.h"
 #include "generative_computing/cc/runtime/executor_stacks.h"
@@ -75,6 +74,6 @@ int main(int argc, char* argv[]) {
   )pb";
   generative_computing::v0::Value output =
       generative_computing::RunGeminiOnVertex(json_request).value();
-  std::cout << absl::StrCat(output) << "\n";
+  std::cout << output.DebugString() << "\n";
   return 0;
 }

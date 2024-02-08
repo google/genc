@@ -265,4 +265,12 @@ pip_parse(
 load("@notebooks//:requirements.bzl", "install_deps")
 install_deps()
 
+http_archive(
+  name = "llama_cpp",
+  sha256 = "3579a6cca6be61fb4bc34befdb241ac2ea81911fe7848dccd229909de0f6bf10",
+  strip_prefix = "llama.cpp-b2050",
+  urls = ["https://github.com/ggerganov/llama.cpp/archive/refs/tags/b2050.tar.gz"],
+  patches = ["//bazel:llama_cpp.PATCH"],
+  patch_args = ["-p1"],
+)
 

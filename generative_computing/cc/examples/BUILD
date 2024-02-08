@@ -53,3 +53,21 @@ cc_binary(
         "@com_google_absl//absl/strings",
     ],
 )
+
+cc_binary(
+    name = "run_local_model_with_llamacpp",
+    srcs = ["run_local_model_with_llamacpp.cc"],
+    deps = [
+        "//generative_computing/cc/authoring:constructor",
+        "//generative_computing/cc/interop/backends:llamacpp",
+        "//generative_computing/cc/intrinsics:handler_sets",
+        "//generative_computing/cc/runtime:executor",
+        "//generative_computing/cc/runtime:executor_stacks",
+        "//generative_computing/cc/runtime:runner",
+        "//generative_computing/cc/runtime:status_macros",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/status:statusor",
+    ],
+)

@@ -1,0 +1,48 @@
+Subject: [PATCH] Add Bazel files
+
+---
+ BUILD        | 21 +++++++++++++++++++++
+ MODULE.bazel |  4 ++++
+ 2 files changed, 25 insertions(+)
+ create mode 100644 BUILD
+ create mode 100644 MODULE.bazel
+
+diff --git a/BUILD b/BUILD
+new file mode 100644
+index 0000000..cd47b1a
+--- /dev/null
++++ b/BUILD
+@@ -0,0 +1,21 @@
++cc_library(
++    name = "llama_cpp",
++    visibility = ["//visibility:public"],
++    srcs = [
++        "ggml.c",
++        "ggml-alloc.c",
++        "ggml-backend.c",
++        "ggml-quants.c",
++        "llama.cpp",
++    ],
++    hdrs = [
++        "ggml.h",
++        "ggml-alloc.h",
++        "ggml-backend.h",
++        "ggml-backend-impl.h",
++        "ggml-impl.h",
++        "ggml-quants.h",
++        "llama.h",
++        "unicode.h",
++    ],
++)
+diff --git a/MODULE.bazel b/MODULE.bazel
+new file mode 100644
+index 0000000..70ddc3d
+--- /dev/null
++++ b/MODULE.bazel
+@@ -0,0 +1,4 @@
++module(
++    name = "llama_cpp",
++    repo_name = "org_llama_cpp",
++)
+--
+2.43.0.472.g3155946c3a-goog

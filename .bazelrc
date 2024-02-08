@@ -123,6 +123,9 @@ build:verbose_logs --output_filter=
 build:avx_linux --copt=-mavx
 build:avx_linux --host_copt=-mavx
 
+# Needed for llama-cpp
+build:linux --copt=-D_GNU_SOURCE=1
+
 # Options to build TensorFlow 1.x or 2.x.
 build:v1 --define=tf_api_version=1 --action_env=TF2_BEHAVIOR=0
 build:v2 --define=tf_api_version=2 --action_env=TF2_BEHAVIOR=1

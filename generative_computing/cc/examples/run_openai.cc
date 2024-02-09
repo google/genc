@@ -23,7 +23,6 @@ limitations under the License
 #include "absl/flags/parse.h"
 #include "absl/status/statusor.h"
 #include "generative_computing/cc/authoring/constructor.h"
-#include "generative_computing/cc/interop/backends/openai.h"
 #include "generative_computing/cc/runtime/executor.h"
 #include "generative_computing/cc/runtime/executor_stacks.h"
 #include "generative_computing/cc/runtime/runner.h"
@@ -34,28 +33,31 @@ ABSL_FLAG(std::string, api_key, "", "OpenAI API key.");
 
 namespace generative_computing {
 
-constexpr char kEndPoint[] =
-    "https://api.openai.com/v1/engines/davinci/completions";
+constexpr char kEndPoint[] = "https://api.openai.com/v1/completions";
 
-absl::StatusOr<v0::Value> RunOpenAI(std::string api_key,
-                                    std::string json_request) {
+absl::StatusOr<v0::Value> RunOpenAI(std::string json_request) {
   std::shared_ptr<Executor> executor = GENC_TRY(CreateDefaultExecutor());
-  v0::Value model_call = GENC_TRY(CreateModelInference("/openai/chatgpt"));
+  std::string api_key = absl::GetFlag(FLAGS_api_key);
+  v0::Value rest_call = GENC_TRY(CreateRestCall(kEndPoint, api_key));
+
   Runner runner = GENC_TRY(Runner::Create(executor));
-  v0::Value arg =
-      GENC_TRY(OpenAI::CreateRequest(api_key, kEndPoint, json_request));
-  return runner.Run(model_call, arg);
+  v0::Value arg;
+  arg.set_str(json_request);
+  return runner.Run(rest_call, arg);
 }
 }  // namespace generative_computing
 
 int main(int argc, char* argv[]) {
   absl::ParseCommandLine(argc, argv);
   std::string json_request = R"pb(
-    { "prompt": "tell me a story!", "max_tokens": 50 }
+    {
+      "model": "gpt-3.5-turbo-0125",
+      "prompt": "tell me a story!",
+      "max_tokens": 50
+    }
   )pb";
-  std::string api_key = absl::GetFlag(FLAGS_api_key);
   generative_computing::v0::Value output =
-      generative_computing::RunOpenAI(api_key, json_request).value();
+      generative_computing::RunOpenAI(json_request).value();
   std::cout << output.DebugString() << "\n";
   return 0;
 }

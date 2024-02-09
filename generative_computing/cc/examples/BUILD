@@ -9,7 +9,6 @@ cc_binary(
     srcs = ["run_openai.cc"],
     deps = [
         "//generative_computing/cc/authoring:constructor",
-        "//generative_computing/cc/interop/backends:openai",
         "//generative_computing/cc/runtime:executor",
         "//generative_computing/cc/runtime:executor_stacks",
         "//generative_computing/cc/runtime:runner",

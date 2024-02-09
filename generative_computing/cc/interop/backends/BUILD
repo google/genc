@@ -6,19 +6,6 @@ package(
 licenses(["notice"])
 
 cc_library(
-    name = "openai",
-    srcs = ["openai.cc"],
-    hdrs = ["openai.h"],
-    deps = [
-        "//generative_computing/cc/intrinsics:model_inference",
-        "//generative_computing/proto/v0:computation_cc_proto",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@curl",
-    ],
-)
-
-cc_library(
     name = "llamacpp",
     srcs = ["llamacpp.cc"],
     hdrs = ["llamacpp.h"],

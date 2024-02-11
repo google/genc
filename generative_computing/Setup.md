@@ -12,10 +12,10 @@ Quick and easy way to setup environment for GenC is using Docker Container:
 <pre class="prettyprint lang-bsh">
 <code class="devsite-terminal">cd generative_computing </code>
 <code class="devsite-terminal">docker build -t genc . </code>
-<code class="devsite-terminal">docker run -it -v $PWD:/generative_computing genc:latest /bin/bash </code>
+<code class="devsite-terminal">docker run -it -v $PWD:/generative_computing genc:latest /bin/bash -c "cd generative_computing; bash ./setup_android_build_env.sh; /bin/bash" </code>
 </pre>
 
-Note: Check if you have successfully built docker container. Check the active images by running "docker images".
+Note: There will be a (y/N) prompt to accept Android SDK, NDK license as part of docker run, please accept the license. Check if you have successfully built docker container. Check the active images by running "docker images".
 
 ### 3. Test and run examples
 

@@ -22,4 +22,4 @@ jobs:
       - name: Build Docker Container
         run: docker build -t ci:latest $PWD
       - name: Run CI
-        run: docker run --rm -v $PWD:/genc ci:latest bash -c "cd genc; bash ./setup_android_build_env.sh; bazel test generative_computing/..."
+        run: docker run --rm -v $PWD:/genc ci:latest bash -c "cd genc; bash ./setup_android_build_env.sh ~/Android/Sdk ~/Android/Sdk/ndk-bundle r21e --accept-licenses; bazel test generative_computing/..."

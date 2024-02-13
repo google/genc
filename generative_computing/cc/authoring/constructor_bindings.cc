@@ -119,7 +119,7 @@ PYBIND11_MODULE(constructor_bindings, m) {
         "Returns an inja template that encodes a template with input JSON "
         "string.");
 
-  m.def("create_rest_call", &CreateInjaTemplate,
+  m.def("create_rest_call", &CreateRestCall,
         "Returns an operator that makes rest calls");
 }
 

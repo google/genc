@@ -23,42 +23,34 @@ from generative_computing.proto.v0 import computation_pb2 as pb
 from generative_computing.python import authoring
 from generative_computing.python import runtime
 
+# An example that calls OpenAI as part of the computation.
+# bazel run generative_computing/python/examples:openai_demo -- --api_key <key>
 
-_OPENAI_API_KEY = flags.DEFINE_string(
-    "openai_api_key", None, "API key", required=True
-)
+# Note: API key differs from ChatGPT subscription.
+# For key follow https://platform.openai.com/docs/introduction
 
 
-def create_openai_request(
-    api_key: str, endpoint: str, json_request: bytes
-) -> pb.Value:
-  request = pb.Value()
-  args = request.struct
-  args.element.add(label="api_key", str=api_key)
-  args.element.add(label="endpoint", str=endpoint)
-  args.element.add(label="json_request", str=json_request)
-
-  return request
+FLAGS = flags.FLAGS
+flags.DEFINE_string("api_key", None, "API key for OpenAI", required=True)
 
 
 def main(argv: Sequence[str]) -> None:
   if len(argv) > 1:
     raise app.UsageError("Too many command-line arguments.")
-  # send the json request in bytes only
-  sample_request = (
+
+  endpoint = "https://api.openai.com/v1/chat/completions"
+
+  model_call = authoring.create_rest_call(endpoint, FLAGS.api_key)
+  comp = runtime.Runner(comp_pb=model_call)
+
+  request = pb.Value()
+  request.str = (
       b'{"model": "gpt-3.5-turbo", "messages": [{"role": "user", "content":'
       b' "Can you help me know things to do in San Fransisco"}]}'
   )
-  endpoint = "https://api.openai.com/v1/chat/completions"
 
-  openai_arg = create_openai_request(
-      api_key=_OPENAI_API_KEY.value,
-      endpoint=endpoint,
-      json_request=sample_request,
-  )
-  model_call = authoring.create_model("/openai/chatgpt")
-  comp = runtime.Runner(comp_pb=model_call)
-  result = json.loads(comp(openai_arg))
+  result = json.loads(comp(request))
+
   if result.get("error"):
     print(result.get("error"))
   else:

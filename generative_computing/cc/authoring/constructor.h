@@ -108,7 +108,7 @@ absl::StatusOr<v0::Value> CreateWhile(v0::Value condition_fn,
 
 // Creates an operator that calls a rest endpoint using curl.
 absl::StatusOr<v0::Value> CreateRestCall(absl::string_view uri,
-                                         absl::string_view api_key,
+                                         absl::string_view api_key = "",
                                          absl::string_view method = "POST");
 
 // Creates an operator that calls WolframAlpha.

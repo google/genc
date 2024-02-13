@@ -50,8 +50,12 @@ absl::StatusOr<v0::Value> Post(const std::string& api_key,
   curl_easy_setopt(curl, CURLOPT_URL, endpoint.c_str());
 
   struct curl_slist* headers = nullptr;
-  headers =
-      curl_slist_append(headers, ("Authorization: Bearer " + api_key).c_str());
+  // API key can be embedded into the URL. Hence empty.
+  if (!api_key.empty()) {
+    headers = curl_slist_append(headers,
+                                ("Authorization: Bearer " + api_key).c_str());
+  }
+
   headers = curl_slist_append(headers, "Content-Type: application/json");
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 

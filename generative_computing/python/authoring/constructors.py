@@ -261,12 +261,12 @@ def create_wolfram_alpha(appid):
   return constructor_bindings.create_wolfram_alpha(appid)
 
 
-def create_rest_call(uri, api_key, method="POST"):
+def create_rest_call(uri, api_key="", method="POST"):
   """Constructs a rest call.
 
   Args:
     uri: The REST endpoint URI.
-    api_key: The API key.
+    api_key: The API key. Empty string if API is embedded into URI.
     method: currently supports POST, GET
 
   Returns:

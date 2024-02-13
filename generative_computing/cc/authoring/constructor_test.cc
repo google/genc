@@ -102,9 +102,12 @@ TEST(CreateRestCall, ReturnsCorrectComputationProto) {
   EXPECT_EQ(rest_call_pb.intrinsic().uri(), "rest_call");
   EXPECT_EQ(
       rest_call_pb.intrinsic().static_parameter().struct_().element(0).str(),
-      test_uri);
+      "POST");
   EXPECT_EQ(
       rest_call_pb.intrinsic().static_parameter().struct_().element(1).str(),
+      test_uri);
+  EXPECT_EQ(
+      rest_call_pb.intrinsic().static_parameter().struct_().element(2).str(),
       test_api_key);
 }
 

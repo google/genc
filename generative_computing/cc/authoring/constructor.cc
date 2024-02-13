@@ -254,12 +254,17 @@ absl::StatusOr<v0::Value> CreateInjaTemplate(absl::string_view template_str) {
 }
 
 absl::StatusOr<v0::Value> CreateRestCall(absl::string_view uri,
-                                         absl::string_view api_key) {
+                                         absl::string_view api_key,
+                                         absl::string_view method) {
   v0::Value rest_call_pb;
   v0::Intrinsic* const intrinsic_pb = rest_call_pb.mutable_intrinsic();
   intrinsic_pb->set_uri(std::string(intrinsics::kRestCall));
   v0::Struct* args =
       intrinsic_pb->mutable_static_parameter()->mutable_struct_();
+  v0::Value* method_pb = args->add_element();
+  method_pb->set_label("method");
+  method_pb->set_str(std::string(method));
+
   v0::Value* uri_pb = args->add_element();
   uri_pb->set_label("uri");
   uri_pb->set_str(std::string(uri));

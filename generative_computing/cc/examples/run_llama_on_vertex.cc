@@ -32,18 +32,19 @@ limitations under the License
 // Demo calling VertexAI Model Garden as backend.
 // To launch a model on Model Garden https://cloud.google.com/model-garden
 // To get API key run `gcloud auth print-access-token`
+
+// bazle run generative_computing/cc/examples:run_llama_on_vertex --
+// --api_key=<api_key> --endpoint=<model_gardern_endpoint>
 ABSL_FLAG(std::string, api_key, "", "VertexAI Auth Token.");
+ABSL_FLAG(std::string, endpoint, "", "VertexAI Model Garden Endpoint.");
 
 namespace generative_computing {
 
-constexpr char kEndPoint[] =
-    "https://us-west1-aiplatform.googleapis.com/v1/projects/25764558840/"
-    "locations/us-west1/endpoints/462560143758852096:predict";
-
 absl::StatusOr<v0::Value> RunLlamaOnVertex(std::string json_request) {
   std::string api_key = absl::GetFlag(FLAGS_api_key);
+  std::string endpoint = absl::GetFlag(FLAGS_endpoint);
   std::shared_ptr<Executor> executor = GENC_TRY(CreateDefaultExecutor());
-  v0::Value rest_call = GENC_TRY(CreateRestCall(kEndPoint, api_key));
+  v0::Value rest_call = GENC_TRY(CreateRestCall(endpoint, api_key));
 
   Runner runner = GENC_TRY(Runner::Create(executor));
   v0::Value arg;

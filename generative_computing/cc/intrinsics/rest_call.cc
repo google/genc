@@ -20,6 +20,7 @@ limitations under the License
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/str_format.h"
 #include <curl/curl.h>
 #include "generative_computing/cc/runtime/status_macros.h"
 #include "generative_computing/proto/v0/computation.pb.h"
@@ -39,7 +40,7 @@ size_t WriteCallback(void* contents, size_t size, size_t nmemb,
 }
 }  // namespace
 
-absl::StatusOr<v0::Value> Call(const std::string& api_key,
+absl::StatusOr<v0::Value> Post(const std::string& api_key,
                                const std::string& endpoint,
                                const std::string& json_request) {
   CURL* curl = curl_easy_init();
@@ -75,14 +76,42 @@ absl::StatusOr<v0::Value> Call(const std::string& api_key,
   curl_easy_cleanup(curl);
   return response;
 }
+
+// GET request, API key is embedded in the URL.
+absl::StatusOr<v0::Value> Get(const std::string& endpoint) {
+  CURL* curl = curl_easy_init();
+
+  if (curl == nullptr) return absl::InternalError("Unable to init CURL");
+  curl_easy_setopt(curl, CURLOPT_URL, endpoint.c_str());
+
+  v0::Value response;
+  std::string* response_json = response.mutable_str();
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, response_json);
+  curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
+
+  // Send the request
+  CURLcode curl_code = curl_easy_perform(curl);
+
+  // Error out if call fails
+  if (curl_code != CURLE_OK) {
+    return absl::InternalError(curl_easy_strerror(curl_code));
+  }
+
+  // Cleanup, free resource and return
+  curl_easy_cleanup(curl);
+  return response;
+}
+
 }  // namespace
 
 namespace intrinsics {
 absl::Status RestCall::CheckWellFormed(
     const v0::Intrinsic& intrinsic_pb) const {
-  if (intrinsic_pb.static_parameter().struct_().element_size() != 2) {
+  if (intrinsic_pb.static_parameter().struct_().element_size() < 2) {
     return absl::InvalidArgumentError(
-        "Expect RestCall contians URL and API key, missing parameters.");
+        "Expect RestCall contians URL (required) and API key (optional), "
+        "method (default to POST when not set), missing parameters.");
   }
   return absl::OkStatus();
 }
@@ -90,14 +119,26 @@ absl::Status RestCall::CheckWellFormed(
 absl::Status RestCall::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
                                    const v0::Value& arg,
                                    v0::Value* result) const {
-  const std::string& url =
-      intrinsic_pb.static_parameter().struct_().element(0).str();
-  const std::string& api_key =
-      intrinsic_pb.static_parameter().struct_().element(1).str();
-  const std::string& json_request_str = arg.str();
+  const v0::Struct& args = intrinsic_pb.static_parameter().struct_();
+  const std::string& method = args.element(0).str();
+  const std::string& url = args.element(1).str();
 
-  *result = GENC_TRY(Call(api_key, url, json_request_str));
-  return absl::OkStatus();
+  if (method == kRestCallGet) {
+    *result = GENC_TRY(Get(url));
+    return absl::OkStatus();
+  }
+
+  if (method == kRestCallPost) {
+    const std::string& api_key =
+        intrinsic_pb.static_parameter().struct_().element(2).str();
+    const std::string& json_request_str = arg.str();
+
+    *result = GENC_TRY(Post(api_key, url, json_request_str));
+    return absl::OkStatus();
+  }
+
+  return absl::InvalidArgumentError(
+      absl::StrFormat("Unsupported RestCall method: %s", method));
 }
 
 }  // namespace intrinsics

@@ -24,6 +24,9 @@ limitations under the License
 namespace generative_computing {
 namespace intrinsics {
 
+constexpr char kRestCallPost[] = "POST";
+constexpr char kRestCallGet[] = "GET";
+
 // For making REST calls.
 class RestCall : public InlineIntrinsicHandlerBase {
  public:

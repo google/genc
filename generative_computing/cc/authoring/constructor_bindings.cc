@@ -121,6 +121,9 @@ PYBIND11_MODULE(constructor_bindings, m) {
 
   m.def("create_rest_call", &CreateRestCall,
         "Returns an operator that makes rest calls");
+
+  m.def("create_wolfram_alpha", &CreateWolframAlpha,
+        "Returns an operator that makes calls to WolframAlpha ShortAnswer API");
 }
 
 }  // namespace

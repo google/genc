@@ -249,6 +249,18 @@ def create_custom_function(fn_uri):
   return constructor_bindings.create_custom_function(fn_uri)
 
 
+def create_wolfram_alpha(appid):
+  """Constructs a call to WolframAlpha.
+
+  Args:
+    appid: appid for WolframAlpha.
+
+  Returns:
+    A computation that represents a call to WolframAlpha.
+  """
+  return constructor_bindings.create_wolfram_alpha(appid)
+
+
 def create_rest_call(uri, api_key, method="POST"):
   """Constructs a rest call.
 

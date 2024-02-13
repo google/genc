@@ -104,6 +104,7 @@ cc_library(
         ":rest_call",
         ":serial_chain",
         ":while",
+        "//generative_computing/cc/modules/tools:wolfram_alpha",
         "//generative_computing/cc/runtime:intrinsic_handler",
     ],
 )

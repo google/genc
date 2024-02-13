@@ -276,4 +276,13 @@ absl::StatusOr<v0::Value> CreateRestCall(absl::string_view uri,
   return rest_call_pb;
 }
 
+absl::StatusOr<v0::Value> CreateWolframAlpha(absl::string_view appid) {
+  v0::Value wolfram_alpha_pb;
+  v0::Intrinsic* const intrinsic_pb = wolfram_alpha_pb.mutable_intrinsic();
+  intrinsic_pb->set_uri(std::string(intrinsics::kWolframAlpha));
+  intrinsic_pb->mutable_static_parameter()->set_str(std::string(appid));
+  intrinsic_pb->mutable_static_parameter()->set_label("appid");
+  return wolfram_alpha_pb;
+}
+
 }  // namespace generative_computing

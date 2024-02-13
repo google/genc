@@ -111,5 +111,13 @@ TEST(CreateRestCall, ReturnsCorrectComputationProto) {
       test_api_key);
 }
 
+TEST(CreateWolframAlpha, ReturnsCorrectComputationProto) {
+  std::string test_appid = "test_appid";
+
+  v0::Value wolfram_alpha_pb = CreateWolframAlpha(test_appid).value();
+  EXPECT_EQ(wolfram_alpha_pb.intrinsic().uri(), "wolfram_alpha");
+  EXPECT_EQ(wolfram_alpha_pb.intrinsic().static_parameter().str(), test_appid);
+}
+
 }  // namespace
 }  // namespace generative_computing

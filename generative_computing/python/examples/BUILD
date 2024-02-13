@@ -31,3 +31,13 @@ py_binary(
         "//generative_computing/python/runtime",
     ],
 )
+
+py_binary(
+    name = "tools_wolfram_demo",
+    srcs = ["tools_wolfram_demo.py"],
+    deps = [
+        "//generative_computing/proto/v0:computation_py_pb2",
+        "//generative_computing/python/authoring",
+        "//generative_computing/python/runtime",
+    ],
+)

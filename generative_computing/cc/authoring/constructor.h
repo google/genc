@@ -111,6 +111,9 @@ absl::StatusOr<v0::Value> CreateRestCall(absl::string_view uri,
                                          absl::string_view api_key,
                                          absl::string_view method = "POST");
 
+// Creates an operator that calls WolframAlpha.
+absl::StatusOr<v0::Value> CreateWolframAlpha(absl::string_view appid);
+
 // Populate the computation.proto in `intrinsics` to represent a model
 // inference call to a model `model_uri`.
 void SetModelInference(v0::Value& computation, absl::string_view model_uri);

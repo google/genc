@@ -132,6 +132,9 @@ inline constexpr absl::string_view kInjaTemplate = "inja_template";
 // Represents a REST call.
 inline constexpr absl::string_view kRestCall = "rest_call";
 
+// Represents a WolframAlpha Call.
+inline constexpr absl::string_view kWolframAlpha = "wolfram_alpha";
+
 }  // namespace intrinsics
 }  // namespace generative_computing
 

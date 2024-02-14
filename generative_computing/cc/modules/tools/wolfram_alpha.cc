@@ -47,9 +47,10 @@ absl::StatusOr<std::string> CallShortAnswersAPI(const std::string& app_id,
   if (curl == nullptr) return absl::InternalError("Unable to init CURL");
 
   char* escaped_query = curl_easy_escape(curl, query.c_str(), 0);
+
   std::string url =
-      "http://api.wolframalpha.com/v1/result?i=" + std::string(escaped_query) +
-      "&appid=" + app_id + "&output=json&format=plaintext";
+      "http://api.wolframalpha.com/v2/query?appid=" + app_id +
+      "&output=json&includepodid=Result&input=" + std::string(escaped_query);
 
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);

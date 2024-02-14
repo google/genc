@@ -103,3 +103,21 @@ cc_binary(
         "@com_google_absl//absl/status:statusor",
     ],
 )
+
+cc_binary(
+    name = "math_tool_agent",
+    srcs = ["math_tool_agent.cc"],
+    deps = [
+        "//generative_computing/cc/authoring:constructor",
+        "//generative_computing/cc/authoring:smart_chain",
+        "//generative_computing/cc/runtime:executor",
+        "//generative_computing/cc/runtime:executor_stacks",
+        "//generative_computing/cc/runtime:runner",
+        "//generative_computing/cc/runtime:status_macros",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings:string_view",
+    ],
+)

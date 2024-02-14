@@ -111,6 +111,7 @@ cc_library(
         ":status_macros",
         "//generative_computing/cc/intrinsics:handler_sets",
         "//generative_computing/cc/modules/agents:react",
+        "//generative_computing/cc/modules/parsers:gemini_parser",
         "//generative_computing/cc/modules/retrieval:local_cache",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/status:statusor",

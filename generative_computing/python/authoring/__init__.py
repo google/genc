@@ -23,6 +23,7 @@ from generative_computing.python.authoring.constructors import create_lambda_fro
 from generative_computing.python.authoring.constructors import create_logger
 from generative_computing.python.authoring.constructors import create_logical_not
 from generative_computing.python.authoring.constructors import create_model
+from generative_computing.python.authoring.constructors import create_model_with_config
 from generative_computing.python.authoring.constructors import create_named_value
 from generative_computing.python.authoring.constructors import create_parallel_map
 from generative_computing.python.authoring.constructors import create_prompt_template

@@ -29,6 +29,19 @@ def create_model(model_uri):
   return constructor_bindings.create_model(model_uri)
 
 
+def create_model_with_config(model_uri, model_config):
+  """Creates a model computation with the given model URI and model config.
+
+  Args:
+    model_uri: The URI of the model.
+    model_config: The config for the model.
+
+  Returns:
+    A computation that represents the model.
+  """
+  return constructor_bindings.create_model(model_uri, model_config)
+
+
 def create_prompt_template(template_str):
   """Creates a prompt template computation with the given template string.
 

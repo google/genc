@@ -96,6 +96,7 @@ cc_library(
         ":logger",
         ":logical_not",
         ":model_inference",
+        ":model_inference_with_config",
         ":parallel_map",
         ":prompt_template",
         ":regex_partial_match",
@@ -132,6 +133,22 @@ cc_library(
     name = "model_inference",
     srcs = ["model_inference.cc"],
     hdrs = ["model_inference.h"],
+    deps = [
+        ":intrinsic_uris",
+        "//generative_computing/cc/runtime:intrinsic_handler",
+        "//generative_computing/cc/runtime:status_macros",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_library(
+    name = "model_inference_with_config",
+    srcs = ["model_inference_with_config.cc"],
+    hdrs = ["model_inference_with_config.h"],
     deps = [
         ":intrinsic_uris",
         "//generative_computing/cc/runtime:intrinsic_handler",

@@ -66,6 +66,10 @@ absl::StatusOr<v0::Value> CreateLogicalNot();
 // Returns a model inference proto with the given model URI.
 absl::StatusOr<v0::Value> CreateModelInference(absl::string_view model_uri);
 
+// Returns a model inference proto with the given model URI and model config.
+absl::StatusOr<v0::Value> CreateModelInferenceWithConfig(
+    absl::string_view model_uri, v0::Value model_config);
+
 // Creates a parallel map that applies map_fn to a all input values.
 absl::StatusOr<v0::Value> CreateParallelMap(v0::Value map_fn);
 

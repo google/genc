@@ -52,6 +52,10 @@ PYBIND11_MODULE(constructor_bindings, m) {
   m.def("create_model", &CreateModelInference,
         "Creates a model computation with the given model URI.");
 
+  m.def("create_model_with_config", &CreateModelInferenceWithConfig,
+        "Creates a model computation with the given model URI and model "
+        "configuration.");
+
   m.def(
       "create_prompt_template", &CreatePromptTemplate,
       "Creates a prompt template computation with the given template string.");

@@ -64,6 +64,13 @@ inline constexpr absl::string_view kLogicalNot = "logical_not";
 // Takes one dynamic string parameter, which serves as the input to the model.
 inline constexpr absl::string_view kModelInference = "model_inference";
 
+// Calls a model for inference.
+// Takes one static struct_ parameter containing 'model_uri' of a string type
+// and 'model_config' of a string or struct_ type.
+// Takes one dynamic string parameter, which serves as the input to the model.
+inline constexpr absl::string_view kModelInferenceWithConfig =
+        "model_inference_with_config";
+
 // Calls a user defined custom function.
 // Takes one static parameter "fn_uri" of a string type.
 // Takes one dynamic value parameter, which serves as the input to the function.

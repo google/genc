@@ -22,6 +22,7 @@ limitations under the License
 #include "generative_computing/cc/intrinsics/custom_function.h"
 #include "generative_computing/cc/intrinsics/delegate.h"
 #include "generative_computing/cc/intrinsics/model_inference.h"
+#include "generative_computing/cc/intrinsics/model_inference_with_config.h"
 #include "generative_computing/cc/runtime/intrinsic_handler.h"
 
 namespace generative_computing {
@@ -29,7 +30,10 @@ namespace intrinsics {
 
 struct HandlerSetConfig {
   Delegate::RunnerMap delegate_map;
+  // TODO(b/325090417): Consolidate model_inference_map and
+  // model_inference_with_config_map into one map.
   ModelInference::InferenceMap model_inference_map;
+  ModelInferenceWithConfig::InferenceMap model_inference_with_config_map;
   CustomFunction::FunctionMap custom_function_map;
   std::vector<const IntrinsicHandler*> custom_intrinsics_list;
 };

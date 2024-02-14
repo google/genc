@@ -17,10 +17,13 @@ limitations under the License
 
 #include <string>
 
+#include "testing/base/public/gmock.h"
 #include "googletest/include/gtest/gtest.h"
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/statusor.h"
 #include "generative_computing/proto/v0/computation.pb.h"
+
+using testing::EqualsProto;
 
 namespace generative_computing {
 
@@ -54,6 +57,66 @@ TEST(CreateModelInferenceTest, ReturnsCorrectModelInferenceProto) {
   v0::Value model_pb = CreateModelInference(test_model_uri).value();
   EXPECT_EQ(model_pb.intrinsic().uri(), "model_inference");
   EXPECT_EQ(model_pb.intrinsic().static_parameter().str(), test_model_uri);
+}
+
+TEST(CreateModelInferenceWithConfigTest,
+     ReturnsCorrectModelInferenceWithStructConfigProto) {
+  std::string test_model_uri = "test_model_uri";
+  std::string test_config_1 =  "test_config_1";
+  std::string test_config_2 =  "test_config_2";
+
+  v0::Value model_config_pb;
+  v0::Struct* model_config_struct =
+      model_config_pb.mutable_struct_();
+  v0::Value* element_1 = model_config_struct->add_element();
+  element_1->set_label("config_1");
+  element_1->set_str(test_config_1);
+  v0::Value* element_2 = model_config_struct->add_element();
+  element_2->set_label("config_2");
+  element_2->set_str(test_config_2);
+
+  v0::Value model_pb = CreateModelInferenceWithConfig(
+      test_model_uri, model_config_pb).value();
+  EXPECT_EQ(model_pb.intrinsic().uri(), "model_inference_with_config");
+
+  EXPECT_EQ(
+      model_pb.intrinsic().static_parameter().struct_().element(0).label(),
+      "model_uri");
+  EXPECT_EQ(
+      model_pb.intrinsic().static_parameter().struct_().element(0).str(),
+      test_model_uri);
+  EXPECT_EQ(
+      model_pb.intrinsic().static_parameter().struct_().element(1).label(),
+      "model_config");
+  EXPECT_THAT(
+      model_pb.intrinsic().static_parameter().struct_().element(1).struct_(),
+      EqualsProto(model_config_pb.struct_()));
+}
+
+TEST(CreateModelInferenceWithConfigTest,
+     ReturnsCorrectModelInferenceWithStringConfigProto) {
+  std::string test_model_uri = "test_model_uri";
+  std::string test_config_str =  "test_config";
+
+  v0::Value model_config_pb;
+  model_config_pb.set_str(test_config_str);
+
+  v0::Value model_pb = CreateModelInferenceWithConfig(
+      test_model_uri, model_config_pb).value();
+  EXPECT_EQ(model_pb.intrinsic().uri(), "model_inference_with_config");
+
+  EXPECT_EQ(
+      model_pb.intrinsic().static_parameter().struct_().element(0).label(),
+      "model_uri");
+  EXPECT_EQ(
+      model_pb.intrinsic().static_parameter().struct_().element(0).str(),
+      test_model_uri);
+  EXPECT_EQ(
+      model_pb.intrinsic().static_parameter().struct_().element(1).label(),
+      "model_config");
+  EXPECT_THAT(
+      model_pb.intrinsic().static_parameter().struct_().element(1).str(),
+      test_config_str);
 }
 
 TEST(CreateCustomFunctionTest, ReturnsCorrectCustomFunctionProto) {

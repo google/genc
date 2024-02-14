@@ -63,6 +63,28 @@ void SetModelInference(v0::Value& computation, absl::string_view model_uri) {
   intrinsic_pb->mutable_static_parameter()->set_str(std::string(model_uri));
 }
 
+absl::StatusOr<v0::Value> CreateModelInferenceWithConfig(
+    absl::string_view model_uri, v0::Value model_config) {
+  v0::Value model_pb;
+  v0::Intrinsic* const intrinsic_pb = model_pb.mutable_intrinsic();
+  intrinsic_pb->set_uri(std::string(intrinsics::kModelInferenceWithConfig));
+  v0::Struct* args =
+      intrinsic_pb->mutable_static_parameter()->mutable_struct_();
+  v0::Value* model_uri_pb = args->add_element();
+  model_uri_pb->set_label("model_uri");
+  model_uri_pb->set_str(std::string(model_uri));
+
+  v0::Value* model_config_pb = args->add_element();
+  model_config_pb->set_label("model_config");
+  if (model_config.has_struct_()) {
+    *model_config_pb->mutable_struct_() = model_config.struct_();
+  } else if (model_config.has_str()) {
+    model_config_pb->set_str(model_config.str());
+  }
+
+  return model_pb;
+}
+
 absl::StatusOr<v0::Value> CreateCustomFunction(absl::string_view fn_uri) {
   v0::Value fn_pb;
   v0::Intrinsic* const intrinsic_pb = fn_pb.mutable_intrinsic();

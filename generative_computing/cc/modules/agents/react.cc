@@ -75,7 +75,7 @@ absl::StatusOr<v0::Value> ReAct::ExtractMathQuestion(v0::Value input) {
   RE2::PartialMatch(input.str(), math_pattern, &math_question);
 
   v0::Value result;
-  result.set_str("what is the result of:" + math_question);
+  result.set_str(math_question);
   return result;
 }
 

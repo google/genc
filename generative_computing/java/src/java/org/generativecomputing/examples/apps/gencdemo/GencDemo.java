@@ -25,14 +25,8 @@ import android.widget.TextView;
 import com.google.protobuf.ExtensionRegistryLite;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import org.chromium.net.CronetEngine;
 import org.generativecomputing.Runner;
 import org.generativecomputing.Value;
-import src.java.org.generativecomputing.interop.backends.openai.OpenAiClient;
-import src.java.org.generativecomputing.interop.network.CronetEngineProvider;
-import src.java.org.generativecomputing.interop.network.HttpClientImpl;
 
 /** Main activity for the GencDemo app. */
 public class GencDemo extends Activity {
@@ -41,14 +35,11 @@ public class GencDemo extends Activity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
-    cronetEngine = CronetEngineProvider.createCronetEngine(getApplicationContext());
-    cronetCallbackExecutorService = Executors.newFixedThreadPool(4);
-    httpClient = new HttpClientImpl(cronetEngine, cronetCallbackExecutorService);
-    openAiClient = new OpenAiClient(httpClient, OPENAI_SERVER_URL, OPEN_AI_API_KEY);
     try {
       InputStream stream = new FileInputStream("/data/local/tmp/openai_chatgpt.pb");
       Value computation = Value.parseFrom(stream, getExtensionRegistry());
-      runner = Runner.create(computation, createAndroidExecutor(openAiClient));
+      executor = new DefaultAndroidExecutor(getApplicationContext());
+      runner = Runner.create(computation, executor.getExecutorHandle());
     } catch (Exception e) {
       Log.e("GencDemo", e.toString());
     }
@@ -66,12 +57,10 @@ public class GencDemo extends Activity {
         new View.OnClickListener() {
           @Override
           public void onClick(View view) {
-            String newText = query.getText().toString();
-            Value val = Value.newBuilder().setStr(newText).build();
-            Value[] args = {val};
+            String text = query.getText().toString();
             String responseString = "";
             try {
-              responseString = runner.call(args);
+              responseString = runner.call(text);
             } catch (RuntimeException e) {
               Log.e("GencDemo", e.toString());
             }
@@ -89,35 +78,15 @@ public class GencDemo extends Activity {
 
   @Override
   public void onDestroy() {
-    cleanupAndroidExecutorState();
+    executor.cleanupAndroidExecutor();
     super.onDestroy();
   }
-
-  public CronetEngine getCronetEngine() {
-    return cronetEngine;
-  }
-
-  public OpenAiClient openAiClient;
 
   // Returns best available ExtensionRegistry.
   public static ExtensionRegistryLite getExtensionRegistry() {
     return ExtensionRegistryLite.getEmptyRegistry();
   }
 
-  private static final String OPENAI_SERVER_URL = "https://api.openai.com/v1/chat/completions";
-  // Fill in the OpenAI API key.
-  private static final String OPEN_AI_API_KEY = "";
-
-  private CronetEngine cronetEngine;
-  private ExecutorService cronetCallbackExecutorService;
-  private HttpClientImpl httpClient;
+  private DefaultAndroidExecutor executor;
   private Runner runner;
-
-  private native long createAndroidExecutor(OpenAiClient openAiClient);
-
-  private native long cleanupAndroidExecutorState();
-
-  static {
-    System.loadLibrary("app");
-  }
 }

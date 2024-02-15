@@ -13,6 +13,7 @@ exports_files(
         "Executor.java",
         "OwnedValueId.java",
         "Runner.java",
+        "ToFromValueProto.java",
         "ValueId.java",
     ],
     visibility = ["//visibility:public"],
@@ -24,6 +25,7 @@ android_library(
     deps = [
         ":executor",
         ":owned_value_id",
+        ":to_from_value_proto",
         "//generative_computing/proto/v0:computation_java_proto_lite",
         "//generative_computing/proto/v0:executor_java_proto_lite",
     ],
@@ -55,6 +57,12 @@ android_library(
 android_library(
     name = "value_id",
     srcs = ["//generative_computing/java/src/java/org/generativecomputing:ValueId.java"],
+)
+
+android_library(
+    name = "to_from_value_proto",
+    srcs = ["//generative_computing/java/src/java/org/generativecomputing:ToFromValueProto.java"],
+    deps = ["//generative_computing/proto/v0:computation_java_proto_lite"],
 )
 
 cc_library(

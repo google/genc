@@ -42,7 +42,7 @@ GC_Executor* GC_create_android_executor(JavaVM* jvm, JNIEnv* env,
 }
 
 extern "C" jlong
-Java_org_generativecomputing_examples_apps_gencdemo_GencDemo_createAndroidExecutor(  // NOLINT
+Java_org_generativecomputing_examples_apps_gencdemo_DefaultAndroidExecutor_createAndroidExecutor(  // NOLINT
     JNIEnv* env, jobject obj, jobject open_ai_client) {
   JavaVM* jvm;
   env->GetJavaVM(&jvm);
@@ -51,7 +51,7 @@ Java_org_generativecomputing_examples_apps_gencdemo_GencDemo_createAndroidExecut
 }
 
 extern "C" void
-Java_org_generativecomputing_examples_apps_gencdemo_GencDemo_cleanupAndroidExecutorState(  // NOLINT
+Java_org_generativecomputing_examples_apps_gencdemo_DefaultAndroidExecutor_cleanupAndroidExecutorState(  // NOLINT
     JNIEnv* env, jobject obj) {
   if (open_ai_client_global_ref != nullptr) {
     env->DeleteGlobalRef(open_ai_client_global_ref);

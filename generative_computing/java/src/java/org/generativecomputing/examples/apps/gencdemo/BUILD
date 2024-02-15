@@ -12,6 +12,7 @@ package_group(
 android_library(
     name = "lib",
     srcs = [
+        "DefaultAndroidExecutor.java",
         "GencDemo.java",
     ],
     custom_package = "org.generativecomputing.examples.apps.gencdemo",

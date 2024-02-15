@@ -17,11 +17,6 @@ package org.generativecomputing;
 
 /** */
 final class Executor {
-  public static Executor create() {
-    long nativeHandle = createDefaultLocalExecutor();
-    return new Executor(nativeHandle);
-  }
-
   public static Executor create(long executorHandle) {
     return new Executor(executorHandle);
   }
@@ -51,8 +46,6 @@ final class Executor {
   }
 
   private final long nativeHandle;
-
-  private static native long createDefaultLocalExecutor();
 
   private static native long createValue(long nativeHandle, byte[] value);
 

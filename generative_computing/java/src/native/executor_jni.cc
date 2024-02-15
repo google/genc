@@ -71,12 +71,6 @@ GC_Executor* requireHandle(JNIEnv* env, jlong handle) {
 
 }  // namespace
 
-JNIEXPORT jlong JNICALL
-Java_org_generativecomputing_Executor_createDefaultLocalExecutor(JNIEnv* env,
-                                                                 jclass clazz) {
-  return reinterpret_cast<jlong>(GC_create());
-}
-
 JNIEXPORT jlong JNICALL Java_org_generativecomputing_Executor_createValue(
     JNIEnv* env, jclass clazz, jlong executor_handle, jbyteArray value) {
   GC_Executor* gc_executor = requireHandle(env, executor_handle);

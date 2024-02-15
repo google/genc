@@ -22,10 +22,6 @@ limitations under the License
 extern "C" {
 #endif
 
-JNIEXPORT jlong JNICALL
-Java_org_generativecomputing_Executor_createDefaultLocalExecutor(JNIEnv *,
-                                                                 jclass);
-
 JNIEXPORT jlong JNICALL Java_org_generativecomputing_Executor_createValue(
     JNIEnv *, jclass, jlong, jbyteArray);
 

@@ -17,24 +17,18 @@ package org.generativecomputing;
 
 /** Interface for running Generative Computing computations. */
 public final class Runner {
-  public static Runner create(Value computation) {
-    return new Runner(computation, Executor.create());
-  }
-
   public static Runner create(Value computation, long executorHandle) {
     return new Runner(computation, Executor.create(executorHandle));
   }
 
-  public String call(Value[] args) {
-    if (args.length != 1) {
-      throw new IllegalArgumentException("Input args should be exactly size 1");
-    }
-    OwnedValueId argVal = this.executor.createValue(args[0]);
+  public String call(String str) {
+    Value value = ToFromValueProto.toValueProto(str);
+    OwnedValueId argVal = this.executor.createValue(value);
     OwnedValueId resultVal = this.executor.createCall(this.computationVal.ref(), argVal.ref());
     Value result = this.executor.materialize(resultVal.ref());
     this.executor.dispose(argVal.ref());
     this.executor.dispose(resultVal.ref());
-    return result.getStr();
+    return ToFromValueProto.fromValueProto(result);
   }
 
   private Runner(Value computation, Executor executor) {

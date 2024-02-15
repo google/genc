@@ -20,6 +20,12 @@ py_binary(
 )
 
 py_binary(
+    name = "langchain_agent_demo",
+    srcs = ["langchain_agent_demo.py"],
+    deps = ["//generative_computing"],
+)
+
+py_binary(
     name = "openai_demo",
     srcs = ["openai_demo.py"],
     visibility = [

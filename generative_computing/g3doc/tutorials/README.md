@@ -15,17 +15,26 @@ What you can find in this directory:
     This tutorial builds on the one above, and shows how to drive the decision
     which model in the cascade to use by a custom routing function based on the
     on-device LLM evaluating the sensitivity of the input query.
+*   [**Tutorial 2.** Custom model routing function based on a scorer](tutorial_2_custom_routing.ipynb).
+    This tutorial builds on the one above, and shows how to drive the decision
+    which model in the cascade to use by a custom routing function based on the
+    on-device LLM evaluating the sensitivity of the input query.
 
 *   [**Tutorial 3.** Custom Runtime & Tools](tutorial_3_custom_runtime.ipynb).
     GenC can be customized to become your own SDK. This is a more advanced
     tutorial to illustrate how to setup custom runtime, define your own custom
     functions, and add new operators to the system.
 
-*   [**Tutorial 4.** Math Tool Agent](tutorial_4_math_tool_agent.ipynb). This
-    tutorial builds on Tutorial 3, and show how you can combine ReAct reasoning
-    loop, tool use, with the custom operators you created.
+*   [**Tutorial 4** Math Tool Agent](tutorial_4_math_tool_agent.ipynb).
+    This tutorial builds on Tutorial 3, and show how you can combine ReAct
+    reasoning loop, tool use, with the custom operators you created.
 
 *   [**Tutorial 5.** LangChain Agent](tutorial_5_langchain_agent.ipynb). This
     tutorial builds on Tutorial 4, it's focused on interoperability with
     LangChain. It demonstrates with GenC building blocks, you can combine
     LangChain interface and robust C++ runtime from GenC.
+
+*   [**Tutorial 6.** Port Agent to Android](tutorial_6_android_agent.ipynb).
+    This tutorial builds on Tutorial 4 or 5. It takes the agent created by 4 or
+    5, and shows that it can be ported to android via GenC's intermediate
+    representation.

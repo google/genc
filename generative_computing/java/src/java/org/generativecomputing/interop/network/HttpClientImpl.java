@@ -74,10 +74,8 @@ public class HttpClientImpl implements HttpClient {
 
   private String createHttpRequestUrl(HttpRequest httpRequest, HttpOptions httpOptions) {
     Uri.Builder uriBuilder = Uri.parse(httpOptions.getUrl()).buildUpon();
-    if (httpOptions.getHttpMethod() == HttpOptions.HttpMethod.GET) {
-      for (HttpRequest.QueryParam queryParam : httpRequest.getQueryParamsList()) {
-        uriBuilder.appendQueryParameter(queryParam.getParam(), queryParam.getValue());
-      }
+    for (HttpRequest.QueryParam queryParam : httpRequest.getQueryParamsList()) {
+      uriBuilder.appendQueryParameter(queryParam.getParam(), queryParam.getValue());
     }
     return uriBuilder.toString();
   }

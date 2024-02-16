@@ -36,8 +36,6 @@ namespace generative_computing {
 
 namespace {
 constexpr absl::string_view kTestModelUri = "/cloud/testing";
-}  // namespace
-
 absl::StatusOr<std::string> AsString(const json& value) {
   if (!value.is_string()) {
     return absl::Status(absl::StatusCode::kInvalidArgument,
@@ -45,6 +43,7 @@ absl::StatusOr<std::string> AsString(const json& value) {
   }
   return value.get<std::string>();
 }
+}  // namespace
 
 // Creates an OpenAI chat completion request using chat completions API, sends
 // it to on-device OpenAI client which sends the request to OpenAI server.

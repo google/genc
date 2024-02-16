@@ -36,7 +36,7 @@ public class GencDemo extends Activity {
     setContentView(R.layout.activity_main);
 
     try {
-      InputStream stream = new FileInputStream("/data/local/tmp/openai_chatgpt.pb");
+      InputStream stream = new FileInputStream("/data/local/tmp/google_ai_gemini.pb");
       Value computation = Value.parseFrom(stream, getExtensionRegistry());
       executor = new DefaultAndroidExecutor(getApplicationContext());
       runner = Runner.create(computation, executor.getExecutorHandle());

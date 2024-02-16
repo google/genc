@@ -13,21 +13,18 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#ifndef GENERATIVE_COMPUTING_CC_RUNTIME_ANDROID_ANDROID_EXECUTOR_STACKS_H_
-#define GENERATIVE_COMPUTING_CC_RUNTIME_ANDROID_ANDROID_EXECUTOR_STACKS_H_
+#ifndef GENERATIVE_COMPUTING_JAVA_SRC_JAVA_ORG_GENERATIVECOMPUTING_INTEROP_BACKENDS_GOOGLEAI_JNI_GOOGLE_AI_CLIENT_JNI_H_
+#define GENERATIVE_COMPUTING_JAVA_SRC_JAVA_ORG_GENERATIVECOMPUTING_INTEROP_BACKENDS_GOOGLEAI_JNI_GOOGLE_AI_CLIENT_JNI_H_
 
 #include <jni.h>
 
-#include <memory>
-
-#include "absl/status/statusor.h"
-#include "generative_computing/cc/runtime/executor.h"
+#include <string>
 
 namespace generative_computing {
 
-absl::StatusOr<std::shared_ptr<Executor>> CreateAndroidExecutor(
-    JavaVM* jvm, jobject open_ai_client, jobject google_ai_client);
+std::string CallGoogleAiClient(JavaVM *jvm, jobject google_ai_client,
+                               std::string model_config, std::string request);
 
-}  // namespace generative_computing
+}
 
-#endif  // GENERATIVE_COMPUTING_CC_RUNTIME_ANDROID_ANDROID_EXECUTOR_STACKS_H_
+#endif  // GENERATIVE_COMPUTING_JAVA_SRC_JAVA_ORG_GENERATIVECOMPUTING_INTEROP_BACKENDS_GOOGLEAI_JNI_GOOGLE_AI_CLIENT_JNI_H_

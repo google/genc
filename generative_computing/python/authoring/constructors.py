@@ -39,7 +39,7 @@ def create_model_with_config(model_uri, model_config):
   Returns:
     A computation that represents the model.
   """
-  return constructor_bindings.create_model(model_uri, model_config)
+  return constructor_bindings.create_model_with_config(model_uri, model_config)
 
 
 def create_prompt_template(template_str):

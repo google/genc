@@ -23,6 +23,7 @@ android_library(
         "//generative_computing/java/src/java/org/generativecomputing:native",
         "//generative_computing/java/src/java/org/generativecomputing:runner",
         "//generative_computing/java/src/java/org/generativecomputing/examples/apps/gencdemo/lib:jni",
+        "//generative_computing/java/src/java/org/generativecomputing/interop/backends/googleai:google_ai_client",
         "//generative_computing/java/src/java/org/generativecomputing/interop/backends/openai:open_ai_client",
         "//generative_computing/java/src/java/org/generativecomputing/interop/network:cronet_engine_provider",
         "//generative_computing/java/src/java/org/generativecomputing/interop/network:http_client",

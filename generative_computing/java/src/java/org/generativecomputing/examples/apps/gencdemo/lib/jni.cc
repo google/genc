@@ -25,29 +25,37 @@ namespace generative_computing {
 
 namespace {
 static jobject open_ai_client_global_ref = nullptr;
+static jobject google_ai_client_global_ref = nullptr;
 }  // namespace
 
 GC_Executor* GC_create_android_executor(JavaVM* jvm, JNIEnv* env,
-                                        jobject open_ai_client) {
-  // Create global reference for open_ai_client to refer from native threads.
+                                        jobject open_ai_client,
+                                        jobject google_ai_client) {
+  // Create global references to refer from native threads.
   open_ai_client_global_ref = env->NewGlobalRef(open_ai_client);
   if (open_ai_client_global_ref == nullptr) {
     LOG(ERROR) << "Couldn't create global reference for OpenAI client";
     return nullptr;
   }
+  google_ai_client_global_ref = env->NewGlobalRef(google_ai_client);
+  if (google_ai_client_global_ref == nullptr) {
+    LOG(ERROR) << "Couldn't create global reference for GoogleAI client";
+    return nullptr;
+  }
   auto lamda_executor = generative_computing::CreateAndroidExecutor(
-      jvm, open_ai_client_global_ref);
+      jvm, open_ai_client_global_ref, google_ai_client_global_ref);
   GC_Executor* e = new GC_Executor(lamda_executor.value());
   return e;
 }
 
 extern "C" jlong
 Java_org_generativecomputing_examples_apps_gencdemo_DefaultAndroidExecutor_createAndroidExecutor(  // NOLINT
-    JNIEnv* env, jobject obj, jobject open_ai_client) {
+    JNIEnv* env, jobject obj, jobject open_ai_client,
+    jobject google_ai_client) {
   JavaVM* jvm;
   env->GetJavaVM(&jvm);
   return reinterpret_cast<jlong>(
-      GC_create_android_executor(jvm, env, open_ai_client));
+      GC_create_android_executor(jvm, env, open_ai_client, google_ai_client));
 }
 
 extern "C" void

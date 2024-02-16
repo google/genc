@@ -83,5 +83,4 @@ message HttpRequest {
 // An HttpResponse from an HttpClient.
 message HttpResponse {
   optional bytes response = 1;
-  // optional string content_type = 2;
 }

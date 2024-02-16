@@ -18,6 +18,7 @@ from generative_computing.python.authoring.constructors import create_call
 from generative_computing.python.authoring.constructors import create_conditional
 from generative_computing.python.authoring.constructors import create_custom_function
 from generative_computing.python.authoring.constructors import create_fallback
+from generative_computing.python.authoring.constructors import create_inja_template
 from generative_computing.python.authoring.constructors import create_lambda
 from generative_computing.python.authoring.constructors import create_lambda_from_fn
 from generative_computing.python.authoring.constructors import create_logger

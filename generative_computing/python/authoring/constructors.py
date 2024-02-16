@@ -306,6 +306,18 @@ def create_logical_not():
   return constructor_bindings.create_logical_not()
 
 
+def create_inja_template(template):
+  """Constructs a Inja Template.
+
+  Args:
+    template: string representing the template.
+
+  Returns:
+    A computation that represents a Inja Template.
+  """
+  return constructor_bindings.create_inja_template(template)
+
+
 def create_repeated_conditional_chain(num_steps, function_list):
   """Constructs a repeated conditionalchain expression.
 

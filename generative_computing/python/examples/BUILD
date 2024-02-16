@@ -47,3 +47,9 @@ py_binary(
         "//generative_computing/python/runtime",
     ],
 )
+
+py_binary(
+    name = "math_tool_agent",
+    srcs = ["math_tool_agent.py"],
+    deps = ["//generative_computing"],
+)

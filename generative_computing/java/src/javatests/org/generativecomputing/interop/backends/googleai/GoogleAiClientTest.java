@@ -57,8 +57,20 @@ public final class GoogleAiClientTest {
   public static final String KEY_AUTHORIZATION = "Authorization";
   private static final String AUTHORIZATION_HEADER_PREFIX = "Bearer ";
   private static final String TEST_ACCESS_TOKEN = "test-access-token";
-  private static final String TEST_REQUEST = "test-request";
+  private static final String TEST_REQUEST = "tell me more";
   private static final String TEST_RESPONSE = "test-response-data";
+  private static final String JSON_REQUEST_TEMPLATE =
+      "{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Write the first line of a"
+          + " story about a magic backpack.\"}]},{\"role\": \"model\",\"parts\":[{\"text\":"
+          + "\"In the bustling city of Meadow brook, lived a young girl named Sophie. She was a"
+          + " bright and curious soul with an imaginative mind.\"}]},{\"role\": \"user\","
+          + "\"parts\":[{\"text\":\"\"}]}]}";
+  private static final String EXPECTED_REQUEST =
+      "{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Write the first line of a story"
+          + " about a magic backpack.\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"In the"
+          + " bustling city of Meadow brook, lived a young girl named Sophie. She was a bright and"
+          + " curious soul with an imaginative"
+          + " mind.\"}]},{\"role\":\"user\",\"parts\":[{\"text\":\"tell me more\"}]}]}";
 
   @Before
   public void setUp() {
@@ -100,7 +112,7 @@ public final class GoogleAiClientTest {
 
   @Test
   public void googleAiClient_successfulCallWithApiKey() {
-    HttpRequest expectedHttpRequest = createExpectedHttpRequestWithPostBody(TEST_REQUEST, true);
+    HttpRequest expectedHttpRequest = createExpectedHttpRequestWithPostBody(EXPECTED_REQUEST, true);
     HttpOptions expectedHttpOptions = createExpectedHttpOptions(false);
     byte[] expectedResponseBytes = TEST_RESPONSE.getBytes(UTF_8);
     HttpResponse responseProto =
@@ -113,6 +125,8 @@ public final class GoogleAiClientTest {
         Struct.newBuilder()
             .addElement(Value.newBuilder().setLabel("endpoint").setStr(TEST_URL))
             .addElement(Value.newBuilder().setLabel("api_key").setStr(TEST_API_KEY))
+            .addElement(
+                Value.newBuilder().setLabel("json_request_template").setStr(JSON_REQUEST_TEMPLATE))
             .build();
     Struct intrinsicStruct =
         Struct.newBuilder()
@@ -141,7 +155,8 @@ public final class GoogleAiClientTest {
 
   @Test
   public void googleAiClient_successfulCallWithAccessToken() {
-    HttpRequest expectedHttpRequest = createExpectedHttpRequestWithPostBody(TEST_REQUEST, false);
+    HttpRequest expectedHttpRequest =
+        createExpectedHttpRequestWithPostBody(EXPECTED_REQUEST, false);
     HttpOptions expectedHttpOptions = createExpectedHttpOptions(true);
     byte[] expectedResponseBytes = TEST_RESPONSE.getBytes(UTF_8);
     HttpResponse responseProto =
@@ -154,6 +169,8 @@ public final class GoogleAiClientTest {
         Struct.newBuilder()
             .addElement(Value.newBuilder().setLabel("endpoint").setStr(TEST_URL))
             .addElement(Value.newBuilder().setLabel("access_token").setStr(TEST_ACCESS_TOKEN))
+            .addElement(
+                Value.newBuilder().setLabel("json_request_template").setStr(JSON_REQUEST_TEMPLATE))
             .build();
     Struct intrinsicStruct =
         Struct.newBuilder()

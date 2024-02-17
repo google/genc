@@ -157,7 +157,7 @@ maven_install(
         "androidx.test.espresso:espresso-intents:3.5.0",
         "com.android.support:appcompat-v7:28.0.0",
         "com.google.code.findbugs:jsr305:3.0.2",
-        "com.google.code.gson:gson:2.8.9",
+        "com.google.code.gson:gson:2.10.1",
         "com.google.guava:guava:31.1-android",
         "com.google.guava:listenablefuture:1.0",
         "com.google.flogger:flogger-system-backend:0.6",

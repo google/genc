@@ -14,11 +14,19 @@ limitations under the License
 ==============================================================================*/
 package src.java.org.generativecomputing.interop.backends.googleai;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.ExtensionRegistryLite;
 import com.google.protobuf.InvalidProtocolBufferException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import org.generativecomputing.Value;
 import src.java.org.generativecomputing.interop.network.HttpClientImpl;
 import src.java.org.generativecomputing.interop.network.api.proto.HttpOptions;
@@ -35,6 +43,15 @@ public final class GoogleAiClient {
   private static final String CONTENT_TYPE = "application/json";
   public static final String KEY_AUTHORIZATION = "Authorization";
   private static final String AUTHORIZATION_HEADER_PREFIX = "Bearer ";
+  private static final String KEY_QUERY_PARAM_API_KEY = "key";
+
+  private static final String KEY_API_KEY = "api_key";
+  private static final String KEY_ACCESS_TOKEN = "access_token";
+  private static final String KEY_ENDPOINT = "endpoint";
+  private static final String KEY_JSON_REQUEST_TEMPLATE = "json_request_template";
+  private static final String KEY_JSON_REQUEST_TEMPLATE_CONTENTS = "contents";
+  private static final String KEY_JSON_REQUEST_TEMPLATE_TEXT = "text";
+  private static final String KEY_JSON_REQUEST_TEMPLATE_PARTS = "parts";
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private final HttpClientImpl httpClient;
@@ -69,11 +86,62 @@ public final class GoogleAiClient {
     HttpRequest.Builder httpRequestBuilder = HttpRequest.newBuilder();
     if (apiKey != null && !apiKey.isEmpty()) {
       httpRequestBuilder.addQueryParams(
-          HttpRequest.QueryParam.newBuilder().setParam("key").setValue(apiKey).build());
+          HttpRequest.QueryParam.newBuilder()
+              .setParam(KEY_QUERY_PARAM_API_KEY)
+              .setValue(apiKey)
+              .build());
     }
     httpRequestBuilder.setPostBody(
         HttpRequest.PostBody.newBuilder().setData(ByteString.copyFrom(request)).build());
     return httpRequestBuilder.build();
+  }
+
+  private static Map<String, String> getConfigSettings(Value config) {
+    Map<String, String> configSettings = new HashMap<>();
+    for (int i = 0; i < config.getStruct().getElementCount(); i++) {
+      configSettings.put(
+          config.getStruct().getElement(i).getLabel(), config.getStruct().getElement(i).getStr());
+    }
+    return configSettings;
+  }
+
+  private boolean isValidConfigSettings(Map<String, String> configSettings, String modelUri) {
+    if ((!configSettings.containsKey(KEY_ENDPOINT) || configSettings.get(KEY_ENDPOINT).isEmpty())
+        || (!configSettings.containsKey(KEY_JSON_REQUEST_TEMPLATE)
+            || configSettings.get(KEY_JSON_REQUEST_TEMPLATE).isEmpty())
+        || (!configSettings.containsKey(KEY_API_KEY)
+            && !configSettings.containsKey(KEY_ACCESS_TOKEN))
+        || (configSettings.containsKey(KEY_API_KEY) && configSettings.get(KEY_API_KEY).isEmpty())
+        || (configSettings.containsKey(KEY_ACCESS_TOKEN)
+            && configSettings.get(KEY_ACCESS_TOKEN).isEmpty())) {
+      logger.atSevere().log(
+          "For model uri: %s, required config settings were not provided. Expected 'endpoint',"
+              + " 'json_request_template', and one of 'api_key' or 'access_token'. Found: %s",
+          modelUri, Arrays.asList(configSettings));
+      return false;
+    }
+    return true;
+  }
+
+  private String updateJsonRequest(String jsonRequestTemplate, String requestStr) {
+    // Parse the JSON string
+    JsonObject jsonObject = JsonParser.parseString(jsonRequestTemplate).getAsJsonObject();
+
+    // Get the "contents" array
+    JsonArray contentsArray = jsonObject.getAsJsonArray(KEY_JSON_REQUEST_TEMPLATE_CONTENTS);
+
+    // Find the last occurrence of "contents" and update its last occurence of "parts" with "text"
+    // object
+    for (int i = contentsArray.size() - 1; i >= 0; i--) {
+      JsonObject item = contentsArray.get(i).getAsJsonObject();
+      JsonArray partsArray = item.getAsJsonArray(KEY_JSON_REQUEST_TEMPLATE_PARTS);
+      JsonObject lastPartObject = partsArray.get(partsArray.size() - 1).getAsJsonObject();
+      lastPartObject.addProperty(KEY_JSON_REQUEST_TEMPLATE_TEXT, requestStr);
+      break;
+    }
+
+    // Convert the modified JsonObject back to a JSON string
+    return jsonObject.toString();
   }
 
   // Returns best available ExtensionRegistry.
@@ -100,31 +168,24 @@ public final class GoogleAiClient {
     }
     Value modelUri = modelConfigProto.getIntrinsic().getStaticParameter().getStruct().getElement(0);
     Value config = modelConfigProto.getIntrinsic().getStaticParameter().getStruct().getElement(1);
-    Value endpoint = config.getStruct().getElement(0);
-    Value authenticationToken = config.getStruct().getElement(1);
-    String url = endpoint.getStr();
-    if (url.isEmpty()) {
-      logger.atSevere().log(
-          "For model uri: %s, endpoint uri is empty in model config: %s",
-          modelUri, modelConfigProto);
+    Map<String, String> configSettings = getConfigSettings(config);
+
+    if (!isValidConfigSettings(configSettings, modelUri.getStr())) {
       return response;
-    }
-    String apiKey = "";
-    String accessToken = "";
-    if (authenticationToken.getLabel().equals("api_key")) {
-      apiKey = authenticationToken.getStr();
-    } else if (authenticationToken.getLabel().equals("access_token")) {
-      accessToken = authenticationToken.getStr();
     }
 
-    if (apiKey.isEmpty() && accessToken.isEmpty()) {
-      logger.atSevere().log(
-          "For model uri: %s, expected one of api_key or access_token to be set. Found none: %s",
-          modelUri, modelConfigProto);
-      return response;
-    }
-    HttpOptions httpOptions = createHttpOptions(url, accessToken, HttpOptions.HttpMethod.POST);
-    HttpRequest httpRequest = createHttpRequestWithPostBody(apiKey, request);
+    String endpoint = configSettings.get(KEY_ENDPOINT);
+    String apiKey = configSettings.get(KEY_API_KEY);
+    String accessToken = configSettings.get(KEY_ACCESS_TOKEN);
+    String jsonRequestTemplate = configSettings.get(KEY_JSON_REQUEST_TEMPLATE);
+
+    // Parse string out of request
+    String requestStr = new String(request, UTF_8);
+    String updatedRequestStr = updateJsonRequest(jsonRequestTemplate, requestStr);
+    byte[] updatedRequestBytes = updatedRequestStr.getBytes(UTF_8);
+
+    HttpOptions httpOptions = createHttpOptions(endpoint, accessToken, HttpOptions.HttpMethod.POST);
+    HttpRequest httpRequest = createHttpRequestWithPostBody(apiKey, updatedRequestBytes);
 
     try {
       logger.atInfo().log(

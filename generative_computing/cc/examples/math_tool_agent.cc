@@ -61,8 +61,7 @@ ABSL_FLAG(std::string, api_key, "", "Gemini API Auth Token.");
 ABSL_FLAG(std::string, appid, "", "WolframAlpha AppId");
 
 namespace generative_computing {
-
-absl::string_view kInstructionTemplate =
+constexpr char kInstructionTemplate[] =
     "Solve a question answering task with interleaving Thought, Action, "
     "Observation steps.\n"
     "Thought can reason about the current situation\n"

@@ -6,5 +6,8 @@ py_library(
     visibility = [
         "//generative_computing:__subpackages__",
     ],
-    deps = ["//generative_computing/python/interop/langchain"],
+    deps = [
+        "//generative_computing/python/interop/gemini",
+        "//generative_computing/python/interop/langchain",
+    ],
 )

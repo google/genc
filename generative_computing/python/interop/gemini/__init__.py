@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Interop libraries."""
+"""Interop libraries for Gemini."""
 
-from generative_computing.python.interop import gemini
-from generative_computing.python.interop import langchain
+from generative_computing.python.interop.gemini.create_config import create_config

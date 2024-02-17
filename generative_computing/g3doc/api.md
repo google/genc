@@ -191,4 +191,100 @@ via JNI and adapting them for usage from within Java.
 
 ## Runtime APIs
 
+The runtime API picks up where the authoring API left off, by taking IR, and
+translating it into a callable object that can be used like a regular function.
+This API is organized around two key concepts:
+
+* **Executor** is a GenC system component that's responsible for execution of
+  the IR, taking to various backends, potentially interacting with executors
+  on other machines, etc. An application that uses GenC will typically setup
+  an executor once, and then reuse it for all execution afterwards. Executors
+  are not associated with any concrete piece of IR.
+
+* **Runner** is a callable object that wraps around a concrete piece of IR and
+  a concrete executor, and handles all aspects of execution, possibly including
+  translation between Java or Python arguments and results and internal GenC
+  data structures (with the exception of C++, where no such translation is done
+  as we presume that customers using C++ prefer to operate at a lower level).
+
+The typical flow at runtime looks as follows:
+
+* Construct an executor instance at the beginning, e.g., while initializing the
+application.
+* Load one or more pieces of IR, and construct the runners for each.
+* Use these runners afterwards as a regular callables.
+
+Note that in GenC, runtime itself is modular, and thus constructing executors
+is also done via GenC APIs; those are discussed in the extensibility section
+below. In order to facilitate simple developer experience for first-time users,
+we provide a handle of sample runtime constructors for various environments
+that can be constructed with one-line calls, and come with a set of dependencies
+sufficient to run examples in all the tutorials. For more advances uses, one
+may wish to setup their own runtime executors; see below for how to do this.
+
+The remaining details are language-specific, albeit we strive for consistency;
+see the following subsections for further details and examples of usage.
+
+### Python runtime API
+
+A version of a runner for Python (e.g., for use in Colab) is defined in
+[python/runtime/runner.py](../../python/runtime/runner.py). It takes IR as the
+first, and executor as the second optional argument. A one-liner executor
+constructor that can be used for all the tutorials and examples is provided in
+[TODO]().
+
+TODO add a proper default Python executor constructor above and below
+
+Here's a code snippet that illustrates example usage:
+
+```
+executor = ...
+portable_ir = genc.authoring.create_model('test_model')
+runner = genc.runtime.Runner(portable_ir, executor)
+python_result = runner('Boo!')
+```
+
+### Java runtime API
+
+A version of a runner for Java (e.g., for use on Android) is defined in
+[java/src/java/org/generativecomputing/Runner.java]
+(../../java/src/java/org/generativecomputing/Runner.java). Similarly to its
+Python counterpart, its constructor takes IR and an executor. A one-liner
+executor constructor that can be used for the tutorials and examples to run
+on Android is provided in
+[java/src/java/org/generativecomputing/examples/apps/gencdemo/DefaultAndroidExecutor.java]
+(../../java/src/java/org/generativecomputing/examples/apps/gencdemo/DefaultAndroidExecutor.java). As noted above, you can setup a custom executor
+using extensibility APIs discussed below.
+
+Here's a code snippet that illustrates example usage:
+
+```
+executor = new DefaultAndroidExecutor(getApplicationContext());
+InputStream stream = new FileInputStream("/data/local/tmp/portable_ir.pb");
+Value portable_ir = Value.parseFrom(stream, getExtensionRegistry());
+runner = Runner.create(portable_ir, executor.getExecutorHandle());
+...
+javaResult = runner.call(javaArgument);
+```
+
+### C++ runtime API
+
+TODO add a proper default C++ executor constructor above and below
+
+The C++ version of a runner is defined in
+[cc/runtime/runner.h](../../cc/runtime/runner.h). Unlike its Python and Java
+counterparts, this runner requires the caller to provide arguments and consume
+results in the form of GenC protos.
+
+Here's a code snippet that illustrates example usage:
+
+```
+std::shared_ptr<Executor> executor = GENC_TRY(CreateDefaultExecutor());
+v0::Value portable_ir = ...
+Runner runner = GENC_TRY(Runner::Create(portable_ir, executor));
+v0::Value arg;
+arg.set_str("Boo!");
+result = runner.Run(portable_ir, arg);
+```
+
 ## Extensibility APIs

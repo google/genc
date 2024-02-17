@@ -28,11 +28,20 @@ class ToFromValueProtoTest(absltest.TestCase):
 
   def test_something(self):
     self._roundtrip_test(10)
-    self._roundtrip_test('a')
+    self._roundtrip_test("a")
     self._roundtrip_test(True)
     self._roundtrip_test(0.5)
-    self._roundtrip_test(['foo', 99])
+    self._roundtrip_test(["foo", 99])
+
+  def test_dict_to_value_proto(self):
+    arg = {"key_1": "value_1", "key_2": "value_2"}
+    val_pb = to_from_value_proto.to_value_proto(arg)
+    self.assertIsInstance(val_pb, pb.Value)
+    reconstructed_arg = {}
+    for element in val_pb.struct.element:
+      reconstructed_arg[element.label] = element.str
+    self.assertEqual(arg, reconstructed_arg)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
   absltest.main()

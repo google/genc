@@ -16,7 +16,9 @@
 from absl.testing import absltest
 from langchain import chains
 from langchain import prompts
+
 from generative_computing.python import authoring
+from generative_computing.python.base import to_from_value_proto
 from generative_computing.python.interop.langchain import create_computation
 from generative_computing.python.interop.langchain import custom_chain
 from generative_computing.python.interop.langchain import custom_model
@@ -32,6 +34,18 @@ class CreateComputationTest(absltest.TestCase):
         create_computation.create_computation(llm),
     ]:
       expected_comp = authoring.create_model("some_model")
+      self.assertEqual(str(comp), str(expected_comp))
+
+  def test_model_with_config(self):
+    config = {"key_1": "value_1", "key_2": "value_2"}
+    llm = custom_model.CustomModel(uri="some_model", config=config)
+    for comp in [
+        create_computation.create_computation_from_llm(llm),
+        create_computation.create_computation(llm),
+    ]:
+      expected_comp = authoring.create_model_with_config(
+          "some_model", to_from_value_proto.to_value_proto(config)
+      )
       self.assertEqual(str(comp), str(expected_comp))
 
   def test_prompt_template(self):

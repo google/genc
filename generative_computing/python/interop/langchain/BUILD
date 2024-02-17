@@ -31,6 +31,7 @@ py_library(
         ":custom_model",
         ":model_cascade",
         "//generative_computing/python/authoring",
+        "//generative_computing/python/base:to_from_value_proto",
     ],
 )
 
@@ -43,6 +44,7 @@ py_test(
         ":custom_model",
         ":model_cascade",
         "//generative_computing/python/authoring",
+        "//generative_computing/python/base:to_from_value_proto",
     ],
 )
 

@@ -15,7 +15,9 @@
 
 import langchain
 from langchain import agents
+
 from generative_computing.python import authoring
+from generative_computing.python.base import to_from_value_proto
 from generative_computing.python.interop.langchain import custom_chain
 from generative_computing.python.interop.langchain import custom_model
 from generative_computing.python.interop.langchain import model_cascade
@@ -37,6 +39,10 @@ def create_computation_from_llm(llm):
   if isinstance(llm, custom_model.CustomModel):
     if not llm.uri:
       raise ValueError("Model URI is required.")
+    if llm.config:
+      return authoring.create_model_with_config(
+          llm.uri, to_from_value_proto.to_value_proto(llm.config)
+      )
     return authoring.create_model(llm.uri)
   elif isinstance(llm, model_cascade.ModelCascade):
     return authoring.create_fallback(

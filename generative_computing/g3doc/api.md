@@ -288,3 +288,148 @@ result = runner.Run(portable_ir, arg);
 ```
 
 ## Extensibility APIs
+
+As noted above, GenC runtime itself is modular and configurable, and a power
+user may want to use the APIs described in this section to configure it to suit
+their needs (as opposed to using the example one-liner constructors as in the
+tutorials or some of the earlier examples listed above).
+
+The extensibility surface spoans several layers, and is organized around the
+following key concepts:
+
+* **Executors** are the heart of the runtime, and are responsible for executing
+  the IR. In principle, an executor is anything that implements
+  [cc/runtime/executor.h](../../cc/runtime/executor.h). Even for a customized
+  runtime, executors are generally constructed by a `CreateLocalExecutor` call
+  defined in [cc/runtime/executor_stacks.h](../../cc/runtime/executor_stacks.h);
+  the argument to this call is a set of *handlers* (see below). If desired, one
+  may provide their own implementation of an executor, but in most cases, we
+  don't expect this to be necessary (except if planning, e.g., to interoperate
+  with legacy runtime infrastructure, etc.).
+
+* **Handlers** are pluggable modules responsible for implementing specific types
+  of operators that may appear in the IR, such as model inference calls, custom
+  function calls, control flow abstractions, etc. One can setup the runtime with
+  an arbitrary set of operators, including their own custom operators, or with
+  some operators removed to simplify runtime dependencies. This is achieved by
+  passing an appropriate set of handlers. In most situations, a set of handlers
+  will be created by a call `CreateCompleteHandlerSet` defined in
+  [cc/intrinsics/handler_sets.h](../../cc/intrinsics/handler_sets.h); the
+  argument to this call is a structure that contains customizable configuration
+  for the commonly used types of handlers. The call above creates a set of
+  handlers for all known operators included in the GenC codebase. If you want to
+  add your own handlers, you can simply include them in the handler_set_config
+  in the `custom_intrinsics_list`. If you want to create a handler set with only
+  certain handlers included (e.g., for a more streamlined runtime), this is
+  also quite easy - simply see how this is achieved in
+  [cc/intrinsics/handler_sets.cc](../../cc/intrinsics/handler_sets.cc).
+
+* **Inference map** is one of the fields in the handler config that configures
+  the processing of `model_inference` calls. It's a map in which keys are the
+  model names (those that can appear in the IR), and values are C++ callables
+  that take a model prompt at input and return the result of the model inference
+  call at output. You will want to customize the inference map when setting up
+  custom model backends.
+
+* **Custom function map** is likewise a mapping from custom function names that
+  may appear in the IR to C++ handlers that contain their implementations. The
+  same custom function can be implemented differently depending on the
+  environment. Implementations of commonly used custom functions are included
+  in the [cc/modules](../../cc/modules/) directory.
+
+* **Delegate map** is a mapping from the names of runtime environments to the
+  C++ callables that delegate processing to those environments. This may be set,
+  e.g., in an on-device executor to delegate entire segments of IR to run in
+  cloud. You will not need to set this if you're running locally.
+
+Here's an example snippet of C++ code from
+[cc/runtime/android/android_executor_stacks.cc]
+(../../cc/runtime/android/android_executor_stacks.cc)
+that puts these concepts in action. Note that we use all the runtime constructor
+calls mentioned above (`CreateCompleteHandlerSet` and `CreateLocalExecutor`),
+and the only thing that's being customized is the handler config. The two calls
+below simply register handlers for Open AI and Gemini models in the config to
+enable routing those calls from IR when deployed on Android.
+
+```
+absl::StatusOr<std::shared_ptr<Executor>> CreateAndroidExecutor(
+    JavaVM* jvm, jobject open_ai_client, jobject google_ai_client) {
+  intrinsics::HandlerSetConfig config;
+  SetOpenAiModelInferenceHandler(
+      &config, jvm, open_ai_client, kOpenAIModelUri);
+  SetGoogleAiModelInferenceHandler(
+      &config, jvm, google_ai_client, kGeminiModelUri);
+  return CreateLocalExecutor(intrinsics::CreateCompleteHandlerSet(config));
+}
+```
+
+Now, as noted above, GenC enables you to add your own custom operators to the
+system. Before you do that, you may want to review the list of operators that
+already exist. Those are documented in
+[cc/intrinsics/intrinsic_uris.h](../../cc/intrinsics/intrinsic_uris.h), and
+their implementations are contained in the same directory (in
+[cc/intrinsics](../../cc/intrinsics/)).
+
+Adding a new operator requires simply implementing one of two handler interfces
+defined in
+[cc/runtime/intrinsic_handler.h](../../cc/runtime/intrinsic_handler.h), either
+by deriving from the `InlineIntrinsicHandlerBase` for operators that simply
+want to process data in-and-out, or from `ControlFlowIntrinsicHandlerBase` for
+custom control flow and other general type of operators.
+
+The former type (i.e., *inline*) operators simply take and return the `Value`
+proto (defined in
+[proto/v0/computation.proto](../../proto/v0/computation.proto)). This is the
+same proto used to define the IR. In addition, the handler that implements it
+has access to the piece of IR where the operator is being used, and that may
+contain an optional static parameter.
+
+Below is an example snippet of code for the logical not operator:
+
+```
+absl::Status LogicalNot::ExecuteCall(
+    const v0::Intrinsic& intrinsic_pb,
+    const v0::Value& arg,
+    v0::Value* result) const {
+  if (!arg.has_boolean()) {
+    return absl::InvalidArgumentError("Argument does not contain boolean.");
+  }
+  result->set_boolean(!arg.boolean());
+  return absl::OkStatus();
+}
+```
+
+The latter type (i.e., *control flow*) operators can perform arbitrary types of
+processing. These operators are given access to the full executor interface (as
+defined in [cc/runtime/executor.h](../../cc/runtime/executor.h)) for the
+executor in which they've been installed as *context*. This is more complex to
+use compared to working with protos that come in-and-out, but it provides an
+unrestricted ability to orchestrate processing from within the body of the
+custom operator (see [cc/runtime/executor.h](../../cc/runtime/executor.h) for
+the type of calls these operators can make).
+
+Below is an example snippet of code for the conditional operator:
+
+```
+absl::StatusOr<ControlFlowIntrinsicHandlerInterface::ValueRef>
+Conditional::ExecuteCall(
+    const v0::Intrinsic& intrinsic_pb,
+    std::optional<ValueRef> arg,
+    Context* context) const {
+  if (!arg.has_value()) {
+    return absl::InvalidArgumentError("Missing condition.");
+  }
+  v0::Value cond_pb;
+  GENC_TRY(context->Materialize(arg.value(), &cond_pb));
+  if (!cond_pb.has_boolean()) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Condition is not a Boolean: ", cond_pb.DebugString()));
+  }
+  return context->CreateValue(cond_pb.boolean()
+      ? intrinsic_pb.static_parameter().struct_().element(0)
+      : intrinsic_pb.static_parameter().struct_().element(1));
+}
+```
+
+Similarly to the authoring surface, extensibility APIs for languages other than
+C++ are provided by lifting the C++ API via `pybind11` and `JNI``.

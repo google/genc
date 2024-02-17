@@ -224,6 +224,8 @@ cc_test(
     name = "runner_test",
     srcs = ["runner_test.cc"],
     deps = [
+        ":executor",
+        ":executor_stacks",
         ":runner",
         "//generative_computing/cc/authoring:constructor",
         "//generative_computing/proto/v0:computation_cc_proto",

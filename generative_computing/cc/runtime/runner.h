@@ -28,18 +28,42 @@ namespace generative_computing {
 // Runner that runs arbitrary computation proto.
 class Runner final {
  public:
-  // Creates a Runner with a default local executor.
+  // Creates a Runner with a default local executor and no computation.
+  // The computation will have to be provided in the `Run` call.
   static absl::StatusOr<Runner> CreateDefault();
 
-  // Creates a Runner with custom executor.
+  // Creates a Runner with a custom executor and no computation.
+  // The computation will have to be provided in the `Run` call.
   static absl::StatusOr<Runner> Create(std::shared_ptr<Executor> executor);
 
-  // Runs the computation & returns the resulting value.
+  // Creates a Runner with a default executor and a computation.
+  // The subsequent `Run` calls will all use the computation provided here.
+  static absl::StatusOr<Runner> Create(v0::Value computation);
+
+  // Creates a Runner with a custom executor and a computation.
+  // The subsequent `Run` calls will all use the computation provided here.
+  static absl::StatusOr<Runner> Create(v0::Value computation,
+                                       std::shared_ptr<Executor> executor);
+
+  // Runs the computation supplied in the constructor and returns the
+  // resulting value. Note that if no computation was provided in the
+  // constructor, this call will fail.
+  absl::StatusOr<v0::Value> Run(v0::Value arg);
+
+  // Runs the computation supplied below as an argument and returns the
+  // resulting value. Note that if a computation was already provided in the
+  // constructor, this call will fail.
   absl::StatusOr<v0::Value> Run(v0::Value computation, v0::Value arg);
 
  private:
-  Runner(std::shared_ptr<Executor> executor) : executor_(executor) {}
+  Runner(std::shared_ptr<v0::Value> computation,
+         std::shared_ptr<Executor> executor)
+            : computation_or_null_(computation),
+              executor_(executor) {}
 
+  absl::StatusOr<v0::Value> RunInternal(v0::Value computation, v0::Value arg);
+
+  std::shared_ptr<v0::Value> computation_or_null_;
   std::shared_ptr<Executor> executor_;
 };
 

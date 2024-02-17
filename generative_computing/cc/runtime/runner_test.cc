@@ -15,9 +15,13 @@ limitations under the License
 
 #include "generative_computing/cc/runtime/runner.h"
 
+#include <memory>
+
 #include "googletest/include/gtest/gtest.h"
 #include "absl/status/statusor.h"
 #include "generative_computing/cc/authoring/constructor.h"
+#include "generative_computing/cc/runtime/executor.h"
+#include "generative_computing/cc/runtime/executor_stacks.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 
 namespace generative_computing {
@@ -30,6 +34,48 @@ TEST(RunnerTest, ModelRunReturnsValue) {
   arg.set_str("Boo!");
 
   absl::StatusOr<v0::Value> result = runner.Run(comp_pb, arg);
+  EXPECT_EQ(result.value().str(),
+            "This is an output from a test model in response to \"Boo!\".");
+}
+
+TEST(RunnerTest, ModelRunReturnsValueCompInConstructor) {
+  v0::Value comp_pb = CreateModelInference("test_model").value();
+  Runner runner = Runner::Create(comp_pb).value();
+
+  v0::Value arg;
+  arg.set_str("Boo!");
+
+  absl::StatusOr<v0::Value> result = runner.Run(arg);
+  EXPECT_EQ(result.value().str(),
+            "This is an output from a test model in response to \"Boo!\".");
+}
+
+TEST(RunnerTest, ModelRunReturnsValueRuntimeInConstructor) {
+  absl::StatusOr<std::shared_ptr<Executor>> executor =
+      CreateDefaultLocalExecutor();
+  EXPECT_TRUE(executor.ok());
+  v0::Value comp_pb = CreateModelInference("test_model").value();
+  Runner runner = Runner::Create(executor.value()).value();
+
+  v0::Value arg;
+  arg.set_str("Boo!");
+
+  absl::StatusOr<v0::Value> result = runner.Run(comp_pb, arg);
+  EXPECT_EQ(result.value().str(),
+            "This is an output from a test model in response to \"Boo!\".");
+}
+
+TEST(RunnerTest, ModelRunReturnsValueCompAndRuntimeInConstructor) {
+  absl::StatusOr<std::shared_ptr<Executor>> executor =
+      CreateDefaultLocalExecutor();
+  EXPECT_TRUE(executor.ok());
+  v0::Value comp_pb = CreateModelInference("test_model").value();
+  Runner runner = Runner::Create(comp_pb, executor.value()).value();
+
+  v0::Value arg;
+  arg.set_str("Boo!");
+
+  absl::StatusOr<v0::Value> result = runner.Run(arg);
   EXPECT_EQ(result.value().str(),
             "This is an output from a test model in response to \"Boo!\".");
 }

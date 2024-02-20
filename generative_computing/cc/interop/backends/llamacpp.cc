@@ -156,7 +156,7 @@ absl::StatusOr<v0::Value> LlamaCpp::LlamaCppCall(const v0::Value& input) {
         llama_token_to_piece(model_, new_token_id, piece.data(), piece.size());
     if (n_chars < 0) {
       piece.resize(-n_chars);
-      int n_chars_after_resize = llama_token_to_piece(
+      llama_token_to_piece(
           model_, new_token_id, piece.data(), piece.size());
     } else {
       piece.resize(n_chars);

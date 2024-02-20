@@ -22,7 +22,7 @@ class CustomModel(LLM):
   """Represents an arbitrary custom model for use with LangChain APIs."""
 
   uri: str = ""
-  config: dict[str, str] = {}
+  config: dict[str, Any] = {}
 
   @property
   def _llm_type(self) -> str:

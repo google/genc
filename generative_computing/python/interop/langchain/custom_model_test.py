@@ -27,7 +27,7 @@ class CustomModelTest(absltest.TestCase):
     self.assertEqual(llm._llm_type, 'CustomModel(some_model)')
 
   def test_creation_with_config(self):
-    test_config = {'test_key_1': 'test_value_1', 'test_key_2': 'test_value_2'}
+    test_config = {'test_key_1': 'test_value_1', 'test_key_2': 100}
     llm = custom_model.CustomModel(uri='some_model', config=test_config)
     self.assertIsInstance(llm, LLM)
     self.assertEqual(llm.uri, 'some_model')

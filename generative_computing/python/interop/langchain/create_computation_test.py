@@ -37,7 +37,7 @@ class CreateComputationTest(absltest.TestCase):
       self.assertEqual(str(comp), str(expected_comp))
 
   def test_model_with_config(self):
-    config = {"key_1": "value_1", "key_2": "value_2"}
+    config = {"key_1": "value_1", "key_2": 100}
     llm = custom_model.CustomModel(uri="some_model", config=config)
     for comp in [
         create_computation.create_computation_from_llm(llm),

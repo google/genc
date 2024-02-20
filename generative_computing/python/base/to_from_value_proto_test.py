@@ -34,12 +34,20 @@ class ToFromValueProtoTest(absltest.TestCase):
     self._roundtrip_test(["foo", 99])
 
   def test_dict_to_value_proto(self):
-    arg = {"key_1": "value_1", "key_2": "value_2"}
+    arg = {
+        "key_1": "value_1",
+        "key_2": 1,
+        "key_3": 0.5,
+        "key_4": True,
+        "key_5": ["foo", "bar", 100],
+    }
     val_pb = to_from_value_proto.to_value_proto(arg)
     self.assertIsInstance(val_pb, pb.Value)
     reconstructed_arg = {}
     for element in val_pb.struct.element:
-      reconstructed_arg[element.label] = element.str
+      reconstructed_arg[element.label] = to_from_value_proto.from_value_proto(
+          element
+      )
     self.assertEqual(arg, reconstructed_arg)
 
 

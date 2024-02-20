@@ -46,7 +46,9 @@ def to_value_proto(arg):
   elif isinstance(arg, dict):
     struct = pb.Struct()
     for key, value in arg.items():
-      struct.element.append(pb.Value(label=key, str=value))
+      element = to_value_proto(value)
+      element.label = key
+      struct.element.append(element)
     return pb.Value(struct=struct)
   else:
     raise TypeError('Unsupported Python argument type {}.'.format(type(arg)))

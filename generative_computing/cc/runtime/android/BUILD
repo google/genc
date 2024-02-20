@@ -14,6 +14,7 @@ cc_library(
     deps = [
         "//generative_computing/cc/authoring:constructor",
         "//generative_computing/cc/interop/backends/android:google_ai",
+        "//generative_computing/cc/interop/backends/android:mediapipe_llm_inference",
         "//generative_computing/cc/interop/backends/android:open_ai",
         "//generative_computing/cc/intrinsics:handler_sets",
         "//generative_computing/cc/intrinsics:model_inference",

@@ -49,3 +49,25 @@ cc_library(
     ],
     alwayslink = 1,
 )
+
+cc_library(
+    name = "mediapipe_llm_inference",
+    srcs = ["mediapipe_llm_inference.cc"],
+    hdrs = ["mediapipe_llm_inference.h"],
+    target_compatible_with = [
+        "@platforms//os:android",
+    ],
+    deps = [
+        "//generative_computing/cc/authoring:constructor",
+        "//generative_computing/cc/intrinsics:intrinsic_uris",
+        "//generative_computing/cc/runtime:status_macros",
+        "//generative_computing/java/src/java/org/generativecomputing/interop/backends/mediapipe/jni:llm_inference_client_jni",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/time",
+    ],
+    alwayslink = 1,
+)

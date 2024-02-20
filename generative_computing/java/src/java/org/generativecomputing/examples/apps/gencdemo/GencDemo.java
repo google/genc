@@ -34,9 +34,9 @@ public class GencDemo extends Activity {
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
-
     try {
-      InputStream stream = new FileInputStream("/data/local/tmp/google_ai_gemini.pb");
+      InputStream stream = new FileInputStream("/data/local/tmp/genc_tutorial_1.pb");
+
       Value computation = Value.parseFrom(stream, getExtensionRegistry());
       executor = new DefaultAndroidExecutor(getApplicationContext());
       runner = Runner.create(computation, executor.getExecutorHandle());

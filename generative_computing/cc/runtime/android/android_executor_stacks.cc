@@ -24,6 +24,7 @@ limitations under the License
 #include "absl/strings/string_view.h"
 #include "generative_computing/cc/authoring/constructor.h"
 #include "generative_computing/cc/interop/backends/android/google_ai.h"
+#include "generative_computing/cc/interop/backends/android/mediapipe_llm_inference.h"
 #include "generative_computing/cc/interop/backends/android/open_ai.h"
 #include "generative_computing/cc/intrinsics/handler_sets.h"
 #include "generative_computing/cc/runtime/executor.h"
@@ -36,6 +37,7 @@ namespace generative_computing {
 namespace {
 constexpr absl::string_view kOpenAIModelUri = "/openai/chatgpt";
 constexpr absl::string_view kGeminiModelUri = "/cloud/gemini";
+constexpr absl::string_view kMediapipeModelUri = "/device/llm_inference";
 }  // namespace
 
 namespace {
@@ -64,14 +66,31 @@ void SetGoogleAiModelInferenceHandler(intrinsics::HandlerSetConfig* config,
   };
 }
 
+void SetMediapipeModelInferenceHandler(intrinsics::HandlerSetConfig* config,
+                                       JavaVM* jvm,
+                                       jobject llm_inference_client,
+                                       absl::string_view model_uri) {
+  config->model_inference_with_config_map[std::string(model_uri)] =
+      [jvm, llm_inference_client](v0::Intrinsic intrinsic,
+                                  v0::Value arg) -> absl::StatusOr<v0::Value> {
+    v0::Value model_inference;
+    (*model_inference.mutable_intrinsic()) = intrinsic;
+    return generative_computing::MediapipeLlmInferenceCall(
+        jvm, llm_inference_client, model_inference, arg);
+  };
+}
+
 }  // namespace
 
 absl::StatusOr<std::shared_ptr<Executor>> CreateAndroidExecutor(
-    JavaVM* jvm, jobject open_ai_client, jobject google_ai_client) {
+    JavaVM* jvm, jobject open_ai_client, jobject google_ai_client,
+    jobject llm_inference_client) {
   intrinsics::HandlerSetConfig config;
   SetOpenAiModelInferenceHandler(&config, jvm, open_ai_client, kOpenAIModelUri);
   SetGoogleAiModelInferenceHandler(&config, jvm, google_ai_client,
                                    kGeminiModelUri);
+  SetMediapipeModelInferenceHandler(&config, jvm, llm_inference_client,
+                                    kMediapipeModelUri);
   return CreateLocalExecutor(intrinsics::CreateCompleteHandlerSet(config));
 }
 

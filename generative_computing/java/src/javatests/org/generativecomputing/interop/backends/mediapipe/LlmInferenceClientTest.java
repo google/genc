@@ -12,23 +12,3 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
-
-#ifndef GENERATIVE_COMPUTING_CC_RUNTIME_ANDROID_ANDROID_EXECUTOR_STACKS_H_
-#define GENERATIVE_COMPUTING_CC_RUNTIME_ANDROID_ANDROID_EXECUTOR_STACKS_H_
-
-#include <jni.h>
-
-#include <memory>
-
-#include "absl/status/statusor.h"
-#include "generative_computing/cc/runtime/executor.h"
-
-namespace generative_computing {
-
-absl::StatusOr<std::shared_ptr<Executor>> CreateAndroidExecutor(
-    JavaVM* jvm, jobject open_ai_client, jobject google_ai_client,
-    jobject mediapipe_text_generator_client);
-
-}  // namespace generative_computing
-
-#endif  // GENERATIVE_COMPUTING_CC_RUNTIME_ANDROID_ANDROID_EXECUTOR_STACKS_H_

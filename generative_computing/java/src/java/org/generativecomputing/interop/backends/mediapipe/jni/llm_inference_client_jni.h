@@ -12,23 +12,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
-
-#ifndef GENERATIVE_COMPUTING_CC_RUNTIME_ANDROID_ANDROID_EXECUTOR_STACKS_H_
-#define GENERATIVE_COMPUTING_CC_RUNTIME_ANDROID_ANDROID_EXECUTOR_STACKS_H_
+#ifndef GENERATIVE_COMPUTING_JAVA_SRC_JAVA_ORG_GENERATIVECOMPUTING_INTEROP_BACKENDS_MEDIAPIPE_JNI_LLM_INFERENCE_CLIENT_JNI_H_
+#define GENERATIVE_COMPUTING_JAVA_SRC_JAVA_ORG_GENERATIVECOMPUTING_INTEROP_BACKENDS_MEDIAPIPE_JNI_LLM_INFERENCE_CLIENT_JNI_H_
 
 #include <jni.h>
 
-#include <memory>
-
-#include "absl/status/statusor.h"
-#include "generative_computing/cc/runtime/executor.h"
+#include <string>
 
 namespace generative_computing {
 
-absl::StatusOr<std::shared_ptr<Executor>> CreateAndroidExecutor(
-    JavaVM* jvm, jobject open_ai_client, jobject google_ai_client,
-    jobject mediapipe_text_generator_client);
+std::string CallLlmInferenceClient(JavaVM *jvm, jobject llm_inference_client,
+                                   std::string model_config,
+                                   std::string request);
 
-}  // namespace generative_computing
+}
 
-#endif  // GENERATIVE_COMPUTING_CC_RUNTIME_ANDROID_ANDROID_EXECUTOR_STACKS_H_
+#endif  // GENERATIVE_COMPUTING_JAVA_SRC_JAVA_ORG_GENERATIVECOMPUTING_INTEROP_BACKENDS_MEDIAPIPE_JNI_LLM_INFERENCE_CLIENT_JNI_H_

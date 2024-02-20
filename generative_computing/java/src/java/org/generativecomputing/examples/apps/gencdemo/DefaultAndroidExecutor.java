@@ -20,6 +20,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.chromium.net.CronetEngine;
 import src.java.org.generativecomputing.interop.backends.googleai.GoogleAiClient;
+import src.java.org.generativecomputing.interop.backends.mediapipe.LlmInferenceClient;
 import src.java.org.generativecomputing.interop.backends.openai.OpenAiClient;
 import src.java.org.generativecomputing.interop.network.CronetEngineProvider;
 import src.java.org.generativecomputing.interop.network.HttpClientImpl;
@@ -36,7 +37,8 @@ public final class DefaultAndroidExecutor {
     httpClient = new HttpClientImpl(cronetEngine, cronetCallbackExecutorService);
     openAiClient = new OpenAiClient(httpClient, OPENAI_SERVER_URL, OPEN_AI_API_KEY);
     googleAiClient = new GoogleAiClient(httpClient);
-    executorHandle = createAndroidExecutor(openAiClient, googleAiClient);
+    llmInferenceClient = new LlmInferenceClient(context);
+    executorHandle = createAndroidExecutor(openAiClient, googleAiClient, llmInferenceClient);
   }
 
   public long getExecutorHandle() {
@@ -50,6 +52,7 @@ public final class DefaultAndroidExecutor {
   // Objects are referenced in C++ over JNI.
   public OpenAiClient openAiClient;
   public GoogleAiClient googleAiClient;
+  public LlmInferenceClient llmInferenceClient;
 
   private static final int THREADPOOL_SIZE = 4;
   private static final String OPENAI_SERVER_URL = "https://api.openai.com/v1/chat/completions";
@@ -62,7 +65,9 @@ public final class DefaultAndroidExecutor {
   private final long executorHandle;
 
   private native long createAndroidExecutor(
-      OpenAiClient openAiClient, GoogleAiClient googleAiClient);
+      OpenAiClient openAiClient,
+      GoogleAiClient googleAiClient,
+      LlmInferenceClient llmInferenceClient);
 
   private native long cleanupAndroidExecutorState();
 

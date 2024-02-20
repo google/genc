@@ -26,11 +26,14 @@ namespace generative_computing {
 namespace {
 static jobject open_ai_client_global_ref = nullptr;
 static jobject google_ai_client_global_ref = nullptr;
+static jobject llm_inference_client_global_ref = nullptr;
+
 }  // namespace
 
 GC_Executor* GC_create_android_executor(JavaVM* jvm, JNIEnv* env,
                                         jobject open_ai_client,
-                                        jobject google_ai_client) {
+                                        jobject google_ai_client,
+                                        jobject llm_inference_client) {
   // Create global references to refer from native threads.
   open_ai_client_global_ref = env->NewGlobalRef(open_ai_client);
   if (open_ai_client_global_ref == nullptr) {
@@ -42,20 +45,30 @@ GC_Executor* GC_create_android_executor(JavaVM* jvm, JNIEnv* env,
     LOG(ERROR) << "Couldn't create global reference for GoogleAI client";
     return nullptr;
   }
+
+  if (llm_inference_client != nullptr) {
+    llm_inference_client_global_ref = env->NewGlobalRef(llm_inference_client);
+    if (llm_inference_client_global_ref == nullptr) {
+      LOG(ERROR) << "Couldn't create global reference for Mediapipe "
+                    "LlmInference client";
+      return nullptr;
+    }
+  }
   auto lamda_executor = generative_computing::CreateAndroidExecutor(
-      jvm, open_ai_client_global_ref, google_ai_client_global_ref);
+      jvm, open_ai_client_global_ref, google_ai_client_global_ref,
+      llm_inference_client_global_ref);
   GC_Executor* e = new GC_Executor(lamda_executor.value());
   return e;
 }
 
 extern "C" jlong
 Java_org_generativecomputing_examples_apps_gencdemo_DefaultAndroidExecutor_createAndroidExecutor(  // NOLINT
-    JNIEnv* env, jobject obj, jobject open_ai_client,
-    jobject google_ai_client) {
+    JNIEnv* env, jobject obj, jobject open_ai_client, jobject google_ai_client,
+    jobject llm_inference_client) {
   JavaVM* jvm;
   env->GetJavaVM(&jvm);
-  return reinterpret_cast<jlong>(
-      GC_create_android_executor(jvm, env, open_ai_client, google_ai_client));
+  return reinterpret_cast<jlong>(GC_create_android_executor(
+      jvm, env, open_ai_client, google_ai_client, llm_inference_client));
 }
 
 extern "C" void
@@ -63,6 +76,9 @@ Java_org_generativecomputing_examples_apps_gencdemo_DefaultAndroidExecutor_clean
     JNIEnv* env, jobject obj) {
   if (open_ai_client_global_ref != nullptr) {
     env->DeleteGlobalRef(open_ai_client_global_ref);
+  }
+  if (llm_inference_client_global_ref != nullptr) {
+    env->DeleteGlobalRef(llm_inference_client_global_ref);
   }
 }
 

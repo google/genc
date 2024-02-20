@@ -63,6 +63,30 @@ void SetModelInference(v0::Value& computation, absl::string_view model_uri) {
   intrinsic_pb->mutable_static_parameter()->set_str(std::string(model_uri));
 }
 
+absl::StatusOr<v0::Value> CreateRestModelConfig(std::string endpoint,
+                                                std::string api_key) {
+  v0::Value model_config_pb;
+  model_config_pb.set_label("model_config");
+  // TODO(b/325090417): match android behavior, consider removal.
+  if (api_key.empty()) {
+    model_config_pb.set_str(endpoint);
+    return model_config_pb;
+  }
+
+  v0::Struct* args = model_config_pb.mutable_struct_();
+
+  v0::Value* endpoint_pb = args->add_element();
+  endpoint_pb->set_label("endpoint");
+  endpoint_pb->set_str(endpoint);
+
+  v0::Value* api_key_pb = args->add_element();
+  api_key_pb->set_label("api_key");
+  api_key_pb->set_str(api_key);
+
+  return model_config_pb;
+}
+
+// TODO(b/325090417): merge into CreateModelInference with nullable config.
 absl::StatusOr<v0::Value> CreateModelInferenceWithConfig(
     absl::string_view model_uri, v0::Value model_config) {
   v0::Value model_pb;

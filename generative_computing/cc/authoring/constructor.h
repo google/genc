@@ -16,6 +16,7 @@ limitations under the License
 #ifndef GENERATIVE_COMPUTING_CC_AUTHORING_CONSTRUCTOR_H_
 #define GENERATIVE_COMPUTING_CC_AUTHORING_CONSTRUCTOR_H_
 
+#include <string>
 #include <vector>
 
 #include "absl/status/statusor.h"
@@ -65,6 +66,11 @@ absl::StatusOr<v0::Value> CreateLogicalNot();
 
 // Returns a model inference proto with the given model URI.
 absl::StatusOr<v0::Value> CreateModelInference(absl::string_view model_uri);
+
+// Returns a model config for models behind REST endpoint.
+// api_key is optional.
+absl::StatusOr<v0::Value> CreateRestModelConfig(std::string endpoint,
+                                               std::string api_key = "");
 
 // Returns a model inference proto with the given model URI and model config.
 absl::StatusOr<v0::Value> CreateModelInferenceWithConfig(

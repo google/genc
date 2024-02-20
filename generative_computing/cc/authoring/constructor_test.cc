@@ -62,12 +62,11 @@ TEST(CreateModelInferenceTest, ReturnsCorrectModelInferenceProto) {
 TEST(CreateModelInferenceWithConfigTest,
      ReturnsCorrectModelInferenceWithStructConfigProto) {
   std::string test_model_uri = "test_model_uri";
-  std::string test_config_1 =  "test_config_1";
-  std::string test_config_2 =  "test_config_2";
+  std::string test_config_1 = "test_config_1";
+  std::string test_config_2 = "test_config_2";
 
   v0::Value model_config_pb;
-  v0::Struct* model_config_struct =
-      model_config_pb.mutable_struct_();
+  v0::Struct* model_config_struct = model_config_pb.mutable_struct_();
   v0::Value* element_1 = model_config_struct->add_element();
   element_1->set_label("config_1");
   element_1->set_str(test_config_1);
@@ -75,16 +74,15 @@ TEST(CreateModelInferenceWithConfigTest,
   element_2->set_label("config_2");
   element_2->set_str(test_config_2);
 
-  v0::Value model_pb = CreateModelInferenceWithConfig(
-      test_model_uri, model_config_pb).value();
+  v0::Value model_pb =
+      CreateModelInferenceWithConfig(test_model_uri, model_config_pb).value();
   EXPECT_EQ(model_pb.intrinsic().uri(), "model_inference_with_config");
 
   EXPECT_EQ(
       model_pb.intrinsic().static_parameter().struct_().element(0).label(),
       "model_uri");
-  EXPECT_EQ(
-      model_pb.intrinsic().static_parameter().struct_().element(0).str(),
-      test_model_uri);
+  EXPECT_EQ(model_pb.intrinsic().static_parameter().struct_().element(0).str(),
+            test_model_uri);
   EXPECT_EQ(
       model_pb.intrinsic().static_parameter().struct_().element(1).label(),
       "model_config");
@@ -96,21 +94,20 @@ TEST(CreateModelInferenceWithConfigTest,
 TEST(CreateModelInferenceWithConfigTest,
      ReturnsCorrectModelInferenceWithStringConfigProto) {
   std::string test_model_uri = "test_model_uri";
-  std::string test_config_str =  "test_config";
+  std::string test_config_str = "test_config";
 
   v0::Value model_config_pb;
   model_config_pb.set_str(test_config_str);
 
-  v0::Value model_pb = CreateModelInferenceWithConfig(
-      test_model_uri, model_config_pb).value();
+  v0::Value model_pb =
+      CreateModelInferenceWithConfig(test_model_uri, model_config_pb).value();
   EXPECT_EQ(model_pb.intrinsic().uri(), "model_inference_with_config");
 
   EXPECT_EQ(
       model_pb.intrinsic().static_parameter().struct_().element(0).label(),
       "model_uri");
-  EXPECT_EQ(
-      model_pb.intrinsic().static_parameter().struct_().element(0).str(),
-      test_model_uri);
+  EXPECT_EQ(model_pb.intrinsic().static_parameter().struct_().element(0).str(),
+            test_model_uri);
   EXPECT_EQ(
       model_pb.intrinsic().static_parameter().struct_().element(1).label(),
       "model_config");
@@ -180,6 +177,23 @@ TEST(CreateWolframAlpha, ReturnsCorrectComputationProto) {
   v0::Value wolfram_alpha_pb = CreateWolframAlpha(test_appid).value();
   EXPECT_EQ(wolfram_alpha_pb.intrinsic().uri(), "wolfram_alpha");
   EXPECT_EQ(wolfram_alpha_pb.intrinsic().static_parameter().str(), test_appid);
+}
+
+TEST(CreateRestModelConfig, ReturnsCorrectConfigProto) {
+  std::string test_endpoint = "endpoint";
+  std::string test_api_key = "api_key";
+
+  v0::Value model_config_pb =
+      CreateRestModelConfig(test_endpoint, test_api_key).value();
+  EXPECT_EQ(model_config_pb.struct_().element(0).str(), test_endpoint);
+  EXPECT_EQ(model_config_pb.struct_().element(1).str(), test_api_key);
+}
+
+TEST(CreateRestModelConfig, WhenApiKeyAbsentReturnsCorrectConfigProto) {
+  std::string test_endpoint = "endpoint";
+
+  v0::Value model_config_pb = CreateRestModelConfig(test_endpoint).value();
+  EXPECT_EQ(model_config_pb.str(), test_endpoint);
 }
 
 }  // namespace

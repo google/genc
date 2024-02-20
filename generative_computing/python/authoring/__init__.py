@@ -33,6 +33,7 @@ from generative_computing.python.authoring.constructors import create_regex_part
 from generative_computing.python.authoring.constructors import create_repeat
 from generative_computing.python.authoring.constructors import create_repeated_conditional_chain
 from generative_computing.python.authoring.constructors import create_rest_call
+from generative_computing.python.authoring.constructors import create_rest_model_config
 from generative_computing.python.authoring.constructors import create_selection
 from generative_computing.python.authoring.constructors import create_serial_chain
 from generative_computing.python.authoring.constructors import create_struct

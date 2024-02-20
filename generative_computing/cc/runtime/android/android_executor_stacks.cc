@@ -19,14 +19,19 @@ limitations under the License
 
 #include <memory>
 #include <string>
+#include <utility>
 
+#include "absl/base/call_once.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "generative_computing/cc/authoring/constructor.h"
 #include "generative_computing/cc/interop/backends/android/google_ai.h"
 #include "generative_computing/cc/interop/backends/android/mediapipe_llm_inference.h"
 #include "generative_computing/cc/interop/backends/android/open_ai.h"
+#include "generative_computing/cc/interop/backends/android/wolfram_alpha_handler.h"
 #include "generative_computing/cc/intrinsics/handler_sets.h"
+#include "generative_computing/cc/modules/agents/react.h"
+#include "generative_computing/cc/modules/retrieval/local_cache.h"
 #include "generative_computing/cc/runtime/executor.h"
 #include "generative_computing/cc/runtime/executor_stacks.h"
 #include "generative_computing/cc/runtime/status_macros.h"
@@ -34,10 +39,27 @@ limitations under the License
 
 namespace generative_computing {
 
+// Stateful context that holds state (e.g. memory), which need to remain
+// alive after initialization.
+struct ExecutorStacksContext {
+  ExecutorStacksContext(std::unique_ptr<LocalValueCache> local_cache)
+      : local_cache_(std::move(local_cache)) {}
+  std::unique_ptr<LocalValueCache> local_cache_;
+};
+
 namespace {
 constexpr absl::string_view kOpenAIModelUri = "/openai/chatgpt";
 constexpr absl::string_view kGeminiModelUri = "/cloud/gemini";
 constexpr absl::string_view kMediapipeModelUri = "/device/llm_inference";
+
+static absl::once_flag context_init_flag;
+static ExecutorStacksContext* executor_stacks_context = nullptr;
+constexpr int MAX_CACHE_SIZE_PER_KEY = 200;
+
+static void InitExecutorStacksContext() {
+  auto local_cache = std::make_unique<LocalValueCache>(MAX_CACHE_SIZE_PER_KEY);
+  executor_stacks_context = new ExecutorStacksContext(std::move(local_cache));
+}
 }  // namespace
 
 namespace {
@@ -80,17 +102,36 @@ void SetMediapipeModelInferenceHandler(intrinsics::HandlerSetConfig* config,
   };
 }
 
+void SetWolframAlphaIntrinsicHandler(intrinsics::HandlerSetConfig* config,
+                                     JavaVM* jvm,
+                                     jobject wolfram_alpha_client) {
+  config->custom_intrinsics_list.push_back(
+      new generative_computing::intrinsics::WolframAlphaHandler(
+          jvm, wolfram_alpha_client));
+}
 }  // namespace
 
 absl::StatusOr<std::shared_ptr<Executor>> CreateAndroidExecutor(
     JavaVM* jvm, jobject open_ai_client, jobject google_ai_client,
-    jobject llm_inference_client) {
+    jobject llm_inference_client, jobject wolfram_alpha_client) {
+  // Initialize only once.
+  absl::call_once(context_init_flag, InitExecutorStacksContext);
+
   intrinsics::HandlerSetConfig config;
   SetOpenAiModelInferenceHandler(&config, jvm, open_ai_client, kOpenAIModelUri);
   SetGoogleAiModelInferenceHandler(&config, jvm, google_ai_client,
                                    kGeminiModelUri);
   SetMediapipeModelInferenceHandler(&config, jvm, llm_inference_client,
                                     kMediapipeModelUri);
+  SetWolframAlphaIntrinsicHandler(&config, jvm, wolfram_alpha_client);
+
+  // ReAct functions.
+  GENC_TRY(ReAct::SetCustomFunctions(config.custom_function_map));
+
+  // Memory functions.
+  GENC_TRY(SetCustomFunctionsForLocalValueCache(
+      config.custom_function_map, *executor_stacks_context->local_cache_));
+
   return CreateLocalExecutor(intrinsics::CreateCompleteHandlerSet(config));
 }
 

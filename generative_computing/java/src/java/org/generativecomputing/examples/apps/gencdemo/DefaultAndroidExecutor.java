@@ -22,6 +22,7 @@ import org.chromium.net.CronetEngine;
 import src.java.org.generativecomputing.interop.backends.googleai.GoogleAiClient;
 import src.java.org.generativecomputing.interop.backends.mediapipe.LlmInferenceClient;
 import src.java.org.generativecomputing.interop.backends.openai.OpenAiClient;
+import src.java.org.generativecomputing.interop.backends.wolframalpha.WolframAlphaClient;
 import src.java.org.generativecomputing.interop.network.CronetEngineProvider;
 import src.java.org.generativecomputing.interop.network.HttpClientImpl;
 
@@ -38,7 +39,9 @@ public final class DefaultAndroidExecutor {
     openAiClient = new OpenAiClient(httpClient, OPENAI_SERVER_URL, OPEN_AI_API_KEY);
     googleAiClient = new GoogleAiClient(httpClient);
     llmInferenceClient = new LlmInferenceClient(context);
-    executorHandle = createAndroidExecutor(openAiClient, googleAiClient, llmInferenceClient);
+    wolframAlphaClient = new WolframAlphaClient(httpClient);
+    executorHandle =
+        createAndroidExecutor(openAiClient, googleAiClient, llmInferenceClient, wolframAlphaClient);
   }
 
   public long getExecutorHandle() {
@@ -53,6 +56,7 @@ public final class DefaultAndroidExecutor {
   public OpenAiClient openAiClient;
   public GoogleAiClient googleAiClient;
   public LlmInferenceClient llmInferenceClient;
+  public WolframAlphaClient wolframAlphaClient;
 
   private static final int THREADPOOL_SIZE = 4;
   private static final String OPENAI_SERVER_URL = "https://api.openai.com/v1/chat/completions";
@@ -67,7 +71,8 @@ public final class DefaultAndroidExecutor {
   private native long createAndroidExecutor(
       OpenAiClient openAiClient,
       GoogleAiClient googleAiClient,
-      LlmInferenceClient llmInferenceClient);
+      LlmInferenceClient llmInferenceClient,
+      WolframAlphaClient wolframAlphaClient);
 
   private native long cleanupAndroidExecutorState();
 

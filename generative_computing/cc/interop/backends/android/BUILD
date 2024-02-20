@@ -71,3 +71,25 @@ cc_library(
     ],
     alwayslink = 1,
 )
+
+cc_library(
+    name = "wolfram_alpha_handler",
+    srcs = ["wolfram_alpha_handler.cc"],
+    hdrs = ["wolfram_alpha_handler.h"],
+    target_compatible_with = [
+        "@platforms//os:android",
+    ],
+    deps = [
+        "//generative_computing/cc/intrinsics:intrinsic_uris",
+        "//generative_computing/cc/runtime:intrinsic_handler",
+        "//generative_computing/cc/runtime:status_macros",
+        "//generative_computing/java/src/java/org/generativecomputing/interop/backends/wolframalpha/jni:wolfram_alpha_client_jni",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/time",
+    ],
+    alwayslink = 1,
+)

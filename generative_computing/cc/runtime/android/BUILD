@@ -16,6 +16,7 @@ cc_library(
         "//generative_computing/cc/interop/backends/android:google_ai",
         "//generative_computing/cc/interop/backends/android:mediapipe_llm_inference",
         "//generative_computing/cc/interop/backends/android:open_ai",
+        "//generative_computing/cc/interop/backends/android:wolfram_alpha_handler",
         "//generative_computing/cc/intrinsics:handler_sets",
         "//generative_computing/cc/intrinsics:model_inference",
         "//generative_computing/cc/runtime:executor",

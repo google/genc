@@ -24,6 +24,7 @@ limitations under the License
 #include "generative_computing/cc/modules/agents/react.h"
 #include "generative_computing/cc/modules/parsers/gemini_parser.h"
 #include "generative_computing/cc/modules/retrieval/local_cache.h"
+#include "generative_computing/cc/modules/tools/wolfram_alpha.h"
 #include "generative_computing/cc/runtime/control_flow_executor.h"
 #include "generative_computing/cc/runtime/executor.h"
 #include "generative_computing/cc/runtime/inline_executor.h"
@@ -64,6 +65,9 @@ absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultExecutor() {
 
   // Gemini Parsers
   GENC_TRY(GeminiParser::SetCustomFunctions(config.custom_function_map));
+
+  // Enable Wolfram Alpha intrinsic
+  config.custom_intrinsics_list.push_back(new intrinsics::WolframAlpha());
 
   // Set access to local cache or other types of memory.
   GENC_TRY(SetCustomFunctionsForLocalValueCache(

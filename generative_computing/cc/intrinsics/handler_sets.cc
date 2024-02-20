@@ -36,7 +36,6 @@ limitations under the License
 #include "generative_computing/cc/intrinsics/rest_call.h"
 #include "generative_computing/cc/intrinsics/serial_chain.h"
 #include "generative_computing/cc/intrinsics/while.h"
-#include "generative_computing/cc/modules/tools/wolfram_alpha.h"
 #include "generative_computing/cc/runtime/intrinsic_handler.h"
 
 namespace generative_computing {
@@ -67,7 +66,6 @@ std::shared_ptr<IntrinsicHandlerSet> CreateCompleteHandlerSet(
   handlers->AddHandler(new intrinsics::Repeat());
   handlers->AddHandler(new intrinsics::RestCall());
   handlers->AddHandler(new intrinsics::While());
-  handlers->AddHandler(new intrinsics::WolframAlpha());
   handlers->AddHandler(new intrinsics::RepeatedConditionalChain());
 
   // Add all custom intrinsics provided via the handler config.

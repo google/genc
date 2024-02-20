@@ -26,6 +26,7 @@ android_library(
         "//generative_computing/java/src/java/org/generativecomputing/interop/backends/googleai:google_ai_client",
         "//generative_computing/java/src/java/org/generativecomputing/interop/backends/mediapipe:llm_inference_client",
         "//generative_computing/java/src/java/org/generativecomputing/interop/backends/openai:open_ai_client",
+        "//generative_computing/java/src/java/org/generativecomputing/interop/backends/wolframalpha:wolfram_alpha_client",
         "//generative_computing/java/src/java/org/generativecomputing/interop/network:cronet_engine_provider",
         "//generative_computing/java/src/java/org/generativecomputing/interop/network:http_client",
         "//generative_computing/proto/v0:computation_java_proto_lite",

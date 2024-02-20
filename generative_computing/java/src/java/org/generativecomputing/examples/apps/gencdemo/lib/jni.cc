@@ -27,23 +27,30 @@ namespace {
 static jobject open_ai_client_global_ref = nullptr;
 static jobject google_ai_client_global_ref = nullptr;
 static jobject llm_inference_client_global_ref = nullptr;
+static jobject wolfram_alpha_client_global_ref = nullptr;
 
 }  // namespace
 
 GC_Executor* GC_create_android_executor(JavaVM* jvm, JNIEnv* env,
                                         jobject open_ai_client,
                                         jobject google_ai_client,
-                                        jobject llm_inference_client) {
+                                        jobject llm_inference_client,
+                                        jobject wolfram_alpha_client) {
   // Create global references to refer from native threads.
-  open_ai_client_global_ref = env->NewGlobalRef(open_ai_client);
-  if (open_ai_client_global_ref == nullptr) {
-    LOG(ERROR) << "Couldn't create global reference for OpenAI client";
-    return nullptr;
+  if (open_ai_client != nullptr) {
+    open_ai_client_global_ref = env->NewGlobalRef(open_ai_client);
+    if (open_ai_client_global_ref == nullptr) {
+      LOG(ERROR) << "Couldn't create global reference for OpenAI client";
+      return nullptr;
+    }
   }
-  google_ai_client_global_ref = env->NewGlobalRef(google_ai_client);
-  if (google_ai_client_global_ref == nullptr) {
-    LOG(ERROR) << "Couldn't create global reference for GoogleAI client";
-    return nullptr;
+
+  if (google_ai_client != nullptr) {
+    google_ai_client_global_ref = env->NewGlobalRef(google_ai_client);
+    if (google_ai_client_global_ref == nullptr) {
+      LOG(ERROR) << "Couldn't create global reference for GoogleAI client";
+      return nullptr;
+    }
   }
 
   if (llm_inference_client != nullptr) {
@@ -54,9 +61,17 @@ GC_Executor* GC_create_android_executor(JavaVM* jvm, JNIEnv* env,
       return nullptr;
     }
   }
+
+  if (wolfram_alpha_client != nullptr) {
+    wolfram_alpha_client_global_ref = env->NewGlobalRef(wolfram_alpha_client);
+    if (wolfram_alpha_client_global_ref == nullptr) {
+      LOG(ERROR) << "Couldn't create global reference for WolframAlpha client";
+      return nullptr;
+    }
+  }
   auto lamda_executor = generative_computing::CreateAndroidExecutor(
       jvm, open_ai_client_global_ref, google_ai_client_global_ref,
-      llm_inference_client_global_ref);
+      llm_inference_client_global_ref, wolfram_alpha_client_global_ref);
   GC_Executor* e = new GC_Executor(lamda_executor.value());
   return e;
 }
@@ -64,11 +79,12 @@ GC_Executor* GC_create_android_executor(JavaVM* jvm, JNIEnv* env,
 extern "C" jlong
 Java_org_generativecomputing_examples_apps_gencdemo_DefaultAndroidExecutor_createAndroidExecutor(  // NOLINT
     JNIEnv* env, jobject obj, jobject open_ai_client, jobject google_ai_client,
-    jobject llm_inference_client) {
+    jobject llm_inference_client, jobject wolfram_alpha_client) {
   JavaVM* jvm;
   env->GetJavaVM(&jvm);
   return reinterpret_cast<jlong>(GC_create_android_executor(
-      jvm, env, open_ai_client, google_ai_client, llm_inference_client));
+      jvm, env, open_ai_client, google_ai_client, llm_inference_client,
+      wolfram_alpha_client));
 }
 
 extern "C" void
@@ -77,8 +93,14 @@ Java_org_generativecomputing_examples_apps_gencdemo_DefaultAndroidExecutor_clean
   if (open_ai_client_global_ref != nullptr) {
     env->DeleteGlobalRef(open_ai_client_global_ref);
   }
+  if (google_ai_client_global_ref != nullptr) {
+    env->DeleteGlobalRef(google_ai_client_global_ref);
+  }
   if (llm_inference_client_global_ref != nullptr) {
     env->DeleteGlobalRef(llm_inference_client_global_ref);
+  }
+  if (wolfram_alpha_client_global_ref != nullptr) {
+    env->DeleteGlobalRef(wolfram_alpha_client_global_ref);
   }
 }
 

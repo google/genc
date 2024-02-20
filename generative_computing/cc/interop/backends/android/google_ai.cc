@@ -46,7 +46,7 @@ absl::StatusOr<std::string> AsString(const json& value) {
 }  // namespace
 
 // Schedules a model call on Google AI backends, using the endpoint and model
-// config provided in the 'func' value, and json request provided in the 'arg'
+// config provided in the 'func' value, and text provided in the 'arg'
 // value. Processes the response, and returns the text received.
 absl::StatusOr<v0::Value> GoogleAiCall(JavaVM* jvm, jobject google_ai_client,
                                        const v0::Value& func,
@@ -62,13 +62,13 @@ absl::StatusOr<v0::Value> GoogleAiCall(JavaVM* jvm, jobject google_ai_client,
 
   std::string model_inference_with_config;
   func.SerializeToString(&model_inference_with_config);
-  std::string json_request = arg.str();
+  std::string request = arg.str();
   LOG(INFO) << "Model inference with config: " << func.DebugString()
-            << "Json request to Google AI: " << json_request;
+            << "Request to Google AI: " << request;
 
   auto ts = absl::Now();
   std::string response_str = generative_computing::CallGoogleAiClient(
-      jvm, google_ai_client, model_inference_with_config, json_request);
+      jvm, google_ai_client, model_inference_with_config, request);
   LOG(INFO) << "Response time: " << absl::Now() - ts;
   if (response_str.empty()) {
     LOG(ERROR) << "Error encountered in fetching response from Google AI.";

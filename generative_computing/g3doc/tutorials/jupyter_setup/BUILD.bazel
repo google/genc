@@ -11,7 +11,15 @@ alias(
 py_binary(
     name = "jupyter",
     srcs = ["jupyter.py"],
-    data = [":openai_demo.ipynb"],
+    data = [
+        ":openai_demo.ipynb",
+        "//generative_computing/g3doc/tutorials:tutorial_1_simple_cascade.ipynb",
+        "//generative_computing/g3doc/tutorials:tutorial_2_custom_routing.ipynb",
+        "//generative_computing/g3doc/tutorials:tutorial_3_custom_runtime.ipynb",
+        "//generative_computing/g3doc/tutorials:tutorial_4_math_tool_agent.ipynb",
+        "//generative_computing/g3doc/tutorials:tutorial_5_langchain_agent.ipynb",
+        "//generative_computing/g3doc/tutorials:tutorial_6_android_agent.ipynb",
+    ],
     tags = [
         "nobuilder",
         "notap",

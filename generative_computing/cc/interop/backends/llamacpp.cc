@@ -44,7 +44,7 @@ namespace generative_computing {
 
 absl::Status LlamaCpp::InitModel(absl::string_view model_path,
                                  int num_threads = 1, int max_tokens = 32) {
-  llama_backend_init(/*params.numa=*/false);
+  llama_backend_init();
   llama_model_params model_params = llama_model_default_params();
   model_ =
       llama_load_model_from_file(std::string(model_path).c_str(), model_params);

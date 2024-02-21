@@ -98,8 +98,8 @@ absl::Status GoogleAI::SetInferenceMap(
         )pb",
         arg.str());
     const v0::Value& config = intrinsic.static_parameter().struct_().element(1);
-    const std::string& endpoint =
-        config.struct_().element(0).str() + config.struct_().element(1).str();
+    const std::string& endpoint = config.struct_().element(0).str() +
+                                  "?key=" + config.struct_().element(1).str();
     std::string api_key = "";
     v0::Value response_json = GENC_TRY(Post(api_key, endpoint, input_json));
 

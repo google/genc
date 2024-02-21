@@ -95,6 +95,8 @@ absl::StatusOr<v0::Value> RunAgent(std::string question) {
       GENC_TRY(CreateCustomFunction("/local_cache/write"));
 
   // Create a custom model call by utilizing Gemini behind REST endpoint.
+  // To achieve the same as text-in-text-out model call
+  // Please see run_gemini_on_ai_studio.cc and math_tool_agent.py
   std::string api_key = absl::GetFlag(FLAGS_api_key);
   std::string end_point =
       "https://generativelanguage.googleapis.com/v1beta/models/"

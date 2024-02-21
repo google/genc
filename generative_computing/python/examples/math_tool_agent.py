@@ -24,6 +24,7 @@ import generative_computing as genc
 
 # An example agent that combines reasoning loop with WolframAlpha as tool.
 # For production better prompt engineering is needed.
+# This example uses GenC's native authoring interfaces.
 
 _APPID = flags.DEFINE_string(
     "appid", None, "appid of WolframAlpha", required=True
@@ -36,11 +37,6 @@ _API_KEY = flags.DEFINE_string(
 def main(argv: Sequence[str]) -> None:
   if len(argv) > 1:
     raise app.UsageError("Too many command-line arguments.")
-
-  gemini_end_point = (
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key="
-      + _API_KEY.value
-  )
 
   insutrction_template = textwrap.dedent("""
     Solve a question answering task with interleaving Thought, Action, Observation steps.
@@ -71,20 +67,12 @@ def main(argv: Sequence[str]) -> None:
   add_to_context = genc.authoring.create_custom_function("/local_cache/write")
   evict_context = genc.authoring.create_custom_function("/local_cache/remove")
 
-  # Combine rest and I/O parsers to form a custom model call chain.
-  rest_call = genc.authoring.create_rest_call(gemini_end_point)
-  str_to_json_request = genc.authoring.create_custom_function(
-      "/gemini_parser/wrap_text_as_input_json"
+  model_config = genc.authoring.create_rest_model_config(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
+      _API_KEY.value,
   )
-  extrat_top_candidate = genc.authoring.create_custom_function(
-      "/gemini_parser/get_top_candidate_as_text"
-  )
-
-  model_call = (
-      genc.interop.langchain.CustomChain()
-      | str_to_json_request
-      | rest_call
-      | extrat_top_candidate
+  model_call = genc.authoring.create_model_with_config(
+      "/cloud/gemini", model_config
   )
 
   # Use WolframAlpha as a Tool to solve simple math questions.

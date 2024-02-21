@@ -28,30 +28,22 @@ Note: There will be a (y/N) prompt to accept Android SDK, NDK license as part of
 <code class="devsite-terminal">bazel run python/examples:$favorite_example </code>
 
 
-## Access Genc with a Jupyter notebook
+## Access Genc tutorials with a Jupyter notebook
 
 Building a Jupyter notebook in docker container has some extra setup to follow. But it can be useful when you want to quickly test few things.
 
 
-### 1. Install dependencies for Jupyter notebook.
-
-<pre class="prettyprint lang-bsh">
-<code class="devsite-terminal">apt install jupyter-notebook</code>
-<code class="devsite-terminal">pip install -r python/examples/colabs/pip_jupyter.txt</code>
-
-</pre>
-
-### 2. Add open port to docker.
+### 1. Add open port to docker.
 
 Exit the docker container and connect to a open port
 
 <code class="devsite-terminal">docker run -p 8889:8889 -it -v $PWD:/generative_computing genc:latest /bin/bash </code>
 
 
-### 3. Launch the notebook
+### 2. Launch the notebooks
 
 <pre class="prettyprint lang-bsh">
-<code class="devsite-terminal">bazel run python/example/colabs:jupyter </code>
+<code class="devsite-terminal">bash g3doc/tutorials/jupyter_setup/launch_jupyter.sh </code>
 </pre>
 
 ####Open the link in your local browser.

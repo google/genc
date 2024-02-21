@@ -19,10 +19,14 @@ import textwrap
 from absl import app
 from absl import flags
 import langchain
+from langchain import prompts
 import generative_computing as genc
 
 _APPID = flags.DEFINE_string(
     "appid", None, "appid of WolframAlpha", required=True
+)
+_API_KEY = flags.DEFINE_string(
+    "api_key", None, "Gemini API Auth Token", required=True
 )
 
 
@@ -30,25 +34,32 @@ class WolframAlpha(genc.interop.langchain.CustomTool):
   """A specific implementation of CustomTool, including an appid for identification."""
 
   def __init__(self, appid: str):
-    super().__init__()
-    self.appid = appid
-    self.name = "WolframAlpha"
-    self.description = (
+    name = "WolframAlpha"
+    description = (
         "https://products.wolframalpha.com/api/documentation, one capability is"
         " to evaluate math expression."
     )
     # Extract math equation from a text, then calls WolfraAlpha
-    self.computation = (
+    computation = (
         genc.interop.langchain.CustomChain()
         | genc.authoring.create_custom_function("/react/extract_math_question")
         | genc.authoring.create_wolfram_alpha(appid)
+        # Template Engine will extract the result from response JSON
+        | genc.authoring.create_inja_template(
+            "{% if queryresult.pods"
+            " %}{{queryresult.pods.0.subpods.0.plaintext}}{% endif %}"
+        )
+    )
+
+    super().__init__(
+        name=name, description=description, computation=computation
     )
 
 
 class MathToolAgent(genc.interop.langchain.CustomAgent):
   """An agent that combines ReAct reasoning loop with WolframAlpha tools."""
 
-  def __init__(self, appid: str):
+  def __init__(self, appid: str, api_key: str):
 
     system_instruction = textwrap.dedent("""
     Solve a question answering task with interleaving Thought, Action, Observation steps
@@ -69,20 +80,22 @@ class MathToolAgent(genc.interop.langchain.CustomAgent):
     Please do it step by step.
     Question: {question}""")
 
-    prompt = langchain.prompts.PromptTemplate(
+    prompt = prompts.PromptTemplate(
         input_variables=["question"], template=system_instruction
     )
-    tools = [WolframAlpha(_APPID.value)]
-    # TODO(b/315872721): replace with a runnable model.
-    # TODO(b/315872721): also pass API key from flags.
-    llm = genc.interop.langchain.CustomModel(uri="/ai_studio/gemini_pro")
+    print(appid)
+    tools = [WolframAlpha(appid)]
 
+    llm = genc.interop.langchain.CustomModel(
+        uri="/cloud/gemini",
+        config=genc.interop.gemini.create_config(api_key),
+    )
     # Init langchain.agents.agent.Agent with components backed by C++ runtime.
     super().__init__(
         llm_chain=langchain.chains.LLMChain(llm=llm, prompt=prompt),
         allowed_tools=[tool.name for tool in tools],
         tools_list=tools,
-        max_iterations=5,
+        max_iterations=8,
     )
 
 
@@ -90,7 +103,7 @@ def main(argv: Sequence[str]) -> None:
   if len(argv) > 1:
     raise app.UsageError("Too many command-line arguments.")
 
-  agent = MathToolAgent("appid")
+  agent = MathToolAgent(_APPID.value, _API_KEY.value)
 
   # IR stands for intermediate representation.
   # It transforms the agent into a computation,

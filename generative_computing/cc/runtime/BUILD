@@ -109,6 +109,7 @@ cc_library(
         ":inline_executor",
         ":intrinsic_handler",
         ":status_macros",
+        "//generative_computing/cc/interop/backends:google_ai",
         "//generative_computing/cc/intrinsics:handler_sets",
         "//generative_computing/cc/modules/agents:react",
         "//generative_computing/cc/modules/parsers:gemini_parser",

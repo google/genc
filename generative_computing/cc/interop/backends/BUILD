@@ -21,3 +21,19 @@ cc_library(
         "@llama_cpp",
     ],
 )
+
+cc_library(
+    name = "google_ai",
+    srcs = ["google_ai.cc"],
+    hdrs = ["google_ai.h"],
+    deps = [
+        "//generative_computing/cc/intrinsics:model_inference_with_config",
+        "//generative_computing/cc/modules/parsers:gemini_parser",
+        "//generative_computing/cc/runtime:status_macros",
+        "//generative_computing/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@curl",
+    ],
+)

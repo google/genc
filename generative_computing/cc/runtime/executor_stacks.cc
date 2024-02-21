@@ -20,6 +20,7 @@ limitations under the License
 
 #include "absl/base/call_once.h"
 #include "absl/status/statusor.h"
+#include "generative_computing/cc/interop/backends/google_ai.h"
 #include "generative_computing/cc/intrinsics/handler_sets.h"
 #include "generative_computing/cc/modules/agents/react.h"
 #include "generative_computing/cc/modules/parsers/gemini_parser.h"
@@ -68,6 +69,9 @@ absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultExecutor() {
 
   // Enable Wolfram Alpha intrinsic
   config.custom_intrinsics_list.push_back(new intrinsics::WolframAlpha());
+
+  // Set model inference for Gemini backends.
+  GENC_TRY(GoogleAI::SetInferenceMap(config.model_inference_with_config_map));
 
   // Set access to local cache or other types of memory.
   GENC_TRY(SetCustomFunctionsForLocalValueCache(

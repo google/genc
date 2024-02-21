@@ -39,49 +39,27 @@ ABSL_FLAG(std::string, api_key, "", "Gemini API Auth Token.");
 
 namespace generative_computing {
 
-absl::StatusOr<v0::Value> RunGeminiOnVertex(std::string json_request) {
+absl::StatusOr<v0::Value> RunGeminiOnAIStudio(std::string query) {
   std::string api_key = absl::GetFlag(FLAGS_api_key);
   std::shared_ptr<Executor> executor = GENC_TRY(CreateDefaultExecutor());
   std::string end_point =
       "https://generativelanguage.googleapis.com/v1beta/models/"
-      "gemini-pro:generateContent?key=" +
-      api_key;
-  // Makes a call to Gemini Pro on AI Studio.
-  v0::Value rest_call = GENC_TRY(CreateRestCall(end_point));
-
-  // Inja template can directly manipulate JSON string in the template.
-  // Gemini response JSON chunks text into multiple parts. This template
-  // 1. selects candidates[0] from response
-  // 2. concatenates all parts in content into a single string.
-  v0::Value format_json = GENC_TRY(CreateInjaTemplate(
-      "{% if candidates %}{% for p in candidates.0.content.parts "
-      "%}{{p.text}}{% endfor %}{%   endif %}"));
-
-  // Chains the the rest call and format will form a chain that outputs
-  // formatted string.
-  SmartChain model_call_chain = SmartChain() | rest_call | format_json;
-
-  v0::Value my_chain = GENC_TRY(model_call_chain.Build());
+      "gemini-pro:generateContent?key=";
+  v0::Value model_config = GENC_TRY(CreateRestModelConfig(end_point, api_key));
+  v0::Value model_call =
+      GENC_TRY(CreateModelInferenceWithConfig("/cloud/gemini", model_config));
   Runner runner = GENC_TRY(Runner::Create(executor));
   v0::Value arg;
-  arg.set_str(json_request);
-  return runner.Run(my_chain, arg);
+  arg.set_str(query);
+  return runner.Run(model_call, arg);
 }
 }  // namespace generative_computing
 
 int main(int argc, char* argv[]) {
   absl::ParseCommandLine(argc, argv);
-  std::string json_request = R"pb(
-    {
-      "contents":
-      [ {
-        "parts":
-        [ { "text": "Write a story about a magic backpack." }]
-      }]
-    }
-  )pb";
+  std::string query = "Write a story about a magic backpack.";
   generative_computing::v0::Value output =
-      generative_computing::RunGeminiOnVertex(json_request).value();
+      generative_computing::RunGeminiOnAIStudio(query).value();
   std::cout << output.DebugString() << "\n";
   return 0;
 }

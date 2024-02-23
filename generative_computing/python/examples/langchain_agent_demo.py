@@ -21,6 +21,7 @@ from absl import flags
 import langchain
 from langchain import prompts
 import generative_computing as genc
+from generative_computing.python.examples import executor
 
 _APPID = flags.DEFINE_string(
     "appid", None, "appid of WolframAlpha", required=True
@@ -109,9 +110,8 @@ def main(argv: Sequence[str]) -> None:
   # It transforms the agent into a computation,
   # Which can be ported to C++, Android.
   portable_ir = genc.interop.langchain.create_computation(agent)
-
   # To run it localy
-  runner = genc.runtime.Runner(portable_ir)
+  runner = genc.runtime.Runner(portable_ir, executor.create_default_executor())
   result = runner(
       "what is the result of (square root of 4) + 3 to the power of 2 + 3 *(8 +"
       " 4) / 2 - 7"

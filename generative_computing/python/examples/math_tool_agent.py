@@ -20,6 +20,7 @@ from absl import app
 from absl import flags
 
 import generative_computing as genc
+from generative_computing.python.examples import executor
 
 
 # An example agent that combines reasoning loop with WolframAlpha as tool.
@@ -120,7 +121,7 @@ def main(argv: Sequence[str]) -> None:
   )
 
   portable_ir = genc.interop.langchain.create_computation(math_agent_chain)
-  runner = genc.runtime.Runner(portable_ir)
+  runner = genc.runtime.Runner(portable_ir, executor.create_default_executor)
   runner(
       "what is the result of (square root of 4) + (3 to the power of 2) + 3 *(8"
       " + 4) / 2 - 7"

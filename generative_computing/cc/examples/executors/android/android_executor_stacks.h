@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#ifndef GENERATIVE_COMPUTING_CC_RUNTIME_ANDROID_ANDROID_EXECUTOR_STACKS_H_
-#define GENERATIVE_COMPUTING_CC_RUNTIME_ANDROID_ANDROID_EXECUTOR_STACKS_H_
+#ifndef GENERATIVE_COMPUTING_CC_EXAMPLES_EXECUTORS_ANDROID_ANDROID_EXECUTOR_STACKS_H_
+#define GENERATIVE_COMPUTING_CC_EXAMPLES_EXECUTORS_ANDROID_ANDROID_EXECUTOR_STACKS_H_
 
 #include <jni.h>
 
@@ -31,4 +31,4 @@ absl::StatusOr<std::shared_ptr<Executor>> CreateAndroidExecutor(
 
 }  // namespace generative_computing
 
-#endif  // GENERATIVE_COMPUTING_CC_RUNTIME_ANDROID_ANDROID_EXECUTOR_STACKS_H_
+#endif  // GENERATIVE_COMPUTING_CC_EXAMPLES_EXECUTORS_ANDROID_ANDROID_EXECUTOR_STACKS_H_

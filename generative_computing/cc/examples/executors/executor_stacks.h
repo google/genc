@@ -13,25 +13,20 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#ifndef GENERATIVE_COMPUTING_CC_RUNTIME_EXECUTOR_STACKS_H_
-#define GENERATIVE_COMPUTING_CC_RUNTIME_EXECUTOR_STACKS_H_
+#ifndef GENERATIVE_COMPUTING_CC_EXAMPLES_EXECUTORS_EXECUTOR_STACKS_H_
+#define GENERATIVE_COMPUTING_CC_EXAMPLES_EXECUTORS_EXECUTOR_STACKS_H_
 
 #include <memory>
 
 #include "absl/status/statusor.h"
 #include "generative_computing/cc/runtime/executor.h"
-#include "generative_computing/cc/runtime/intrinsic_handler.h"
 
 namespace generative_computing {
 
-// Constructs a local executor for a given set of intrinsic handlers.
-// Use this when you have a set of custom handlers to add that is non default.
-absl::StatusOr<std::shared_ptr<Executor>> CreateLocalExecutor(
-    std::shared_ptr<IntrinsicHandlerSet> handler_set);
-
-// Returns an executor that performs local processing in-process.
-absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultLocalExecutor();
-
+// Creates a default executors with out-of-box components initialized.
+// Use this for convenience that can run all the examples, tutorials. For
+// advanced uses, use CreateLocalExecutor to setup custom executors.
+absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultExecutor();
 }  // namespace generative_computing
 
-#endif  // GENERATIVE_COMPUTING_CC_RUNTIME_EXECUTOR_STACKS_H_
+#endif  // GENERATIVE_COMPUTING_CC_EXAMPLES_EXECUTORS_EXECUTOR_STACKS_H_

@@ -19,7 +19,7 @@ limitations under the License
 #include "absl/status/statusor.h"
 #include "generative_computing/c/runtime/c_api.h"
 #include "generative_computing/c/runtime/c_api_internal.h"  // IWYU pragma: keep
-#include "generative_computing/cc/runtime/android/android_executor_stacks.h"
+#include "generative_computing/cc/examples/executors/android/android_executor_stacks.h"
 
 namespace generative_computing {
 

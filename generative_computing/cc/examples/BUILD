@@ -9,8 +9,8 @@ cc_binary(
     srcs = ["run_openai.cc"],
     deps = [
         "//generative_computing/cc/authoring:constructor",
+        "//generative_computing/cc/examples/executors:executor_stacks",
         "//generative_computing/cc/runtime:executor",
-        "//generative_computing/cc/runtime:executor_stacks",
         "//generative_computing/cc/runtime:runner",
         "//generative_computing/cc/runtime:status_macros",
         "//generative_computing/proto/v0:computation_cc_proto",
@@ -25,8 +25,8 @@ cc_binary(
     srcs = ["run_llama_on_vertex.cc"],
     deps = [
         "//generative_computing/cc/authoring:constructor",
+        "//generative_computing/cc/examples/executors:executor_stacks",
         "//generative_computing/cc/runtime:executor",
-        "//generative_computing/cc/runtime:executor_stacks",
         "//generative_computing/cc/runtime:runner",
         "//generative_computing/cc/runtime:status_macros",
         "//generative_computing/proto/v0:computation_cc_proto",
@@ -41,8 +41,8 @@ cc_binary(
     srcs = ["run_gemini_on_vertex.cc"],
     deps = [
         "//generative_computing/cc/authoring:constructor",
+        "//generative_computing/cc/examples/executors:executor_stacks",
         "//generative_computing/cc/runtime:executor",
-        "//generative_computing/cc/runtime:executor_stacks",
         "//generative_computing/cc/runtime:runner",
         "//generative_computing/cc/runtime:status_macros",
         "//generative_computing/proto/v0:computation_cc_proto",
@@ -77,8 +77,8 @@ cc_binary(
     deps = [
         "//generative_computing/cc/authoring:constructor",
         "//generative_computing/cc/authoring:smart_chain",
+        "//generative_computing/cc/examples/executors:executor_stacks",
         "//generative_computing/cc/runtime:executor",
-        "//generative_computing/cc/runtime:executor_stacks",
         "//generative_computing/cc/runtime:runner",
         "//generative_computing/cc/runtime:status_macros",
         "//generative_computing/proto/v0:computation_cc_proto",
@@ -93,8 +93,8 @@ cc_binary(
     srcs = ["run_wolfram.cc"],
     deps = [
         "//generative_computing/cc/authoring:constructor",
+        "//generative_computing/cc/examples/executors:executor_stacks",
         "//generative_computing/cc/runtime:executor",
-        "//generative_computing/cc/runtime:executor_stacks",
         "//generative_computing/cc/runtime:runner",
         "//generative_computing/cc/runtime:status_macros",
         "//generative_computing/proto/v0:computation_cc_proto",
@@ -110,8 +110,8 @@ cc_binary(
     deps = [
         "//generative_computing/cc/authoring:constructor",
         "//generative_computing/cc/authoring:smart_chain",
+        "//generative_computing/cc/examples/executors:executor_stacks",
         "//generative_computing/cc/runtime:executor",
-        "//generative_computing/cc/runtime:executor_stacks",
         "//generative_computing/cc/runtime:runner",
         "//generative_computing/cc/runtime:status_macros",
         "//generative_computing/proto/v0:computation_cc_proto",

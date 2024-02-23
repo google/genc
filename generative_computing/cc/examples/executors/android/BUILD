@@ -19,6 +19,8 @@ cc_library(
         "//generative_computing/cc/interop/backends/android:wolfram_alpha_handler",
         "//generative_computing/cc/intrinsics:handler_sets",
         "//generative_computing/cc/intrinsics:model_inference",
+        "//generative_computing/cc/modules/agents:react",
+        "//generative_computing/cc/modules/retrieval:local_cache",
         "//generative_computing/cc/runtime:executor",
         "//generative_computing/cc/runtime:executor_stacks",
         "//generative_computing/cc/runtime:status_macros",

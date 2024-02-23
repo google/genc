@@ -21,6 +21,7 @@ from absl import flags
 from generative_computing.proto.v0 import computation_pb2 as pb
 from generative_computing.python import authoring
 from generative_computing.python import runtime
+from generative_computing.python.examples import executor
 
 # An example that calls WolframAlpha as part of the computation.
 FLAGS = flags.FLAGS
@@ -32,7 +33,8 @@ def main(argv: Sequence[str]) -> None:
     raise app.UsageError("Too many command-line arguments.")
 
   tool_call = authoring.create_wolfram_alpha(FLAGS.appid)
-  comp = runtime.Runner(comp_pb=tool_call)
+  comp = runtime.Runner(comp_pb=tool_call,
+                        executor=executor.create_default_executor())
 
   request = pb.Value()
   request.str = "what is the result of 2^2-2-3+4*100"

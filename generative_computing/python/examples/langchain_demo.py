@@ -19,6 +19,7 @@ from langchain import chains
 from langchain import prompts
 from generative_computing.python import interop
 from generative_computing.python import runtime
+from generative_computing.python.examples import executor
 
 
 def main(argv: Sequence[str]) -> None:
@@ -34,7 +35,7 @@ def main(argv: Sequence[str]) -> None:
   )
 
   comp_pb = interop.langchain.create_computation(my_chain)
-  comp = runtime.Runner(comp_pb)
+  comp = runtime.Runner(comp_pb, executor.create_default_executor())
   result = comp("a grocery store")
   print(result)
 

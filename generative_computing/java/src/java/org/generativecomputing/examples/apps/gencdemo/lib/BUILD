@@ -14,7 +14,7 @@ cc_library(
     deps = [
         "//generative_computing/c/runtime:c_api",
         "//generative_computing/c/runtime:c_api_internal",
-        "//generative_computing/cc/runtime/android:android_executor_stacks",
+        "//generative_computing/cc/examples/executors/android:android_executor_stacks",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/status:statusor",
     ],

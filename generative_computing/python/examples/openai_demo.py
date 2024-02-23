@@ -22,6 +22,7 @@ from absl import flags
 from generative_computing.proto.v0 import computation_pb2 as pb
 from generative_computing.python import authoring
 from generative_computing.python import runtime
+from generative_computing.python.examples import executor
 
 # An example that calls OpenAI as part of the computation.
 # bazel run generative_computing/python/examples:openai_demo -- --api_key <key>
@@ -41,7 +42,8 @@ def main(argv: Sequence[str]) -> None:
   endpoint = "https://api.openai.com/v1/chat/completions"
 
   model_call = authoring.create_rest_call(endpoint, FLAGS.api_key)
-  comp = runtime.Runner(comp_pb=model_call)
+  comp = runtime.Runner(comp_pb=model_call,
+                        executor=executor.create_default_executor())
 
   request = pb.Value()
   request.str = (

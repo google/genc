@@ -35,7 +35,7 @@ public class GencDemo extends Activity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
     try {
-      InputStream stream = new FileInputStream("/data/local/tmp/genc_tutorial_1.pb");
+      InputStream stream = new FileInputStream("/data/local/tmp/genc_demo.pb");
 
       Value computation = Value.parseFrom(stream, getExtensionRegistry());
       executor = new DefaultAndroidExecutor(getApplicationContext());

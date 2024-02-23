@@ -16,6 +16,7 @@ py_library(
     visibility = ["//visibility:public"],
     deps = [
         "//generative_computing/python/authoring",
+        "//generative_computing/python/examples",
         "//generative_computing/python/interop",
         "//generative_computing/python/runtime",
     ],

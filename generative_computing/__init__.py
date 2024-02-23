@@ -15,6 +15,7 @@
 
 # pylint: disable=g-importing-member
 from generative_computing.python import authoring
+from generative_computing.python import examples
 from generative_computing.python import interop
 from generative_computing.python import runtime
 # pylint: enable=g-importing-member

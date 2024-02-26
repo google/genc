@@ -104,6 +104,9 @@ absl::StatusOr<v0::Value> LlamaCpp::LlamaCppCall(const v0::Value& input) {
 
   LOG(INFO) << "Initial Prompt: " << prompt;
 
+  // Clears KV cache to prevent previous runs from influencing this one.
+  llama_kv_cache_clear(context_);
+
   // Tokenizes prompt.
   int n_tokens = prompt.size() + 1;  // Max token size, plus one for BOS.
   std::vector<llama_token> tokenized_prompt(n_tokens);

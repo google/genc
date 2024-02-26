@@ -17,6 +17,7 @@ package org.generativecomputing.examples.apps.gencdemo;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -51,27 +52,38 @@ public class GencDemo extends Activity {
     TextView response = findViewById(R.id.response);
     TextView verbose = findViewById(R.id.verbose);
 
+    // Inference Handler
+    Handler infHandler = new Handler();
+
+    final String generatingResponse = "Generating Response...";
+
     // Button calls inference on device when pressed
     Button onDeviceButton = findViewById(R.id.od);
     onDeviceButton.setOnClickListener(
         new View.OnClickListener() {
           @Override
           public void onClick(View view) {
-            String text = query.getText().toString();
-            String responseString = "";
-            try {
-              responseString = runner.call(text);
-            } catch (RuntimeException e) {
-              Log.e("GencDemo", e.toString());
-            }
-            response.setText(responseString);
-            String verboseString;
-            if (responseString.isEmpty()) {
-              verboseString = "Failed to get response. See error logs for more details.";
-            } else {
-              verboseString = "Success!";
-            }
-            verbose.setText(verboseString);
+            final String text = query.getText().toString();
+            response.setText("");
+            verbose.setText(generatingResponse);
+            // Runs inference on a new thread.
+            infHandler.post(
+                () -> {
+                  String responseString = "";
+                  try {
+                    responseString = runner.call(text);
+                  } catch (RuntimeException e) {
+                    Log.e("GencDemo", e.toString());
+                  }
+                  response.setText(responseString);
+                  String verboseString;
+                  if (responseString.isEmpty()) {
+                    verboseString = "Failed to get response. See error logs for more details.";
+                  } else {
+                    verboseString = "Success!";
+                  }
+                  verbose.setText(verboseString);
+                });
           }
         });
   }

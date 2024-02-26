@@ -32,10 +32,12 @@ class LlamaCpp {
 
   absl::Status InitModel(absl::string_view model_path, int num_threads,
                          int max_tokens);
+  absl::Status InitModel(const v0::Value& config);
   absl::StatusOr<v0::Value> CreateRequest(std::string prompt);
   absl::Status SetInferenceMap(
       intrinsics::ModelInference::InferenceMap& inference_map,
       absl::string_view model_uri);
+  absl::StatusOr<v0::Value> LlamaCppCall(const v0::Value& input);
 
   // Disallow copy and assign.
   LlamaCpp(const LlamaCpp&) = delete;
@@ -44,7 +46,6 @@ class LlamaCpp {
   LlamaCpp& operator=(LlamaCpp&&) = delete;
 
  private:
-  absl::StatusOr<v0::Value> LlamaCppCall(const v0::Value& input);
   struct llama_model* model_;
   struct llama_context* context_;
   int max_tokens_;

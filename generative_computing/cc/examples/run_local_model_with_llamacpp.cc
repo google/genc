@@ -62,8 +62,9 @@ int main(int argc, char* argv[]) {
   std::string prompt = absl::GetFlag(FLAGS_prompt);
   std::shared_ptr<generative_computing::LlamaCpp> llamacpp =
       std::make_shared<generative_computing::LlamaCpp>();
-  absl::Status status =
-      llamacpp->InitModel(model_path, num_threads, max_tokens);
+  const auto& config = generative_computing::CreateLlamaCppConfig(
+      model_path, num_threads, max_tokens);
+  absl::Status status = llamacpp->InitModel(config.value());
   if (!status.ok()) {
     std::cout << "Couldn't create model (" << model_path << ")\n";
     return 1;

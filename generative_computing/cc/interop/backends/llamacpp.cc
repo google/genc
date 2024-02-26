@@ -19,6 +19,7 @@ limitations under the License
 
 #include "absl/log/log.h"
 #include "absl/status/status.h"
+#include "absl/strings/numbers.h"
 #include "absl/strings/str_join.h"
 #include "generative_computing/cc/intrinsics/model_inference.h"
 #include "generative_computing/proto/v0/computation.pb.h"
@@ -60,13 +61,34 @@ absl::Status LlamaCpp::InitModel(absl::string_view model_path,
   return absl::OkStatus();
 }
 
+absl::Status LlamaCpp::InitModel(const v0::Value& config) {
+  std::string model_path;
+  int num_threads = 1;
+  int max_tokens = 32;
+  int temp;
+  bool valid;
+  for (const v0::Value& param : config.struct_().element()) {
+    if (param.label() == "model_path") {
+      model_path = param.str();
+    } else if (param.label() == "num_threads") {
+      valid = absl::SimpleAtoi(param.str(), &temp);
+      if (valid) {
+        num_threads = temp;
+      }
+    } else if (param.label() == "max_tokens") {
+      valid = absl::SimpleAtoi(param.str(), &temp);
+      if (valid) {
+        max_tokens = temp;
+      }
+    }
+  }
+  return InitModel(model_path, num_threads, max_tokens);
+}
+
 absl::StatusOr<v0::Value> LlamaCpp::CreateRequest(std::string prompt) {
   v0::Value request;
-  v0::Struct* args = request.mutable_struct_();
-
-  v0::Value* arg_prompt = args->add_element();
-  arg_prompt->set_label("prompt");
-  arg_prompt->set_str(prompt);
+  request.set_label("prompt");
+  request.set_str(prompt);
   return request;
 }
 
@@ -74,12 +96,7 @@ absl::StatusOr<v0::Value> LlamaCpp::LlamaCppCall(const v0::Value& input) {
   v0::Value response;
   std::string prompt;
 
-  // Unpack the keyword arguments.
-  for (const v0::Value& arg : input.struct_().element()) {
-    if (arg.label() == "prompt") {
-      prompt = arg.str();
-    }
-  }
+  prompt = input.str();
 
   if (!context_ || !model_) {
     return absl::InternalError("LlamaCpp wasn't initialized.");

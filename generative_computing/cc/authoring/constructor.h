@@ -72,6 +72,9 @@ absl::StatusOr<v0::Value> CreateModelInference(absl::string_view model_uri);
 absl::StatusOr<v0::Value> CreateRestModelConfig(std::string endpoint,
                                                std::string api_key = "");
 
+absl::StatusOr<v0::Value> CreateLlamaCppConfig(std::string model_path,
+                                               int num_threads = 1,
+                                               int max_tokens = 32);
 // Returns a model inference proto with the given model URI and model config.
 absl::StatusOr<v0::Value> CreateModelInferenceWithConfig(
     absl::string_view model_uri, v0::Value model_config);

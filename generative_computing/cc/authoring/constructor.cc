@@ -86,6 +86,28 @@ absl::StatusOr<v0::Value> CreateRestModelConfig(std::string endpoint,
   return model_config_pb;
 }
 
+absl::StatusOr<v0::Value> CreateLlamaCppConfig(std::string model_path,
+                                               int num_threads,
+                                               int max_tokens) {
+  v0::Value model_config_pb;
+  model_config_pb.set_label("model_config");
+  v0::Struct* args = model_config_pb.mutable_struct_();
+
+  v0::Value* model_path_pb = args->add_element();
+  model_path_pb->set_label("model_path");
+  model_path_pb->set_str(model_path);
+
+  v0::Value* num_threads_pb = args->add_element();
+  num_threads_pb->set_label("num_threads");
+  num_threads_pb->set_int_32(num_threads);
+
+  v0::Value* max_tokens_pb = args->add_element();
+  max_tokens_pb->set_label("max_tokens");
+  max_tokens_pb->set_int_32(max_tokens);
+
+  return model_config_pb;
+}
+
 // TODO(b/325090417): merge into CreateModelInference with nullable config.
 absl::StatusOr<v0::Value> CreateModelInferenceWithConfig(
     absl::string_view model_uri, v0::Value model_config) {

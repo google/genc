@@ -29,6 +29,7 @@ limitations under the License
 #include "generative_computing/cc/interop/backends/android/mediapipe_llm_inference.h"
 #include "generative_computing/cc/interop/backends/android/open_ai.h"
 #include "generative_computing/cc/interop/backends/android/wolfram_alpha_handler.h"
+#include "generative_computing/cc/interop/backends/llamacpp.h"
 #include "generative_computing/cc/intrinsics/handler_sets.h"
 #include "generative_computing/cc/modules/agents/react.h"
 #include "generative_computing/cc/modules/retrieval/local_cache.h"
@@ -51,9 +52,11 @@ namespace {
 constexpr absl::string_view kOpenAIModelUri = "/openai/chatgpt";
 constexpr absl::string_view kGeminiModelUri = "/cloud/gemini";
 constexpr absl::string_view kMediapipeModelUri = "/device/llm_inference";
+constexpr absl::string_view kLlamaCppModelUri = "/device/llamacpp";
 
 static absl::once_flag context_init_flag;
 static ExecutorStacksContext* executor_stacks_context = nullptr;
+LlamaCpp* llama_cpp_client = nullptr;
 constexpr int MAX_CACHE_SIZE_PER_KEY = 200;
 
 static void InitExecutorStacksContext() {
@@ -102,6 +105,27 @@ void SetMediapipeModelInferenceHandler(intrinsics::HandlerSetConfig* config,
   };
 }
 
+void SetLlamaCppModelInferenceHandler(intrinsics::HandlerSetConfig* config,
+                                      absl::string_view model_uri) {
+  config->model_inference_with_config_map[std::string(model_uri)] =
+      [](v0::Intrinsic intrinsic, v0::Value arg) -> absl::StatusOr<v0::Value> {
+    v0::Value model_inference;
+    if (!llama_cpp_client) {
+      // If the model hasn't been initialized, parse the config from
+      // the intrinsic and create the model.
+      const v0::Value& config =
+          intrinsic.static_parameter().struct_().element(1);
+
+      llama_cpp_client = new LlamaCpp();
+      absl::Status status = llama_cpp_client->InitModel(config);
+      if (!status.ok()) {
+        return status;
+      }
+    }
+    return llama_cpp_client->LlamaCppCall(arg);
+  };
+}
+
 void SetWolframAlphaIntrinsicHandler(intrinsics::HandlerSetConfig* config,
                                      JavaVM* jvm,
                                      jobject wolfram_alpha_client) {
@@ -123,6 +147,9 @@ absl::StatusOr<std::shared_ptr<Executor>> CreateAndroidExecutor(
                                    kGeminiModelUri);
   SetMediapipeModelInferenceHandler(&config, jvm, llm_inference_client,
                                     kMediapipeModelUri);
+
+  SetLlamaCppModelInferenceHandler(&config, kLlamaCppModelUri);
+
   SetWolframAlphaIntrinsicHandler(&config, jvm, wolfram_alpha_client);
 
   // ReAct functions.

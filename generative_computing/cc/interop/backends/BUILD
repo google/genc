@@ -9,6 +9,10 @@ cc_library(
     name = "llamacpp",
     srcs = ["llamacpp.cc"],
     hdrs = ["llamacpp.h"],
+    linkopts = [
+        "-lm",
+        "-ldl",
+    ],
     deps = [
         "//generative_computing/cc/intrinsics:model_inference",
         "//generative_computing/cc/runtime:status_macros",
@@ -20,6 +24,7 @@ cc_library(
         "@com_google_absl//absl/time",
         "@llama_cpp",
     ],
+    alwayslink = 1,
 )
 
 cc_library(

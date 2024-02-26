@@ -6,5 +6,4 @@ exports_files([
     "tutorial_3_custom_runtime.ipynb",
     "tutorial_4_math_tool_agent.ipynb",
     "tutorial_5_langchain_agent.ipynb",
-    "tutorial_6_android_agent.ipynb",
 ])

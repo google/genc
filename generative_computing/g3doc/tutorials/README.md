@@ -31,7 +31,3 @@ What you can find in this directory:
     interoperability with LangChain. It demonstrates how with GenC building
     blocks, you can build agent-based applications that combine LangChain API
     for authoring with a robust C++ runtime for deployment.
-
-*   [**Tutorial 6.** Port Agent to Android](tutorial_6_android_agent.ipynb).
-    This tutorial builds on all the above, and shows how an agent with tools
-    just created can be ported to run in a Java app on Android.

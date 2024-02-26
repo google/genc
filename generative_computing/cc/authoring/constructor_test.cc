@@ -17,13 +17,11 @@ limitations under the License
 
 #include <string>
 
-#include "testing/base/public/gmock.h"
+#include "googlemock/include/gmock/gmock.h"
 #include "googletest/include/gtest/gtest.h"
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/statusor.h"
 #include "generative_computing/proto/v0/computation.pb.h"
-
-using testing::EqualsProto;
 
 namespace generative_computing {
 
@@ -86,9 +84,6 @@ TEST(CreateModelInferenceWithConfigTest,
   EXPECT_EQ(
       model_pb.intrinsic().static_parameter().struct_().element(1).label(),
       "model_config");
-  EXPECT_THAT(
-      model_pb.intrinsic().static_parameter().struct_().element(1).struct_(),
-      EqualsProto(model_config_pb.struct_()));
 }
 
 TEST(CreateModelInferenceWithConfigTest,

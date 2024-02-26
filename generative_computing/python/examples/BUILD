@@ -12,11 +12,11 @@ py_library(
 py_library(
     name = "executor",
     srcs = ["executor.py"],
+    data = [
+        "//generative_computing/cc/examples/executors:executor_bindings.so",
+    ],
     visibility = [
         "//generative_computing/python:python_packages",
-    ],
-    deps = [
-        "//generative_computing/cc/examples/executors:executor_bindings",
     ],
 )
 

@@ -22,8 +22,9 @@ limitations under the License
 #include <string>
 #include <vector>
 
-#include "testing/base/public/gmock.h"
+#include "googlemock/include/gmock/gmock.h"
 #include "googletest/include/gtest/gtest.h"
+#include "absl/status/status.h"
 #include "generative_computing/cc/authoring/constructor.h"
 #include "generative_computing/cc/intrinsics/handler_sets.h"
 #include "generative_computing/cc/runtime/executor.h"
@@ -103,8 +104,9 @@ TEST(ThreadSafetyTest, MultiTreadedReadWriteIsSafe) {
 TEST(SetCustomFunctionsForLocalValueCache, CacheReadWriteWorksWithExecutor) {
   intrinsics::HandlerSetConfig config;
   LocalValueCache cache = LocalValueCache(100);
-  ASSERT_OK(
-      SetCustomFunctionsForLocalValueCache(config.custom_function_map, cache));
+  EXPECT_EQ(
+      SetCustomFunctionsForLocalValueCache(config.custom_function_map,
+      cache), absl::OkStatus());
   std::shared_ptr<Executor> executor =
       CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet(config))
           .value();

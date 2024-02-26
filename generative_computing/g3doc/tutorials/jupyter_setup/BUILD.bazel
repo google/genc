@@ -18,7 +18,6 @@ py_binary(
         "//generative_computing/g3doc/tutorials:tutorial_3_custom_runtime.ipynb",
         "//generative_computing/g3doc/tutorials:tutorial_4_math_tool_agent.ipynb",
         "//generative_computing/g3doc/tutorials:tutorial_5_langchain_agent.ipynb",
-        "//generative_computing/g3doc/tutorials:tutorial_6_android_agent.ipynb",
     ],
     tags = [
         "nobuilder",

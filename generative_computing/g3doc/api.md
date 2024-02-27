@@ -6,8 +6,8 @@ The API surface offered by GenC consists of roughly three parts, each targeting
 a somewhat different audience, discussed in separate sections below:
 
 *   **Authoring APIs** facilitate construction of *intermediate representation*
-    (*IR* for short) i.e., instances of the
-    [`computation.proto`](../proto/v0/computation.proto)'s, by the
+    (*IR* for short), i.e., instances of the
+    [`computation.proto`](../proto/v0/computation.proto)s, by the
     application developers to express the application logic that they want to
     run using GenC in a portable platform- and language-independent manner.
 
@@ -71,7 +71,7 @@ my_chain = langchain.chains.LLMChain(
     ),
 )
 
-portable_ir = interop.langchain.create_computation(my_chain)
+portable_ir = genc.interop.langchain.create_computation(my_chain)
 ```
 
 ### Native authoring APIs
@@ -217,7 +217,7 @@ application.
 Note that in GenC, runtime itself is modular, and thus constructing executors
 is also done via GenC APIs; those are discussed in the extensibility section
 below. In order to facilitate simple developer experience for first-time users,
-we provide a handle of sample runtime constructors for various environments
+we provide a handful of sample runtime constructors for various environments
 that can be constructed with one-line calls, and come with a set of dependencies
 sufficient to run examples in all the tutorials. For more advances uses, one
 may wish to setup their own runtime executors; see below for how to do this.
@@ -233,8 +233,8 @@ first, and executor as the second optional argument. A one-liner executor
 constructor that can be used for all the tutorials and examples is provided in
 [python/examples/executor.py](../python/examples/executor.py) (mapping to
 the C++ implementation in
-[cc/examples/executor_stacks.cc](../cc/examples/executor_stacks.cc); most
-of the runtime APIs are lifted from their C++ counterparts). A section on
+[cc/examples/executor_stacks.cc](../cc/examples/executors/executor_stacks.cc);
+most of the runtime APIs are lifted from their C++ counterparts). A section on
 extensibility and one of the included tutorials discuss how you can setup an
 executor that fits your specific environment, with support for the backends and
 dependencies you need. This demo executor will suffice for all examples and
@@ -252,12 +252,11 @@ python_result = runner('Boo!')
 ### Java runtime API
 
 A version of a runner for Java (e.g., for use on Android) is defined in
-[java/src/java/org/generativecomputing/Runner.java]
-(../java/src/java/org/generativecomputing/Runner.java). Similarly to its
-Python counterpart, its constructor takes IR and an executor. A one-liner
-executor constructor that can be used for the tutorials and examples to run
-on Android is provided in
-[java/src/java/org/generativecomputing/examples/apps/gencdemo/DefaultAndroidExecutor.java]
+[Runner.java](../java/src/java/org/generativecomputing/Runner.java).
+Similarly to its Python counterpart, its constructor takes IR and an executor.
+A one-liner executor constructor that can be used for the tutorials and
+examples to run on Android is provided in
+[DefaultAndroidExecutor.java]
 (../java/src/java/org/generativecomputing/examples/apps/gencdemo/DefaultAndroidExecutor.java). As noted above, you can setup a custom executor
 using extensibility APIs discussed below.
 
@@ -276,15 +275,17 @@ javaResult = runner.call(javaArgument);
 
 The C++ version of the default executor constructor we created for examples and
 tutorials is provided in
-[cc/examples/executor_stacks.h](../cc/examples/executor_stacks.h). As noted
-above, this is the same as what you get via Python APIs, and it's setup for use
-in Colab-like (non-Android) environments (note the example executor for Android
-was just covered in the preceding section).
+[cc/examples/executor_stacks.h](../cc/examples/executors/executor_stacks.h).
+As noted above, this is the same as what you get via Python APIs, and it's
+setup for use in Colab-like (non-Android) environments (note the example
+executor for Android was just covered in the preceding section).
 
 The C++ version of a runner is defined in
 [cc/runtime/runner.h](../cc/runtime/runner.h). Unlike its Python and Java
 counterparts, this runner requires the caller to provide arguments and consume
-results in the form of GenC protos.
+results in the form of GenC protos (while we may provide additional overloaded
+convenience methods that automatically convert across types, in our experience
+users that program in C++ prefer direct control over such logic).
 
 Here's a code snippet that illustrates example usage:
 
@@ -309,30 +310,37 @@ following key concepts:
 
 * **Executors** are the heart of the runtime, and are responsible for executing
   the IR. In principle, an executor is anything that implements
-  [cc/runtime/executor.h](../cc/runtime/executor.h). Even for a customized
-  runtime, executors are generally constructed by a `CreateLocalExecutor` call
-  defined in [cc/runtime/executor_stacks.h](../cc/runtime/executor_stacks.h);
-  the argument to this call is a set of *handlers* (see below). If desired, one
-  may provide their own implementation of an executor, but in most cases, we
-  don't expect this to be necessary (except if planning, e.g., to interoperate
-  with legacy runtime infrastructure, etc.).
+  `ExecutorInterface` from [cc/runtime/executor.h](../cc/runtime/executor.h)
+  (see also [runtime.md](runtime.md) for a more in-depth discussion of this API
+  and the executor concept). Whereas one could implement their own executor
+  from scratch, we expect this will rarely be necessary (except if planning,
+  e.g., to interoperate with legacy runtime infrastructure, etc.). Even for a
+  deeply customized runtime, executors would generally be constructed using the
+  `CreateLocalExecutor` call defined in
+  [cc/runtime/executor_stacks.h](../cc/runtime/executor_stacks.h).
+  The argument to this call is a set of *handlers* (see below).
 
 * **Handlers** are pluggable modules responsible for implementing specific types
   of operators that may appear in the IR, such as model inference calls, custom
   function calls, control flow abstractions, etc. One can setup the runtime with
   an arbitrary set of operators, including their own custom operators, or with
-  some operators removed to simplify runtime dependencies. This is achieved by
-  passing an appropriate set of handlers. In most situations, a set of handlers
-  will be created by a call `CreateCompleteHandlerSet` defined in
-  [cc/intrinsics/handler_sets.h](../cc/intrinsics/handler_sets.h); the
+  some (or all) operators removed, e.g., to simplify runtime dependencies.
+  This is achieved by passing an appropriate set of handlers to the
+  `CreateLocalExecutor` call mentioned above. In most situations, a set of
+  handlers will be created by a call `CreateCompleteHandlerSet` defined in
+  [cc/intrinsics/handler_sets.h](../cc/intrinsics/handler_sets.h). The
   argument to this call is a structure that contains customizable configuration
   for the commonly used types of handlers. The call above creates a set of
-  handlers for all known operators included in the GenC codebase. If you want to
-  add your own handlers, you can simply include them in the handler_set_config
-  in the `custom_intrinsics_list`. If you want to create a handler set with only
+  handlers for all known operators included in the GenC repo. If you want to
+  add your own handlers, you can simply include them in the `handler_set_config`
+  in `custom_intrinsics_list`. If you want to create a handler set with only
   certain handlers included (e.g., for a more streamlined runtime), this is
-  also quite easy - simply see how this is achieved in
-  [cc/intrinsics/handler_sets.cc](../cc/intrinsics/handler_sets.cc).
+  also quite easy. Simply see how this is achieved by in
+  [cc/intrinsics/handler_sets.cc](../cc/intrinsics/handler_sets.cc) by creating
+  an empty `HandlerSet` and calling `AddHandler` individually to produce a
+  curated set of handlers for the runtime to load. As noted above, this allows
+  you to avoid dependencies that might be problematic (especially on certain
+  types of lightweight mobile or embedded platforms).
 
 * **Inference map** is one of the fields in the handler config that configures
   the processing of `model_inference` calls. It's a map in which keys are the
@@ -353,8 +361,7 @@ following key concepts:
   cloud. You will not need to set this if you're running locally.
 
 Here's an example snippet of C++ code from
-[cc/runtime/android/android_executor_stacks.cc]
-(../cc/runtime/android/android_executor_stacks.cc)
+[cc/runtime/android/android_executor_stacks.cc](../cc/runtime/android/android_executor_stacks.cc)
 that puts these concepts in action. Note that we use all the runtime constructor
 calls mentioned above (`CreateCompleteHandlerSet` and `CreateLocalExecutor`),
 and the only thing that's being customized is the handler config. The two calls
@@ -416,9 +423,13 @@ executor in which they've been installed as *context*. This is more complex to
 use compared to working with protos that come in-and-out, but it provides an
 unrestricted ability to orchestrate processing from within the body of the
 custom operator (see [cc/runtime/executor.h](../cc/runtime/executor.h) for
-the type of calls these operators can make).
+the type of calls these operators can make). As the name suggests, this type of
+an operator can express arbitrary kinds of flow control logic, but also things
+like delegation of code across process and machine boundaries, lazy programming
+patterns, and beyond.
 
-Below is an example snippet of code for the conditional operator:
+Below is an example snippet of code for the `conditional` operator (see
+[runtime.md](runtime.md) for an explanation of `Materialize` and `CreateValue`):
 
 ```
 absl::StatusOr<ControlFlowIntrinsicHandlerInterface::ValueRef>
@@ -442,4 +453,6 @@ Conditional::ExecuteCall(
 ```
 
 Similarly to the authoring surface, extensibility APIs for languages other than
-C++ are provided by lifting the C++ API via `pybind11` and `JNI``.
+C++ are provided by lifting the C++ APIs to the target languages, currently
+via `pybind11` (for Python) and `JNI` (for Java), with support for other types
+of languages coming in the future.

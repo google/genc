@@ -2,9 +2,9 @@
 
 ## Overview
 
-The Intermediate Representation (IR) is at the core of our architecture - it's
-what enables the composability, portability, flexible deployment and hybrid
-computing benefits.
+The Intermediate Representation (IR) is at the core of GenC architecture - it's
+what enables the composability, portability, flexible deployment, and hybrid
+(device + Cloud) computing benefits.
 
 The structure of the IR is defined by the protocol buffer message named
 `Value` you can find in [computation.proto](../proto/v0/computation.proto).
@@ -62,9 +62,9 @@ call {
 Message `Lambda` (variant `lambda` in `Value`) represents a lambda expression,
 or in simple terms, an inline definition of a function (similar to `lamda` in
 Python, or the lambda expressions in C++11). It takes the name of the parameter
-declared by the function, an IR that represents the function's body. Within the
-function's body, the formal parameter can be referred to via the `Reference`
-abstraction discussed below.
+declared by the function, and a `result` IR that represents the function body
+and the result to be computed. Within the function body, the formal parameter
+can be referred to via the `Reference` abstraction discussed below.
 
 Here's an example piece of IR that uses the function definition, with the
 parameter named `arg`, and a body feeding it to a model inference call like the

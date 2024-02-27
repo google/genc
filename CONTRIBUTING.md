@@ -1,4 +1,4 @@
-# How to Contribute
+# Contributing to Generative Computing (GenC)
 
 We'd love to accept your patches and contributions to this project. There are
 just a few small guidelines you need to follow.
@@ -26,3 +26,40 @@ information on using pull requests.
 
 This project follows
 [Google's Open Source Community Guidelines](https://opensource.google.com/conduct/).
+
+## Code placement
+
+While the code is evolving and the structure of the repo may change, here are
+a handful of example pointers for common scenarios and general orientation:
+
+*   **If you'd like to provide a runtime setup for a new environment**, please
+    read the section about extensibility APIs in
+    [api.md](generative_computing/g3doc/api.md),
+    and the included tutorials, and review the
+    [two example setups](generative_computing/cc/examples/executors/)
+    we provided for use with the tutorials/examples included in this repo (one
+    for Colab, and one for Android).
+
+*   **If you'd like to add support for a new backend, custom operator, etc.**,
+    please likewise read the section about extensibility APIs in
+    [api.md](generative_computing/g3doc/api.md),
+    and the tutorials, and review some of the examples of
+    [existing operators](generative_computing/cc/intrinsics/)
+    as well as the supporting
+    [backend interop code](generative_computing/cc/interop).
+    Also note that many simpler uses can be supported by defining a
+    *custom function* (as shown in the tutorials).
+
+*   **If you'd like to add support for a new frontend SDK**, or expand support
+    for an existing one (like LangChain), please read the section on authoring
+    in [api.md](generative_computing/g3doc/api.md) and the documentation on
+    [architecture](generative_computing/g3doc/architecture.md) and
+    [intermediate representation](generative_computing/g3doc/ir.md),
+    and review the existing examples (e.g.,
+    [the existing LangChain interop code](generative_computing/python/interop/langchain/))
+    to see how we use the native authoring surface under the hood.
+
+If the type of contribution you're interested in isn't listed above, or if you
+have any questions or suggestions, please contact us! See also
+[README.md](README.md) for the general instructions and pointers to the key
+docs.

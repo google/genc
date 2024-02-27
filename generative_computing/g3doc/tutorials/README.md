@@ -1,6 +1,6 @@
 # Generative Computing (GenC) Tutorials and Demos
 
-What you can find in this directory:
+## Tutorial Overview
 
 *   [**Tutorial 1.** Simple chain in LangChain backed by a device-to-Cloud cascade](tutorial_1_simple_cascade.ipynb).
     This tutorial shows how to define simple application logic in LangChain, use
@@ -31,3 +31,39 @@ What you can find in this directory:
     interoperability with LangChain. It demonstrates how with GenC building
     blocks, you can build agent-based applications that combine LangChain API
     for authoring with a robust C++ runtime for deployment.
+
+## Running Tutorials in a Jupyter Notebook
+### Using the GenC Docker Container
+If you are using the GenC Docker container, then the prerequesites for running the notebook server are already installed. You'll just need to start the Docker container with the appropriate port (`8889`) forwarded to the host. For example, to forward the port and mount a local model directory:
+
+```
+docker run -it -v <GenC root>:/genc -v <local models directory>:/models -p 8889:8889 <Docker container tag> /bin/bash
+```
+
+Once in the container, you can run the notebook server:
+
+```
+cd genc
+bazel run generative_computing/g3doc/tutorials/jupyter_setup:jupyter
+```
+
+Once the server starts, the console will include information on a URL that includes an access token (otherwise you'll need to configure a password). For example:
+
+```
+    To access the server, open this file in a browser:
+        file:///root/.local/share/jupyter/runtime/jpserver-13-open.html
+    Or copy and paste one of these URLs:
+        http://dce025832b6d:8889/tree?token=687930d73e648c4e127ae4c585f3a3f578d0611b885a301d
+        http://127.0.0.1:8889/tree?token=687930d73e648c4e127ae4c585f3a3f578d0611b885a301d
+```
+
+Because the port is forwarded to the host machine, you can use the last URL with the hostname changed (e.g. `http://localhost:8889/tree?token=687930d73e648c4e127ae4c585f3a3f578d0611b885a301d`)
+
+### Without Docker
+Without Docker the steps are fairly similiar but you'll need to first install the prerequisites. We've included a script that installs the prerequsities (Debian and Python deps) and then runs the server. From the GenC root:
+
+```
+bash generative_computing/g3doc/tutorials/jupyter_setup/launch_jupyter.sh
+```
+
+After execution the server can be accessed with the URLs+tokens as described in [Using the GenC Docker Container](#using-the-genc-docker-container).

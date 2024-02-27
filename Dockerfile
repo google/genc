@@ -56,3 +56,8 @@ RUN ln -s -f /usr/bin/bazel-6.3.2 /usr/bin/bazel
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends default-jdk
+
+# Install deps for running a GenC Jupyter Notebook (used in Tutorials)
+RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt install -y jupyter-notebook
+COPY generative_computing/g3doc/tutorials/jupyter_setup/requirements.txt /tmp/jupyter-requirements.txt
+RUN pip3 install -r /tmp/jupyter-requirements.txt

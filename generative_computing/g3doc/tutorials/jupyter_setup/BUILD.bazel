@@ -31,6 +31,9 @@ py_binary(
         ":jupyter_core",
         "//generative_computing/proto/v0:computation_py_pb2",
         "//generative_computing/python/authoring",
+        "//generative_computing/python/base",
+        "//generative_computing/python/examples",
+        "//generative_computing/python/interop",
         "//generative_computing/python/runtime",
     ],
 )

@@ -7,7 +7,7 @@ what enables the composability, portability, flexible deployment and hybrid
 computing benefits.
 
 The structure of the IR is defined by the protocol buffer message named
-`Value` you can find in [computation.proto](../../proto/v0/computation.proto).
+`Value` you can find in [computation.proto](../proto/v0/computation.proto).
 You can think of this protocol buffer as effectively defining a simple
 domain-specific language (DSL), with the `Value` being a recursive structure
 that represents the processing to be performed.
@@ -100,7 +100,7 @@ can also be used to define named aliases in *let expressions* (see below).
 When nested, they follow the usual rules of naming (name defined within nested
 scope hides a name defined in the surrounding scope).
 
-### Structure)
+### Structure
 
 Message `Struct` defines a *structure*, or simply a tuple with an ordered set
 of elements. A tuple is often used to assemble a set of values to form an
@@ -203,12 +203,12 @@ may take a struct with a number of different elements, potentially nested.
 
 As noted above, the system of pluggable operators is modular and customizable.
 The set of operators included in the GenC repo can be found in
-[cc/intrinsics](../../cc/intrinsics/), with the documentation contained in the
-header file [intrinsic_uris.h](../../cc/intrinsics/intrinsic_uris.h).
+[cc/intrinsics](../cc/intrinsics/), with the documentation contained in the
+header file [intrinsic_uris.h](../cc/intrinsics/intrinsic_uris.h).
 
 In order to promote the use of these operators in user-configured runtimes,
 by default all of them will be wired into the runtime by the function `CreateCompleteHandlerSet` declared in a neighboring
-[handler_sets.h](../../cc/intrinsics/handler_sets.h), albeit this is also fully
+[handler_sets.h](../cc/intrinsics/handler_sets.h), albeit this is also fully
 configurable. See the discussion of extensibility APIs in the
 [api.md](api.md) for how to use it when setting up a custom runtime.
 

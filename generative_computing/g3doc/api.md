@@ -7,7 +7,7 @@ a somewhat different audience, discussed in separate sections below:
 
 *   **Authoring APIs** facilitate construction of *intermediate representation*
     (*IR* for short) i.e., instances of the
-    [`computation.proto`](../../proto/v0/computation.proto)'s, by the
+    [`computation.proto`](../proto/v0/computation.proto)'s, by the
     application developers to express the application logic that they want to
     run using GenC in a portable platform- and language-independent manner.
 
@@ -48,7 +48,7 @@ set of supported SDKs with the help of the 3P/OSS community.
 #### Interop authoring APIs for LangChain
 
 These can be found in the
-[python/interop/langchain](../../python/interop/langchain/) directory.
+[python/interop/langchain](../python/interop/langchain/) directory.
 
 Currently included:
 
@@ -94,10 +94,10 @@ C++ offering the most complete coverage, and other languages in sync via the
 appropriate language-specific bindings (such as `pybind11`, `JNI`, etc.).
 
 **C++ native authoring APIs** can be found in
-[cc/authoring](../../cc/authoring/), with all the basic IR constructs defined
-in [constructor.h](../../cc/authoring/constructor.h). Longer descriptions of
+[cc/authoring](../cc/authoring/), with all the basic IR constructs defined
+in [constructor.h](../cc/authoring/constructor.h). Longer descriptions of
 these basic primitives can be found in
-[cc/intrinsics/intrinsic_uris.h](../../cc/intrinsics/intrinsic_uris.h). Note
+[cc/intrinsics/intrinsic_uris.h](../cc/intrinsics/intrinsic_uris.h). Note
 that this system of operators is extensible. Deployments using GenC can add new
 operators targeting their specific problem domain that aren't listed or
 documented here. All functions in the authoring API take and return pieces of
@@ -106,7 +106,7 @@ to construct.
 
 The snippet below illustrates the use of the C++ authoring to expressed an agent
 reasoning example (you can find the full working code in
-[cc/examples/math_tool_agent.cc](../../cc/examples/math_tool_agent.cc)):
+[cc/examples/math_tool_agent.cc](../cc/examples/math_tool_agent.cc)):
 
 ```
 // Create modular computations, orders doesn't matter, these are just protos.
@@ -162,16 +162,16 @@ v0::Value computation = GENC_TRY(step_by_step_math_agent.Build());
 ```
 
 **Python native authoring APIs** are lifted from C++ via
-[constructor_bindings.cc](../../cc/authoring/constructor_bindings.cc), and can
+[constructor_bindings.cc](../cc/authoring/constructor_bindings.cc), and can
 be found re-exported with additional documentation in
-[python/authoring/constructors.py](../../python/authoring/constructors.py), and
+[python/authoring/constructors.py](../python/authoring/constructors.py), and
 with names, types of arguments and results closely matching those from C++ (but
 adapted for use in Python).
 
 In addition, as an added convenience in constructing more complex IR logic,
 there's experimental support for defining IR via decorated Python functions that
 are traced; see
-[python/examples/authoring_demo.py](../../python/examples/authoring_demo.py) or
+[python/examples/authoring_demo.py](../python/examples/authoring_demo.py) or
 the snippet below for an example of what this looks like.
 
 ```
@@ -228,17 +228,22 @@ see the following subsections for further details and examples of usage.
 ### Python runtime API
 
 A version of a runner for Python (e.g., for use in Colab) is defined in
-[python/runtime/runner.py](../../python/runtime/runner.py). It takes IR as the
+[python/runtime/runner.py](../python/runtime/runner.py). It takes IR as the
 first, and executor as the second optional argument. A one-liner executor
 constructor that can be used for all the tutorials and examples is provided in
-[TODO]().
-
-TODO add a proper default Python executor constructor above and below
+[python/examples/executor.py](../python/examples/executor.py) (mapping to
+the C++ implementation in
+[cc/examples/executor_stacks.cc](../cc/examples/executor_stacks.cc); most
+of the runtime APIs are lifted from their C++ counterparts). A section on
+extensibility and one of the included tutorials discuss how you can setup an
+executor that fits your specific environment, with support for the backends and
+dependencies you need. This demo executor will suffice for all examples and
+tutorials we've included in this repo.
 
 Here's a code snippet that illustrates example usage:
 
 ```
-executor = ...
+executor = genc.examples.executor.create_default_executor()
 portable_ir = genc.authoring.create_model('test_model')
 runner = genc.runtime.Runner(portable_ir, executor)
 python_result = runner('Boo!')
@@ -248,12 +253,12 @@ python_result = runner('Boo!')
 
 A version of a runner for Java (e.g., for use on Android) is defined in
 [java/src/java/org/generativecomputing/Runner.java]
-(../../java/src/java/org/generativecomputing/Runner.java). Similarly to its
+(../java/src/java/org/generativecomputing/Runner.java). Similarly to its
 Python counterpart, its constructor takes IR and an executor. A one-liner
 executor constructor that can be used for the tutorials and examples to run
 on Android is provided in
 [java/src/java/org/generativecomputing/examples/apps/gencdemo/DefaultAndroidExecutor.java]
-(../../java/src/java/org/generativecomputing/examples/apps/gencdemo/DefaultAndroidExecutor.java). As noted above, you can setup a custom executor
+(../java/src/java/org/generativecomputing/examples/apps/gencdemo/DefaultAndroidExecutor.java). As noted above, you can setup a custom executor
 using extensibility APIs discussed below.
 
 Here's a code snippet that illustrates example usage:
@@ -269,10 +274,15 @@ javaResult = runner.call(javaArgument);
 
 ### C++ runtime API
 
-TODO add a proper default C++ executor constructor above and below
+The C++ version of the default executor constructor we created for examples and
+tutorials is provided in
+[cc/examples/executor_stacks.h](../cc/examples/executor_stacks.h). As noted
+above, this is the same as what you get via Python APIs, and it's setup for use
+in Colab-like (non-Android) environments (note the example executor for Android
+was just covered in the preceding section).
 
 The C++ version of a runner is defined in
-[cc/runtime/runner.h](../../cc/runtime/runner.h). Unlike its Python and Java
+[cc/runtime/runner.h](../cc/runtime/runner.h). Unlike its Python and Java
 counterparts, this runner requires the caller to provide arguments and consume
 results in the form of GenC protos.
 
@@ -299,9 +309,9 @@ following key concepts:
 
 * **Executors** are the heart of the runtime, and are responsible for executing
   the IR. In principle, an executor is anything that implements
-  [cc/runtime/executor.h](../../cc/runtime/executor.h). Even for a customized
+  [cc/runtime/executor.h](../cc/runtime/executor.h). Even for a customized
   runtime, executors are generally constructed by a `CreateLocalExecutor` call
-  defined in [cc/runtime/executor_stacks.h](../../cc/runtime/executor_stacks.h);
+  defined in [cc/runtime/executor_stacks.h](../cc/runtime/executor_stacks.h);
   the argument to this call is a set of *handlers* (see below). If desired, one
   may provide their own implementation of an executor, but in most cases, we
   don't expect this to be necessary (except if planning, e.g., to interoperate
@@ -314,7 +324,7 @@ following key concepts:
   some operators removed to simplify runtime dependencies. This is achieved by
   passing an appropriate set of handlers. In most situations, a set of handlers
   will be created by a call `CreateCompleteHandlerSet` defined in
-  [cc/intrinsics/handler_sets.h](../../cc/intrinsics/handler_sets.h); the
+  [cc/intrinsics/handler_sets.h](../cc/intrinsics/handler_sets.h); the
   argument to this call is a structure that contains customizable configuration
   for the commonly used types of handlers. The call above creates a set of
   handlers for all known operators included in the GenC codebase. If you want to
@@ -322,7 +332,7 @@ following key concepts:
   in the `custom_intrinsics_list`. If you want to create a handler set with only
   certain handlers included (e.g., for a more streamlined runtime), this is
   also quite easy - simply see how this is achieved in
-  [cc/intrinsics/handler_sets.cc](../../cc/intrinsics/handler_sets.cc).
+  [cc/intrinsics/handler_sets.cc](../cc/intrinsics/handler_sets.cc).
 
 * **Inference map** is one of the fields in the handler config that configures
   the processing of `model_inference` calls. It's a map in which keys are the
@@ -335,7 +345,7 @@ following key concepts:
   may appear in the IR to C++ handlers that contain their implementations. The
   same custom function can be implemented differently depending on the
   environment. Implementations of commonly used custom functions are included
-  in the [cc/modules](../../cc/modules/) directory.
+  in the [cc/modules](../cc/modules/) directory.
 
 * **Delegate map** is a mapping from the names of runtime environments to the
   C++ callables that delegate processing to those environments. This may be set,
@@ -344,7 +354,7 @@ following key concepts:
 
 Here's an example snippet of C++ code from
 [cc/runtime/android/android_executor_stacks.cc]
-(../../cc/runtime/android/android_executor_stacks.cc)
+(../cc/runtime/android/android_executor_stacks.cc)
 that puts these concepts in action. Note that we use all the runtime constructor
 calls mentioned above (`CreateCompleteHandlerSet` and `CreateLocalExecutor`),
 and the only thing that's being customized is the handler config. The two calls
@@ -366,20 +376,20 @@ absl::StatusOr<std::shared_ptr<Executor>> CreateAndroidExecutor(
 Now, as noted above, GenC enables you to add your own custom operators to the
 system. Before you do that, you may want to review the list of operators that
 already exist. Those are documented in
-[cc/intrinsics/intrinsic_uris.h](../../cc/intrinsics/intrinsic_uris.h), and
+[cc/intrinsics/intrinsic_uris.h](../cc/intrinsics/intrinsic_uris.h), and
 their implementations are contained in the same directory (in
-[cc/intrinsics](../../cc/intrinsics/)).
+[cc/intrinsics](../cc/intrinsics/)).
 
 Adding a new operator requires simply implementing one of two handler interfces
 defined in
-[cc/runtime/intrinsic_handler.h](../../cc/runtime/intrinsic_handler.h), either
+[cc/runtime/intrinsic_handler.h](../cc/runtime/intrinsic_handler.h), either
 by deriving from the `InlineIntrinsicHandlerBase` for operators that simply
 want to process data in-and-out, or from `ControlFlowIntrinsicHandlerBase` for
 custom control flow and other general type of operators.
 
 The former type (i.e., *inline*) operators simply take and return the `Value`
 proto (defined in
-[proto/v0/computation.proto](../../proto/v0/computation.proto)). This is the
+[proto/v0/computation.proto](../proto/v0/computation.proto)). This is the
 same proto used to define the IR. In addition, the handler that implements it
 has access to the piece of IR where the operator is being used, and that may
 contain an optional static parameter.
@@ -401,11 +411,11 @@ absl::Status LogicalNot::ExecuteCall(
 
 The latter type (i.e., *control flow*) operators can perform arbitrary types of
 processing. These operators are given access to the full executor interface (as
-defined in [cc/runtime/executor.h](../../cc/runtime/executor.h)) for the
+defined in [cc/runtime/executor.h](../cc/runtime/executor.h)) for the
 executor in which they've been installed as *context*. This is more complex to
 use compared to working with protos that come in-and-out, but it provides an
 unrestricted ability to orchestrate processing from within the body of the
-custom operator (see [cc/runtime/executor.h](../../cc/runtime/executor.h) for
+custom operator (see [cc/runtime/executor.h](../cc/runtime/executor.h) for
 the type of calls these operators can make).
 
 Below is an example snippet of code for the conditional operator:

@@ -260,7 +260,7 @@ robolectric_repositories()
 load("@rules_python//python:pip.bzl","pip_parse")
 pip_parse(
     name = "notebooks",
-    requirements_lock = "//generative_computing/docstutorials/jupyter_setup:requirements.txt",
+    requirements_lock = "//generative_computing/docs/tutorials/jupyter_setup:requirements.txt",
 )
 load("@notebooks//:requirements.bzl", "install_deps")
 install_deps()

@@ -13,18 +13,18 @@ different frontend SDKs and service backends.
 
 For more information, see the following:
 
-*   [Tutorials](generative_computing/docstutorials/README.md) show diverse
+*   [Tutorials](generative_computing/docs/tutorials/README.md) show diverse
     examples of usage to showcase some of GenC's capabilities.
 
-*   [API documentation](generative_computing/docsapi.md) cover the developer
+*   [API documentation](generative_computing/docs/api.md) cover the developer
     and extensibility surfaces.
 
-*   [Model documentation](generative_computing/docsmodels.md) lists the
+*   [Model documentation](generative_computing/docs/models.md) lists the
     supported models.
 
-*   [Architecture](generative_computing/docsarchitecture.md),
-    [IR](generative_computing/docsir.md), and
-    [runtime](generative_computing/docsruntime.md) cover more advanced topics
+*   [Architecture](generative_computing/docs/architecture.md),
+    [IR](generative_computing/docs/ir.md), and
+    [runtime](generative_computing/docs/runtime.md) cover more advanced topics
     for a deeper level of customization.
 
 *   [Setup](SETUP.md) instructions explain how to setup a full development

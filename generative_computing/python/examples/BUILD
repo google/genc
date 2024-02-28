@@ -14,6 +14,7 @@ py_library(
     srcs = ["executor.py"],
     data = [
         "//generative_computing/cc/examples/executors:executor_bindings.so",
+        "//generative_computing/cc/runtime:executor_bindings.so",
     ],
     visibility = [
         "//generative_computing/python:python_packages",

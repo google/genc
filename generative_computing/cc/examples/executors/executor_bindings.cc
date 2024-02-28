@@ -21,6 +21,7 @@ limitations under the License
 //     "business logic". That should be implemented on the underlying C++ class.
 
 #include "generative_computing/cc/examples/executors/executor_stacks.h"
+#include "generative_computing/cc/runtime/executor.h"
 #include "generative_computing/proto/v0/computation.pb.h"
 #include "include/pybind11/cast.h"
 #include "include/pybind11/detail/common.h"
@@ -46,6 +47,7 @@ namespace {
 ////////////////////////////////////////////////////////////////////////////////
 PYBIND11_MODULE(executor_bindings, m) {
   py::google::ImportStatusModule();
+
   m.def("create_default_executor", &CreateDefaultExecutor,
         "Creates a default executor with predefined components used in "
         "Generative Computing demos.");

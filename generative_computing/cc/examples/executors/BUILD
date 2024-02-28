@@ -12,6 +12,7 @@ pybind_extension(
     tags = ["generated_py_module=generative_computing.examples.executors"],
     deps = [
         ":executor_stacks",
+        "//generative_computing/cc/runtime:executor",
         "//generative_computing/proto/v0:computation_cc_proto",
         "@pybind11_abseil//pybind11_abseil:absl_casters",
         "@pybind11_abseil//pybind11_abseil:status_casters",

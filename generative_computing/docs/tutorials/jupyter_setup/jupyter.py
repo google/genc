@@ -25,7 +25,7 @@ if __name__ == "__main__":
   sys.argv = [
       "jupyter",
       "notebook",
-      "generative_computing/g3doc/tutorials/",
+      "generative_computing/docstutorials/",
       "--no-browser",
       "--ip=0.0.0.0",
       "--port=8889",

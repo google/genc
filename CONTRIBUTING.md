@@ -34,7 +34,7 @@ a handful of example pointers for common scenarios and general orientation:
 
 *   **If you'd like to provide a runtime setup for a new environment**, please
     read the section about extensibility APIs in
-    [api.md](generative_computing/g3doc/api.md),
+    [api.md](generative_computing/docsapi.md),
     and the included tutorials, and review the
     [two example setups](generative_computing/cc/examples/executors/)
     we provided for use with the tutorials/examples included in this repo (one
@@ -42,7 +42,7 @@ a handful of example pointers for common scenarios and general orientation:
 
 *   **If you'd like to add support for a new backend, custom operator, etc.**,
     please likewise read the section about extensibility APIs in
-    [api.md](generative_computing/g3doc/api.md),
+    [api.md](generative_computing/docsapi.md),
     and the tutorials, and review some of the examples of
     [existing operators](generative_computing/cc/intrinsics/)
     as well as the supporting
@@ -52,9 +52,9 @@ a handful of example pointers for common scenarios and general orientation:
 
 *   **If you'd like to add support for a new frontend SDK**, or expand support
     for an existing one (like LangChain), please read the section on authoring
-    in [api.md](generative_computing/g3doc/api.md) and the documentation on
-    [architecture](generative_computing/g3doc/architecture.md) and
-    [intermediate representation](generative_computing/g3doc/ir.md),
+    in [api.md](generative_computing/docsapi.md) and the documentation on
+    [architecture](generative_computing/docsarchitecture.md) and
+    [intermediate representation](generative_computing/docsir.md),
     and review the existing examples (e.g.,
     [the existing LangChain interop code](generative_computing/python/interop/langchain/))
     to see how we use the native authoring surface under the hood.

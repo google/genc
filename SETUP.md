@@ -48,7 +48,7 @@ docker run -p 8889:8889 -it -v $PWD:/generative_computing genc:latest /bin/bash
 ### 2. Launch the notebooks
 
 ```
-bash g3doc/tutorials/jupyter_setup/launch_jupyter.sh
+bash docstutorials/jupyter_setup/launch_jupyter.sh
 ```
 
 Open the link in your local browser.

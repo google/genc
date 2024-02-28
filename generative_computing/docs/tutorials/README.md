@@ -44,7 +44,7 @@ Once in the container, you can run the notebook server:
 
 ```
 cd genc
-bazel run generative_computing/g3doc/tutorials/jupyter_setup:jupyter
+bazel run generative_computing/docstutorials/jupyter_setup:jupyter
 ```
 
 Once the server starts, the console will include information on a URL that includes an access token (otherwise you'll need to configure a password). For example:
@@ -63,7 +63,7 @@ Because the port is forwarded to the host machine, you can use the last URL with
 Without Docker the steps are fairly similiar but you'll need to first install the prerequisites. We've included a script that installs the prerequsities (Debian and Python deps) and then runs the server. From the GenC root:
 
 ```
-bash generative_computing/g3doc/tutorials/jupyter_setup/launch_jupyter.sh
+bash generative_computing/docstutorials/jupyter_setup/launch_jupyter.sh
 ```
 
 After execution the server can be accessed with the URLs+tokens as described in [Using the GenC Docker Container](#using-the-genc-docker-container).

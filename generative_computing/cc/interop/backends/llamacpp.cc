@@ -26,6 +26,8 @@ limitations under the License
 #include "llama.h"
 
 namespace {
+constexpr int kMaxTokenLength = 32;  // Max token length in characters.
+
 void llama_batch_add(struct llama_batch& batch, llama_token id, llama_pos pos,
                      bool logits) {
   batch.token[batch.n_tokens] = id;
@@ -39,7 +41,22 @@ void llama_batch_add(struct llama_batch& batch, llama_token id, llama_pos pos,
   batch.n_tokens++;
 }
 
-constexpr int kMaxTokenLength = 32;  // Max token length in characters.
+absl::StatusOr<int> getIntParam(const generative_computing::v0::Value& param) {
+  if (param.has_int_32()) {
+    return param.int_32();
+  } else if (param.has_str()) {
+    int temp;
+    bool valid;
+    valid = absl::SimpleAtoi(param.str(), &temp);
+    if (valid) {
+      return temp;
+    } else {
+      return absl::InvalidArgumentError("Unable to parse param");
+    }
+  } else {
+    return absl::InvalidArgumentError("Invalid param type");
+  }
+}
 }  // namespace
 namespace generative_computing {
 
@@ -66,19 +83,21 @@ absl::Status LlamaCpp::InitModel(const v0::Value& config) {
   int num_threads = 1;
   int max_tokens = 32;
   int temp;
-  bool valid;
+  absl::StatusOr<int> arg;
   for (const v0::Value& param : config.struct_().element()) {
     if (param.label() == "model_path") {
       model_path = param.str();
     } else if (param.label() == "num_threads") {
-      valid = absl::SimpleAtoi(param.str(), &temp);
-      if (valid) {
-        num_threads = temp;
+      // Support capturing either string or int, depending on how the
+      // IR was written. If invalid format, use default.
+      arg = getIntParam(param);
+      if (arg.ok()) {
+        num_threads = arg.value();
       }
     } else if (param.label() == "max_tokens") {
-      valid = absl::SimpleAtoi(param.str(), &temp);
-      if (valid) {
-        max_tokens = temp;
+      arg = getIntParam(param);
+      if (arg.ok()) {
+        max_tokens = arg.value();
       }
     }
   }

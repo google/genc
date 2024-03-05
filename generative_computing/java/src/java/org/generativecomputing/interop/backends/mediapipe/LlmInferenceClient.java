@@ -32,7 +32,7 @@ import org.generativecomputing.Value;
 public final class LlmInferenceClient {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final String KEY_MODEL_PATH = "model_path";
-  private static final String KEY_MAX_SEQUENCE_LENGTH = "max_sequence_length";
+  private static final String KEY_MAX_TOKENS = "max_tokens";
   private static final String KEY_TOP_K = "top_k";
   private static final String KEY_TEMPERATURE = "temperature";
   private static final String KEY_RANDOM_SEED = "random_seed";

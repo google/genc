@@ -63,7 +63,7 @@ py_library(
     name = "custom_chain",
     srcs = ["custom_chain.py"],
     visibility = [
-        "//generative_computing/python:python_packages",
+        "//visibility:private",  # Only private by automation, not intent. Owner may accept CLs adding visibility. See go/scheuklappen#explicit-private.
     ],
     deps = ["//generative_computing/proto/v0:computation_py_pb2"],
 )
@@ -78,7 +78,7 @@ py_library(
     name = "custom_tool",
     srcs = ["custom_tool.py"],
     visibility = [
-        "//generative_computing/python:python_packages",
+        "//visibility:private",  # Only private by automation, not intent. Owner may accept CLs adding visibility. See go/scheuklappen#explicit-private.
     ],
     deps = [
         "//generative_computing/proto/v0:computation_py_pb2",
@@ -99,7 +99,7 @@ py_library(
     name = "custom_agent",
     srcs = ["custom_agent.py"],
     visibility = [
-        "//generative_computing/python:python_packages",
+        "//visibility:private",  # Only private by automation, not intent. Owner may accept CLs adding visibility. See go/scheuklappen#explicit-private.
     ],
     deps = [":custom_tool"],
 )

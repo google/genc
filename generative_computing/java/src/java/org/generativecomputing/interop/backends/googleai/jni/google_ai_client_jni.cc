@@ -27,20 +27,7 @@ namespace generative_computing {
 std::string CallGoogleAiClient(JavaVM* jvm, jobject google_ai_client,
                                std::string model_config, std::string request) {
   CHECK(jvm != nullptr) << "JVM is null";
-  JNIEnv* env = GetThreadLocalJniEnv(jvm);
-  if (env == nullptr) {
-    LOG(INFO) << "No JNIEnv on native thread, need to attach it to JVM";
-#ifdef __ANDROID__
-    int status = jvm->AttachCurrentThread(&env, nullptr);
-#else
-    int status = jvm->AttachCurrentThread((void**)&env, nullptr);
-#endif
-    if (status != JNI_OK) {
-      LOG(ERROR) << "Current thread attachment to JVM failed";
-      return "";
-    }
-  }
-
+  JNIEnv* env = GetJniEnv(jvm);
   if (env == nullptr) {
     LOG(ERROR) << "Couldn't get JNI env";
     return "";

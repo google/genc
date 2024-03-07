@@ -39,6 +39,11 @@ jbyteArray GetJbyteArrayFromString(JNIEnv* env, const std::string& string);
 // Returns the thread local JNI environment.
 JNIEnv* GetThreadLocalJniEnv(JavaVM* vm);
 
+// Returns the thread local JNI environment if present. If a thread local JNI
+// environment is not present, attaches the current thread to the provided JVM
+// and returns the JNI environment.
+JNIEnv* GetJniEnv(JavaVM* jvm);
+
 }  // namespace generative_computing
 
 #endif  // GENERATIVE_COMPUTING_JAVA_SRC_JAVA_ORG_GENERATIVECOMPUTING_INTEROP_JNI_JNI_UTILS_H_

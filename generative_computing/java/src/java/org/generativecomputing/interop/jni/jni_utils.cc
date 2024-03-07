@@ -16,7 +16,10 @@ limitations under the License
 #include "generative_computing/java/src/java/org/generativecomputing/interop/jni/jni_utils.h"
 
 #include <jni.h>
+
 #include <string>
+
+#include "absl/log/log.h"
 
 namespace generative_computing {
 
@@ -52,14 +55,31 @@ jbyteArray GetJbyteArrayFromString(JNIEnv* env, const std::string& string) {
   return javaByteArray;
 }
 
-JNIEnv* GetThreadLocalJniEnv(JavaVM* vm) {
-  if (vm == nullptr) {
+JNIEnv* GetThreadLocalJniEnv(JavaVM* jvm) {
+  if (jvm == nullptr) {
     return nullptr;  // No JavaVM provided to get JNIEnv from.
   }
   JNIEnv* env = nullptr;
-  jint error = vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6);
+  jint error = jvm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6);
   if (error != JNI_OK) {
     return nullptr;
+  }
+  return env;
+}
+
+JNIEnv* GetJniEnv(JavaVM* jvm) {
+  JNIEnv* env = GetThreadLocalJniEnv(jvm);
+  if (env == nullptr) {
+    // No JNI environment on native thread, attach the native thread to JVM
+#ifdef __ANDROID__
+    int status = jvm->AttachCurrentThread(&env, nullptr);
+#else
+    int status = jvm->AttachCurrentThread((void**)&env, nullptr);
+#endif
+    if (status != JNI_OK) {
+      LOG(ERROR) << "Current thread attachment to JVM failed";
+      return nullptr;
+    }
   }
   return env;
 }

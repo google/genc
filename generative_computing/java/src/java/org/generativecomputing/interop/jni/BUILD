@@ -15,5 +15,6 @@ cc_library(
     target_compatible_with = [
         "@platforms//os:android",
     ],
+    deps = ["@com_google_absl//absl/log"],
     alwayslink = 1,
 )

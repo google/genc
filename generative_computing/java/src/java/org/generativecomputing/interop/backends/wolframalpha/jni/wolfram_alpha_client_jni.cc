@@ -20,77 +20,14 @@ limitations under the License
 
 #include "absl/log/check.h"
 #include "absl/log/log.h"
+#include "generative_computing/java/src/java/org/generativecomputing/interop/jni/jni_utils.h"
 
 namespace generative_computing {
-
-namespace {
-// TODO(pagarwl): Factor out helper Jni functions into utils and share across
-// other backend interops.
-void ThrowException(const std::string& exception_class,
-                    const std::string& message, JNIEnv* env) {
-  jclass jexception_class = env->FindClass(exception_class.c_str());
-  env->ThrowNew(jexception_class, message.c_str());
-}
-
-void ThrowRuntimeException(const std::string& message, JNIEnv* env) {
-  ThrowException("java/lang/RuntimeException", message, env);
-}
-
-static std::string GetString(JNIEnv* env, jstring java_string) {
-  jboolean is_copy;
-  const char* name_pointer =
-      java_string ? env->GetStringUTFChars(java_string, &is_copy) : nullptr;
-  if (name_pointer == nullptr) {
-    return "";
-  }
-  std::string result(name_pointer);
-  env->ReleaseStringUTFChars(java_string, name_pointer);
-  return result;
-}
-
-jbyteArray GetJbyteArrayFromString(JNIEnv* env, const std::string& string) {
-  jsize length = static_cast<jsize>(string.length());
-  jbyteArray javaByteArray = env->NewByteArray(length);
-
-  // Set the elements of the Java byte array with the C++ string data
-  env->SetByteArrayRegion(javaByteArray, 0, length,
-                          reinterpret_cast<const jbyte*>(string.c_str()));
-  return javaByteArray;
-}
-
-JNIEnv* GetThreadLocalJniEnv(JavaVM* vm) {
-  if (vm == nullptr) {
-    return nullptr;  // No JavaVM provided to get JNIEnv from.
-  }
-  JNIEnv* env = nullptr;
-  jint error = vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6);
-  if (error != JNI_OK) {
-    LOG(INFO) << "Error trying to get JNIEnv* on local thread. Error code: "
-              << error;
-    return nullptr;
-  }
-  return env;
-}
-
-}  // namespace
 
 std::string CallWolframAlphaClient(JavaVM* jvm, jobject wolfram_alpha_client,
                                    std::string config, std::string request) {
   CHECK(jvm != nullptr) << "JVM is null";
-  JNIEnv* env = GetThreadLocalJniEnv(jvm);
-  if (env == nullptr) {
-    LOG(INFO) << "No JNIEnv on native thread, need to attach it to JVM";
-#ifdef __ANDROID__
-    int status = jvm->AttachCurrentThread(&env, nullptr);
-#else
-    int status = jvm->AttachCurrentThread((void**)&env, nullptr);
-#endif
-    if (status != JNI_OK) {
-      LOG(ERROR) << "Current thread attachment to JVM failed";
-      return "";
-    }
-  }
-
+  JNIEnv* env = GetJniEnv(jvm);
   if (env == nullptr) {
     LOG(ERROR) << "Couldn't get JNI env";
     return "";

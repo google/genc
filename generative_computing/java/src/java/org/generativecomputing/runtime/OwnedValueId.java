@@ -15,7 +15,6 @@ limitations under the License
 
 package org.generativecomputing;
 
-/** */
 final class OwnedValueId {
 
   public static OwnedValueId create(long nativeHandle) {

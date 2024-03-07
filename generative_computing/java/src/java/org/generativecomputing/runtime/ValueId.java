@@ -15,7 +15,6 @@ limitations under the License
 
 package org.generativecomputing;
 
-/** */
 final class ValueId {
 
   public static ValueId create(long value) {

@@ -20,8 +20,6 @@ android_library(
     resource_files = glob(["res/**/*"]),
     visibility = ["//visibility:public"],
     deps = [
-        "//generative_computing/java/src/java/org/generativecomputing:native",
-        "//generative_computing/java/src/java/org/generativecomputing:runner",
         "//generative_computing/java/src/java/org/generativecomputing/examples/apps/gencdemo/lib:jni",
         "//generative_computing/java/src/java/org/generativecomputing/interop/backends/googleai:google_ai_client",
         "//generative_computing/java/src/java/org/generativecomputing/interop/backends/mediapipe:llm_inference_client",
@@ -29,6 +27,8 @@ android_library(
         "//generative_computing/java/src/java/org/generativecomputing/interop/backends/wolframalpha:wolfram_alpha_client",
         "//generative_computing/java/src/java/org/generativecomputing/interop/network:cronet_engine_provider",
         "//generative_computing/java/src/java/org/generativecomputing/interop/network:http_client",
+        "//generative_computing/java/src/java/org/generativecomputing/runtime:native",
+        "//generative_computing/java/src/java/org/generativecomputing/runtime:runner",
         "//generative_computing/proto/v0:computation_java_proto_lite",
         "//generative_computing/proto/v0:executor_java_proto_lite",
         "@com_google_protobuf//java/lite",

@@ -15,7 +15,6 @@ limitations under the License
 
 package org.generativecomputing;
 
-/** */
 final class Executor {
   public static Executor create(long executorHandle) {
     return new Executor(executorHandle);

@@ -1,5 +1,3 @@
-# TODO(rohanj): describe this package.
-
 package(
     default_visibility = ["//visibility:public"],
 )

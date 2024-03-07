@@ -5,20 +5,15 @@ package(
 licenses(["notice"])
 
 cc_library(
-    name = "open_ai_client_jni",
-    srcs = ["open_ai_client_jni.cc"],
-    hdrs = ["open_ai_client_jni.h"],
+    name = "jni_utils",
+    srcs = ["jni_utils.cc"],
+    hdrs = ["jni_utils.h"],
     copts = [
         "-Wno-write-strings",  # The generated JNI header fails this.
         "-Wno-writable-strings",  # The generated JNI header fails this.
     ],
     target_compatible_with = [
         "@platforms//os:android",
-    ],
-    deps = [
-        "//generative_computing/java/src/java/org/generativecomputing/interop/jni:jni_utils",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/log:check",
     ],
     alwayslink = 1,
 )

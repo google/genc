@@ -162,6 +162,7 @@ maven_install(
         "com.google.guava:listenablefuture:1.0",
         "com.google.flogger:flogger-system-backend:0.6",
         "com.google.flogger:flogger:0.6",
+        "com.google.mediapipe:tasks-genai:0.10.11",
         "com.google.truth:truth:1.1.3",
         "javax.annotation:javax.annotation-api:1.3.2",
         "junit:junit:4.13.2",

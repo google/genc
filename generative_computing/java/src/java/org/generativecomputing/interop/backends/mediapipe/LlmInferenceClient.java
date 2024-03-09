@@ -17,6 +17,8 @@ package src.java.org.generativecomputing.interop.backends.mediapipe;
 
 import android.content.Context;
 import com.google.common.flogger.FluentLogger;
+import com.google.mediapipe.tasks.genai.llminference.LlmInference;
+import com.google.mediapipe.tasks.genai.llminference.LlmInference.LlmInferenceOptions;
 import com.google.protobuf.ExtensionRegistryLite;
 import com.google.protobuf.InvalidProtocolBufferException;
 import java.util.Arrays;
@@ -41,6 +43,27 @@ public final class LlmInferenceClient {
 
   public LlmInferenceClient(Context context) {
     this.context = context;
+  }
+
+  public LlmInferenceOptions.Builder getLlmInferenceOptions(Map<String, Value> configSettings) {
+    LlmInferenceOptions.Builder llmInferenceOptionsBuilder = LlmInferenceOptions.builder();
+    if (configSettings.containsKey(KEY_MODEL_PATH)) {
+      llmInferenceOptionsBuilder.setModelPath(configSettings.get(KEY_MODEL_PATH).getStr());
+    }
+    if (configSettings.containsKey(KEY_MAX_TOKENS)) {
+      llmInferenceOptionsBuilder.setMaxTokens(
+          configSettings.get(KEY_MAX_TOKENS).getInt32());
+    }
+    if (configSettings.containsKey(KEY_TOP_K)) {
+      llmInferenceOptionsBuilder.setTopK(configSettings.get(KEY_TOP_K).getInt32());
+    }
+    if (configSettings.containsKey(KEY_TEMPERATURE)) {
+      llmInferenceOptionsBuilder.setTemperature(configSettings.get(KEY_TEMPERATURE).getFloat32());
+    }
+    if (configSettings.containsKey(KEY_RANDOM_SEED)) {
+      llmInferenceOptionsBuilder.setRandomSeed(configSettings.get(KEY_RANDOM_SEED).getInt32());
+    }
+    return llmInferenceOptionsBuilder;
   }
 
   private static Map<String, Value> getConfigSettings(Value config) {
@@ -93,7 +116,27 @@ public final class LlmInferenceClient {
     if (!isValidConfigSettings(configSettings, modelUri.getStr())) {
       return response;
     }
-    // TODO(b/325824043): Enable LLMInference calls in OSS post launch.
+
+    LlmInferenceOptions.Builder llmInferenceOptionsBuilder = getLlmInferenceOptions(configSettings);
+    try {
+      LlmInference llmInference =
+          LlmInference.createFromOptions(context, llmInferenceOptionsBuilder.build());
+
+      String requestString = new String(request);
+      logger.atInfo().log(
+          "For model uri: %s, calling MediaPipe LlmInference with input: %s",
+          modelUri.getStr(), requestString);
+      response = llmInference.generateResponse(requestString);
+      logger.atInfo().log(
+          "For model uri: %s, received response from MediaPipe LlmInference: %s",
+          modelUri.getStr(), response);
+    } catch (Exception e) {
+      if (e instanceof InterruptedException) {
+        Thread.currentThread().interrupt();
+      }
+      logger.atWarning().withCause(e).log(
+          "MediaPipe LlmInference returned error: %s", e.getMessage());
+    }
     return response;
   }
 }

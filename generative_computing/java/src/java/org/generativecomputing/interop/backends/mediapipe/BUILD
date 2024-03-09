@@ -13,5 +13,6 @@ android_library(
         "//generative_computing/proto/v0:computation_java_proto_lite",
         "@com_google_protobuf//java/lite",
         "@maven//:com_google_flogger_flogger",
+        "@maven//:com_google_mediapipe_tasks_genai",
     ],
 )

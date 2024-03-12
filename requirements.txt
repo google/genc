@@ -393,9 +393,9 @@ jsonpointer==2.4 \
     # via
     #   -r requirements.in
     #   jsonpatch
-langchain==0.1.0 \
-    --hash=sha256:8652e74b039333a55c79faff4400b077ba1bd0ddce5255574e42d301c05c1733 \
-    --hash=sha256:d43119f8d3fda2c8ddf8c3a19bd5b94b347e27d1867ff14a921b90bdbed0668a
+langchain==0.1.11 \
+    --hash=sha256:03f08cae7cd3f341c54f1042b3fe24d88f39eba7b7eda942735d8ced13fe6da9 \
+    --hash=sha256:b5e678ac50d85370b9bc28f2c97ad5f029aac1c0cca79cac9354adf72741bc6e
     # via -r requirements.in
 langchain-community==0.0.11 \
     --hash=sha256:30ab1d7dbf35d0ebe684d8a1e8964e8dedd3d31a3703790436b39674cfa06f41 \

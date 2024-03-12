@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include "generative_computing/java/src/native/executor_jni.h"
+#include "generative_computing/java/src/java/org/generativecomputing/runtime/jni/executor_jni.h"
 
 #include "generative_computing/c/runtime/c_api.h"
 #include "generative_computing/c/runtime/gc_buffer.h"

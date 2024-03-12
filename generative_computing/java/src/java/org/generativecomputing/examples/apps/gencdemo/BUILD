@@ -27,7 +27,6 @@ android_library(
         "//generative_computing/java/src/java/org/generativecomputing/interop/backends/wolframalpha:wolfram_alpha_client",
         "//generative_computing/java/src/java/org/generativecomputing/interop/network:cronet_engine_provider",
         "//generative_computing/java/src/java/org/generativecomputing/interop/network:http_client",
-        "//generative_computing/java/src/java/org/generativecomputing/runtime:native",
         "//generative_computing/java/src/java/org/generativecomputing/runtime:runner",
         "//generative_computing/proto/v0:computation_java_proto_lite",
         "//generative_computing/proto/v0:executor_java_proto_lite",

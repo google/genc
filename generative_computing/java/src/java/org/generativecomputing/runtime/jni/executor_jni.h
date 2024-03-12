@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#ifndef GENERATIVE_COMPUTING_JAVA_SRC_NATIVE_EXECUTOR_JNI_H_
-#define GENERATIVE_COMPUTING_JAVA_SRC_NATIVE_EXECUTOR_JNI_H_
+#ifndef GENERATIVE_COMPUTING_JAVA_SRC_JAVA_ORG_GENERATIVECOMPUTING_RUNTIME_JNI_EXECUTOR_JNI_H_
+#define GENERATIVE_COMPUTING_JAVA_SRC_JAVA_ORG_GENERATIVECOMPUTING_RUNTIME_JNI_EXECUTOR_JNI_H_
 
 #include <jni.h>
 
@@ -39,4 +39,4 @@ JNIEXPORT void JNICALL Java_org_generativecomputing_Executor_dispose(JNIEnv *,
 #ifdef __cplusplus
 }  // extern "C"
 #endif  // __cplusplus
-#endif  // GENERATIVE_COMPUTING_JAVA_SRC_NATIVE_EXECUTOR_JNI_H_
+#endif  // GENERATIVE_COMPUTING_JAVA_SRC_JAVA_ORG_GENERATIVECOMPUTING_RUNTIME_JNI_EXECUTOR_JNI_H_

@@ -96,7 +96,6 @@ public final class WolframAlphaClient {
 
     // Get app id from config
     String appIdStr = configProto.getIntrinsic().getStaticParameter().getStr();
-    // String appIdStr = new String(appId, UTF_8);
     String requestStr = new String(request, UTF_8);
     try {
       HttpOptions httpOptions = createHttpOptions(ENDPOINT_URL, HttpOptions.HttpMethod.GET);

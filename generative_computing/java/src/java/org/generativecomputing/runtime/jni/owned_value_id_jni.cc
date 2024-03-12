@@ -13,20 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#ifndef GENERATIVE_COMPUTING_JAVA_SRC_NATIVE_EXECUTOR_JNI_H_
-#define GENERATIVE_COMPUTING_JAVA_SRC_NATIVE_EXECUTOR_JNI_H_
+#include "generative_computing/java/src/java/org/generativecomputing/runtime/jni/owned_value_id_jni.h"
 
-#include <jni.h>
+#include "generative_computing/c/runtime/c_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-JNIEXPORT jlong JNICALL Java_org_generativecomputing_OwnedValueId_ref(JNIEnv *,
-                                                                      jclass,
-                                                                      jlong);
-
-#ifdef __cplusplus
-}  // extern "C"
-#endif  // __cplusplus
-#endif  // GENERATIVE_COMPUTING_JAVA_SRC_NATIVE_EXECUTOR_JNI_H_
+JNIEXPORT jlong JNICALL Java_org_generativecomputing_OwnedValueId_ref(
+    JNIEnv* env, jclass clazz, jlong value_handle) {
+  GC_OwnedValueId* owned_value_id =
+      reinterpret_cast<GC_OwnedValueId*>(value_handle);
+  return GC_GetValue(owned_value_id);
+}

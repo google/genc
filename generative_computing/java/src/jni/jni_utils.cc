@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include "generative_computing/java/src/java/org/generativecomputing/interop/jni/jni_utils.h"
+#include "generative_computing/java/src/jni/jni_utils.h"
 
 #include <jni.h>
 
@@ -77,7 +77,7 @@ JNIEnv* GetJniEnv(JavaVM* jvm) {
     int status = jvm->AttachCurrentThread((void**)&env, nullptr);
 #endif
     if (status != JNI_OK) {
-      LOG(ERROR) << "Current thread attachment to JVM failed";
+      LOG(ERROR) << "Current thread attachment to JVM failed.";
       return nullptr;
     }
   }

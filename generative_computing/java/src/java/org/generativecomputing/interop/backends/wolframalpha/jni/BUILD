@@ -16,7 +16,7 @@ cc_library(
         "@platforms//os:android",
     ],
     deps = [
-        "//generative_computing/java/src/java/org/generativecomputing/interop/jni:jni_utils",
+        "//generative_computing/java/src/jni:jni_utils",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",
     ],

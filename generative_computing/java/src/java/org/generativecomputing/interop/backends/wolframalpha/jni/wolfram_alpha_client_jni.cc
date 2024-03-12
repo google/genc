@@ -20,7 +20,7 @@ limitations under the License
 
 #include "absl/log/check.h"
 #include "absl/log/log.h"
-#include "generative_computing/java/src/java/org/generativecomputing/interop/jni/jni_utils.h"
+#include "generative_computing/java/src/jni/jni_utils.h"
 
 namespace generative_computing {
 

@@ -16,10 +16,13 @@ limitations under the License
 package org.generativecomputing.authoring;
 
 import androidx.annotation.Nullable;
+import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.ExtensionRegistryLite;
 import com.google.protobuf.InvalidProtocolBufferException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import org.generativecomputing.ToFromValueProto;
 import org.generativecomputing.Value;
 
 /** Library for constructing different types of computations. */
@@ -198,6 +201,37 @@ public final class Constructor {
     } catch (InvalidProtocolBufferException e) {
       return null;
     }
+  }
+
+  public static Value createModelConfig(Map<String, Object> configMap) {
+    Value.Builder modelConfig = Value.newBuilder(ToFromValueProto.toValueProto(configMap));
+    modelConfig.setLabel("model_config");
+    return modelConfig.build();
+  }
+
+  public static Value createGeminiModelConfigForGoogleAiStudio(
+      String apiKey, String endpoint, String requestJsonTemplate) {
+    ImmutableMap<String, Object> map =
+        ImmutableMap.of(
+            "api_key", apiKey, "endpoint", endpoint, "json_request_template", requestJsonTemplate);
+    return createModelConfig(map);
+  }
+
+  public static Value createMediaPipeLlmInferenceModelConfig(
+      String modelPath, int maxTokens, int topK, float temperature, int randomSeed) {
+    ImmutableMap<String, Object> map =
+        ImmutableMap.of(
+            "model_path",
+            modelPath,
+            "max_tokens",
+            maxTokens,
+            "top_k",
+            topK,
+            "temperature",
+            temperature,
+            "random_seed",
+            randomSeed);
+    return Constructor.createModelConfig(map);
   }
 
   private static native byte[] nativeCreateModelInference(String modelUri);

@@ -18,6 +18,9 @@ package org.generativecomputing;
 /** Interface for running Generative Computing computations. */
 public final class Runner {
   public static Runner create(Value computation, long executorHandle) {
+    if (computation == null) {
+      throw new IllegalArgumentException("computation is null.");
+    }
     return new Runner(computation, Executor.create(executorHandle));
   }
 

@@ -18,31 +18,31 @@ package org.generativecomputing.examples.apps.gencdemo;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import com.google.protobuf.ExtensionRegistryLite;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import com.google.common.flogger.FluentLogger;
 import org.generativecomputing.Runner;
 import org.generativecomputing.Value;
 
 /** Main activity for the GencDemo app. */
 public class GencDemo extends Activity {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+  private DefaultAndroidExecutor executor;
+  private Runner runner;
+
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
     try {
-      InputStream stream = new FileInputStream("/data/local/tmp/genc_demo.pb");
-
-      Value computation = Value.parseFrom(stream, getExtensionRegistry());
+      Value computation = Computations.getComputation();
       executor = new DefaultAndroidExecutor(getApplicationContext());
       runner = Runner.create(computation, executor.getExecutorHandle());
-    } catch (Exception e) {
-      Log.e("GencDemo", e.toString());
+    } catch (RuntimeException e) {
+      logger.atSevere().withCause(e).log(
+          "Error occured in creating the computation: %s", e.getMessage());
     }
 
     // User input
@@ -73,7 +73,8 @@ public class GencDemo extends Activity {
                   try {
                     responseString = runner.call(text);
                   } catch (RuntimeException e) {
-                    Log.e("GencDemo", e.toString());
+                    logger.atSevere().withCause(e).log(
+                        "Error occured in running the computation: %s", e.getMessage());
                   }
                   response.setText(responseString);
                   String verboseString;
@@ -93,12 +94,4 @@ public class GencDemo extends Activity {
     executor.cleanupAndroidExecutor();
     super.onDestroy();
   }
-
-  // Returns best available ExtensionRegistry.
-  public static ExtensionRegistryLite getExtensionRegistry() {
-    return ExtensionRegistryLite.getEmptyRegistry();
-  }
-
-  private DefaultAndroidExecutor executor;
-  private Runner runner;
 }

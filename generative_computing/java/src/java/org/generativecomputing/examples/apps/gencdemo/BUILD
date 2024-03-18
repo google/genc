@@ -12,6 +12,7 @@ package_group(
 android_library(
     name = "lib",
     srcs = [
+        "Computations.java",
         "DefaultAndroidExecutor.java",
         "GencDemo.java",
     ],
@@ -20,6 +21,7 @@ android_library(
     resource_files = glob(["res/**/*"]),
     visibility = ["//visibility:public"],
     deps = [
+        "//generative_computing/java/src/java/org/generativecomputing/authoring:constructor",
         "//generative_computing/java/src/java/org/generativecomputing/examples/apps/gencdemo/lib:jni",
         "//generative_computing/java/src/java/org/generativecomputing/interop/backends/googleai:google_ai_client",
         "//generative_computing/java/src/java/org/generativecomputing/interop/backends/mediapipe:llm_inference_client",
@@ -31,9 +33,11 @@ android_library(
         "//generative_computing/proto/v0:computation_java_proto_lite",
         "//generative_computing/proto/v0:executor_java_proto_lite",
         "@com_google_protobuf//java/lite",
+        "@maven//:androidx_annotation_annotation",
         "@maven//:androidx_appcompat_appcompat",
         "@maven//:androidx_legacy_legacy_support_v4",
-        "@maven//:com_google_flogger_flogger",  # unuseddeps: keep
+        "@maven//:com_google_flogger_flogger",
+        "@maven//:com_google_guava_guava",
         "@maven//:org_chromium_net_cronet_api",
         "@maven//:org_chromium_net_cronet_embedded",
     ],

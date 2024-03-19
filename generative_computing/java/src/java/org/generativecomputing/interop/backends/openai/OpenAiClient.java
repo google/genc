@@ -14,9 +14,20 @@ limitations under the License
 ==============================================================================*/
 package src.java.org.generativecomputing.interop.backends.openai;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.ExtensionRegistryLite;
+import com.google.protobuf.InvalidProtocolBufferException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import org.generativecomputing.Value;
 import src.java.org.generativecomputing.interop.network.HttpClientImpl;
 import src.java.org.generativecomputing.interop.network.api.proto.HttpOptions;
 import src.java.org.generativecomputing.interop.network.api.proto.HttpRequest;
@@ -33,18 +44,21 @@ public final class OpenAiClient {
   public static final String KEY_AUTHORIZATION = "Authorization";
   private static final String AUTHORIZATION_HEADER_PREFIX = "Bearer ";
 
+  private static final String KEY_API_KEY = "api_key";
+  private static final String KEY_ENDPOINT = "endpoint";
+  private static final String KEY_JSON_REQUEST_TEMPLATE = "json_request_template";
+  private static final String KEY_JSON_REQUEST_TEMPLATE_MESSAGES = "messages";
+  private static final String KEY_JSON_REQUEST_TEMPLATE_CONTENT = "content";
+
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-  private final String url;
-  private final String apiKey;
   private final HttpClientImpl httpClient;
 
-  public OpenAiClient(HttpClientImpl httpClient, String url, String apiKey) {
+  public OpenAiClient(HttpClientImpl httpClient) {
     this.httpClient = httpClient;
-    this.url = url;
-    this.apiKey = apiKey;
   }
 
-  private HttpOptions createHttpOptions(HttpOptions.HttpMethod httpMethod) {
+  private HttpOptions createHttpOptions(
+      String url, String apiKey, HttpOptions.HttpMethod httpMethod) {
     HttpOptions.Builder httpOptionsBuilder =
         HttpOptions.newBuilder().setUrl(url).setHttpMethod(httpMethod);
     httpOptionsBuilder.addHttpHeaders(
@@ -67,10 +81,89 @@ public final class OpenAiClient {
     return httpRequestBuilder.build();
   }
 
-  public String call(byte[] request) {
-    HttpRequest httpRequest = createHttpRequestWithPostBody(request);
-    HttpOptions httpOptions = createHttpOptions(HttpOptions.HttpMethod.POST);
+  private static Map<String, String> getConfigSettings(Value config) {
+    Map<String, String> configSettings = new HashMap<>();
+    for (int i = 0; i < config.getStruct().getElementCount(); i++) {
+      configSettings.put(
+          config.getStruct().getElement(i).getLabel(), config.getStruct().getElement(i).getStr());
+    }
+    return configSettings;
+  }
+
+  private boolean isValidConfigSettings(Map<String, String> configSettings, String modelUri) {
+    if ((!configSettings.containsKey(KEY_ENDPOINT) || configSettings.get(KEY_ENDPOINT).isEmpty())
+        || (!configSettings.containsKey(KEY_API_KEY) || configSettings.get(KEY_API_KEY).isEmpty())
+        || (!configSettings.containsKey(KEY_JSON_REQUEST_TEMPLATE)
+            || configSettings.get(KEY_JSON_REQUEST_TEMPLATE).isEmpty())) {
+      logger.atSevere().log(
+          "For model uri: %s, required config settings were not provided. Expected 'endpoint',"
+              + " 'api_key', and 'json_request_template'. Found: %s",
+          modelUri, Arrays.asList(configSettings));
+      return false;
+    }
+    return true;
+  }
+
+  private String updateJsonRequest(String jsonRequestTemplate, String requestStr) {
+    // Parse the JSON string
+    JsonObject jsonObject = JsonParser.parseString(jsonRequestTemplate).getAsJsonObject();
+    // Get the "messages" array, for the last occurrence of "content", update its text with request.
+    JsonArray messagesArray = jsonObject.getAsJsonArray(KEY_JSON_REQUEST_TEMPLATE_MESSAGES);
+    if (messagesArray.size() == 0) {
+      logger.atSevere().log(
+          "Invalid json request template, missing 'messages': %s", jsonRequestTemplate);
+      return "";
+    }
+    JsonObject lastMessage = messagesArray.get(messagesArray.size() - 1).getAsJsonObject();
+    lastMessage.addProperty(KEY_JSON_REQUEST_TEMPLATE_CONTENT, requestStr);
+    // Convert the modified JsonObject back to a JSON string
+    return jsonObject.toString();
+  }
+
+  // Returns best available ExtensionRegistry.
+  public static ExtensionRegistryLite getExtensionRegistry() {
+    return ExtensionRegistryLite.getEmptyRegistry();
+  }
+
+  public String call(byte[] modelInferenceWithConfig, byte[] request) {
     String response = "";
+    Value modelConfigProto;
+    try {
+      modelConfigProto = Value.parseFrom(modelInferenceWithConfig, getExtensionRegistry());
+    } catch (InvalidProtocolBufferException e) {
+      logger.atSevere().withCause(e).log("Could not parse Value proto: %s", e.getMessage());
+      return response;
+    }
+
+    // Get endpoint, api key, json request template from config
+    if (modelConfigProto.getIntrinsic().getStaticParameter().getStruct().getElementCount() != 2) {
+      logger.atSevere().log(
+          "Model config missing necessary fields. Number of fields provided: %d. Number expected: 2"
+              + " (model_uri, model_config)",
+          modelConfigProto.getIntrinsic().getStaticParameter().getStruct().getElementCount());
+    }
+    Value modelUri = modelConfigProto.getIntrinsic().getStaticParameter().getStruct().getElement(0);
+    Value config = modelConfigProto.getIntrinsic().getStaticParameter().getStruct().getElement(1);
+    Map<String, String> configSettings = getConfigSettings(config);
+
+    if (!isValidConfigSettings(configSettings, modelUri.getStr())) {
+      return response;
+    }
+
+    String endpoint = configSettings.get(KEY_ENDPOINT);
+    String apiKey = configSettings.get(KEY_API_KEY);
+    String jsonRequestTemplate = configSettings.get(KEY_JSON_REQUEST_TEMPLATE);
+
+    // Parse string out of request
+    String requestStr = new String(request, UTF_8);
+    String updatedRequestStr = updateJsonRequest(jsonRequestTemplate, requestStr);
+    if (updatedRequestStr.isEmpty()) {
+      return response;
+    }
+    byte[] updatedRequestBytes = updatedRequestStr.getBytes(UTF_8);
+    HttpRequest httpRequest = createHttpRequestWithPostBody(updatedRequestBytes);
+    HttpOptions httpOptions = createHttpOptions(endpoint, apiKey, HttpOptions.HttpMethod.POST);
+
     try {
       logger.atInfo().log(
           "Sending request to OpenAI: HttpRequest: %s, HttpOptions: %s", httpRequest, httpOptions);

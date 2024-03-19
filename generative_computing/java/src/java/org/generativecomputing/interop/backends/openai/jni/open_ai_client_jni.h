@@ -22,8 +22,7 @@ limitations under the License
 namespace generative_computing {
 
 std::string CallOpenAiClient(JavaVM *jvm, jobject open_ai_client,
-                             std::string request);
-
+                             std::string model_config, std::string request);
 }
 
 #endif  // GENERATIVE_COMPUTING_JAVA_SRC_JAVA_ORG_GENERATIVECOMPUTING_INTEROP_BACKENDS_OPENAI_JNI_OPEN_AI_CLIENT_JNI_H_

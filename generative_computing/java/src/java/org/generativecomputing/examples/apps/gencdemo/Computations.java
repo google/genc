@@ -35,7 +35,7 @@ final class Computations {
 
   // API Key to use for Gemini-Pro model inference through Google AI Studio. Follow instructions
   // to get API key and add below: https://ai.google.dev/tutorials/rest_quickstart
-  public static final String GOOGLE_AI_STUDIO_API_KEY = "AIzaSyB2mA0Kl83aAc7XWiGkXi66VQh9aXUba64";
+  public static final String GOOGLE_AI_STUDIO_API_KEY = "";
 
   // Gemini-Pro endpoint URL from Google AI Studio.
   public static final String GOOGLE_AI_STUDIO_GEMINI_PRO_ENDPOINT =
@@ -59,11 +59,28 @@ final class Computations {
   public static final String MEDIAPIPE_GEMMA_GPU_ON_DEVICE_MODEL_PATH =
       "/data/local/tmp/llm/model_gpu.tflite";
 
+  // API Key to use for Open AI model inferences. Get API key and add below:
+  // https://platform.openai.com/api-keys.
+  public static final String OPEN_AI_API_KEY = "";
+
+  // Open AI server url for chat completions API.
+  public static final String OPEN_AI_CHAT_COMPLETIONS_ENDPOINT =
+      "https://api.openai.com/v1/chat/completions";
+
+  // Default json request template for Open AI calls. Please feel free to edit this per your
+  // use-case. See configuration at https://platform.openai.com/docs/guides/text-generation.
+  public static final String OPEN_AI_CHAT_COMPLETIONS_JSON_TEMPLATE =
+      "{\n"
+          + "  \"model\":\"gpt-3.5-turbo\",\n"
+          + "  \"messages\":[{\"role\":\"user\",\"content\":\"PROMPT REPLACES THIS\"}]\n"
+          + "}";
+
   // Default prompt template used in demos. Please feel free to edit this per your liking.
   public static final String PROMPT_TEMPLATE_FOR_DEMO = "Tell me about {topic}?";
 
   public static final String GEMINI_MODEL_URI = "/cloud/gemini";
   public static final String MEDIAPIPE_ON_DEVICE_MODEL_URI = "/device/llm_inference";
+  public static final String OPEN_AI_MODEL_URI = "/openai/chatgpt";
 
   // Default local file path for the computation proto. Please edit this if you copy the
   // computation proto to a different path.
@@ -84,6 +101,26 @@ final class Computations {
         /* topK= */ 40,
         /* temperature= */ 0.8f,
         /* randomSeed= */ 100);
+  }
+
+  public static Value createOpenAiModelConfig(String apiKey) {
+    return Constructor.createOpenAiModelConfig(
+        apiKey, OPEN_AI_CHAT_COMPLETIONS_ENDPOINT, OPEN_AI_CHAT_COMPLETIONS_JSON_TEMPLATE);
+  }
+
+  @Nullable
+  public static Value createOpenAiModelWithPromptChainDemo() {
+    // Create prompt template to use.
+    Value promptTemplate = Constructor.createPromptTemplate(PROMPT_TEMPLATE_FOR_DEMO);
+
+    // Create Open AI chat completions model inference.
+    Value openAiModel =
+        Constructor.createModelInferenceWithConfig(
+            OPEN_AI_MODEL_URI, createOpenAiModelConfig(OPEN_AI_API_KEY));
+
+    // Create prompt, model inference chain.
+    return Constructor.createSerialChain(
+        new ArrayList<>(ImmutableList.of(promptTemplate, openAiModel)));
   }
 
   @Nullable

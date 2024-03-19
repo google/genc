@@ -25,7 +25,7 @@ limitations under the License
 namespace generative_computing {
 
 std::string CallOpenAiClient(JavaVM* jvm, jobject open_ai_client,
-                             std::string request) {
+                             std::string model_config, std::string request) {
   CHECK(jvm != nullptr) << "JVM is null";
   JNIEnv* env = GetJniEnv(jvm);
   if (env == nullptr) {
@@ -39,18 +39,20 @@ std::string CallOpenAiClient(JavaVM* jvm, jobject open_ai_client,
                           env);
   }
   jmethodID callMethodId =
-      env->GetMethodID(openAiClientClass, "call", "([B)Ljava/lang/String;");
+      env->GetMethodID(openAiClientClass, "call", "([B[B)Ljava/lang/String;");
 
   if (callMethodId == 0) {
     ThrowRuntimeException("Couldn't retrieve method id from JNI", env);
   }
 
+  jbyteArray jmodel_config = GetJbyteArrayFromString(env, model_config);
   jbyteArray jrequest = GetJbyteArrayFromString(env, request);
-  jobject response_string =
-      env->CallObjectMethod(open_ai_client, callMethodId, jrequest);
+  jobject response_string = env->CallObjectMethod(open_ai_client, callMethodId,
+                                                  jmodel_config, jrequest);
   std::string response = GetString(env, (jstring)response_string);
   env->DeleteLocalRef(response_string);
   env->DeleteLocalRef(jrequest);
+  env->DeleteLocalRef(jmodel_config);
   jvm->DetachCurrentThread();
   return response;
 }

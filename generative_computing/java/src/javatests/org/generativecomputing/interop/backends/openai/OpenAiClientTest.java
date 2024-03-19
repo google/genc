@@ -23,6 +23,9 @@ import static org.mockito.Mockito.when;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.protobuf.ByteString;
+import org.generativecomputing.Intrinsic;
+import org.generativecomputing.Struct;
+import org.generativecomputing.Value;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,12 +53,21 @@ public final class OpenAiClientTest {
   private static final String CONTENT_TYPE = "application/json";
   public static final String KEY_AUTHORIZATION = "Authorization";
   private static final String AUTHORIZATION_HEADER_PREFIX = "Bearer ";
-  private static final String OPEN_AIREQUEST = "test-open-ai-request";
-  private static final String OPENAI_RESPONSE = "test-open-ai-response-data";
+  private static final String OPEN_AI_REQUEST = "test open ai request";
+  private static final String OPEN_AI_RESPONSE = "test open ai response";
+  private static final String JSON_REQUEST_TEMPLATE =
+      "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"system\","
+          + "\"content\":\"system test content\"},{\"role\":\"user\","
+          + "\"content\":\"prompt replaces this\"}]}";
+
+  private static final String EXPECTED_REQUEST =
+      "{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"system\","
+          + "\"content\":\"system test content\"},{\"role\":\"user\","
+          + "\"content\":\"test open ai request\"}]}";
 
   @Before
   public void setUp() {
-    openAiClient = new OpenAiClient(mockHttpClient, TEST_URL, TEST_API_KEY);
+    openAiClient = new OpenAiClient(mockHttpClient);
   }
 
   private HttpOptions createExpectedHttpOptions() {
@@ -83,16 +95,37 @@ public final class OpenAiClientTest {
 
   @Test
   public void openAiClient_successfulCallToHttpClient() {
-    HttpRequest expectedHttpRequest = createExpectedHttpRequestWithPostBody(OPEN_AIREQUEST);
+    HttpRequest expectedHttpRequest = createExpectedHttpRequestWithPostBody(EXPECTED_REQUEST);
     HttpOptions expectedHttpOptions = createExpectedHttpOptions();
-    byte[] expectedResponseBytes = OPENAI_RESPONSE.getBytes(UTF_8);
+    byte[] expectedResponseBytes = OPEN_AI_RESPONSE.getBytes(UTF_8);
     HttpResponse responseProto =
         HttpResponse.newBuilder().setResponse(ByteString.copyFrom(expectedResponseBytes)).build();
     SettableFuture<HttpResponse> settableFuture = SettableFuture.create();
     settableFuture.set(responseProto);
     when(mockHttpClient.send(any(), any())).thenReturn(settableFuture);
 
-    String response = openAiClient.call(OPEN_AIREQUEST.getBytes(UTF_8));
+    Struct modelConfig =
+        Struct.newBuilder()
+            .addElement(Value.newBuilder().setLabel("endpoint").setStr(TEST_URL))
+            .addElement(Value.newBuilder().setLabel("api_key").setStr(TEST_API_KEY))
+            .addElement(
+                Value.newBuilder().setLabel("json_request_template").setStr(JSON_REQUEST_TEMPLATE))
+            .build();
+    Struct intrinsicStruct =
+        Struct.newBuilder()
+            .addElement(Value.newBuilder().setLabel("model_uri").setStr("test_model_uri"))
+            .addElement(Value.newBuilder().setLabel("model_config").setStruct(modelConfig))
+            .build();
+    Value modelConfigProto =
+        Value.newBuilder()
+            .setIntrinsic(
+                Intrinsic.newBuilder()
+                    .setUri("model_inference_with_config")
+                    .setStaticParameter(Value.newBuilder().setStruct(intrinsicStruct)))
+            .build();
+
+    String response =
+        openAiClient.call(modelConfigProto.toByteArray(), OPEN_AI_REQUEST.getBytes(UTF_8));
 
     ArgumentCaptor<HttpRequest> httpRequestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
     ArgumentCaptor<HttpOptions> httpOptionsCaptor = ArgumentCaptor.forClass(HttpOptions.class);
@@ -100,6 +133,6 @@ public final class OpenAiClientTest {
     verify(mockHttpClient).send(httpRequestCaptor.capture(), httpOptionsCaptor.capture());
     assertThat(httpRequestCaptor.getValue()).isEqualTo(expectedHttpRequest);
     assertThat(httpOptionsCaptor.getValue()).isEqualTo(expectedHttpOptions);
-    assertThat(response).isEqualTo(OPENAI_RESPONSE);
+    assertThat(response).isEqualTo(OPEN_AI_RESPONSE);
   }
 }

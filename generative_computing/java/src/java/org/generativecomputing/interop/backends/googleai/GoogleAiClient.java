@@ -129,16 +129,22 @@ public final class GoogleAiClient {
 
     // Get the "contents" array
     JsonArray contentsArray = jsonObject.getAsJsonArray(KEY_JSON_REQUEST_TEMPLATE_CONTENTS);
-
+    if (contentsArray.size() == 0) {
+      logger.atSevere().log(
+          "Invalid json request template, missing 'contents': %s", jsonRequestTemplate);
+      return "";
+    }
     // Find the last occurrence of "contents" and update its last occurence of "parts" with "text"
     // object
-    for (int i = contentsArray.size() - 1; i >= 0; i--) {
-      JsonObject item = contentsArray.get(i).getAsJsonObject();
-      JsonArray partsArray = item.getAsJsonArray(KEY_JSON_REQUEST_TEMPLATE_PARTS);
-      JsonObject lastPartObject = partsArray.get(partsArray.size() - 1).getAsJsonObject();
-      lastPartObject.addProperty(KEY_JSON_REQUEST_TEMPLATE_TEXT, requestStr);
-      break;
+    JsonObject item = contentsArray.get(contentsArray.size() - 1).getAsJsonObject();
+    JsonArray partsArray = item.getAsJsonArray(KEY_JSON_REQUEST_TEMPLATE_PARTS);
+    if (partsArray == null || partsArray.size() == 0) {
+      logger.atSevere().log(
+          "Invalid json request template, missing 'parts': %s", jsonRequestTemplate);
+      return "";
     }
+    JsonObject lastPartObject = partsArray.get(partsArray.size() - 1).getAsJsonObject();
+    lastPartObject.addProperty(KEY_JSON_REQUEST_TEMPLATE_TEXT, requestStr);
 
     // Convert the modified JsonObject back to a JSON string
     return jsonObject.toString();
@@ -183,6 +189,9 @@ public final class GoogleAiClient {
     String requestStr = new String(request, UTF_8);
     String updatedRequestStr = updateJsonRequest(jsonRequestTemplate, requestStr);
     byte[] updatedRequestBytes = updatedRequestStr.getBytes(UTF_8);
+    if (updatedRequestStr.isEmpty()) {
+      return response;
+    }
 
     HttpOptions httpOptions = createHttpOptions(endpoint, accessToken, HttpOptions.HttpMethod.POST);
     HttpRequest httpRequest = createHttpRequestWithPostBody(apiKey, updatedRequestBytes);

@@ -234,6 +234,14 @@ public final class Constructor {
     return Constructor.createModelConfig(map);
   }
 
+  public static Value createOpenAiModelConfig(
+      String apiKey, String endpoint, String requestJsonTemplate) {
+    ImmutableMap<String, Object> map =
+        ImmutableMap.of(
+            "api_key", apiKey, "endpoint", endpoint, "json_request_template", requestJsonTemplate);
+    return createModelConfig(map);
+  }
+
   private static native byte[] nativeCreateModelInference(String modelUri);
 
   private static native byte[] nativeCreateModelInferenceWithConfig(

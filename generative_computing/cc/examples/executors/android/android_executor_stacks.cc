@@ -70,11 +70,13 @@ namespace {
 void SetOpenAiModelInferenceHandler(intrinsics::HandlerSetConfig* config,
                                     JavaVM* jvm, jobject open_ai_client,
                                     absl::string_view model_uri) {
-  config->model_inference_map[std::string(model_uri)] =
-      [jvm, open_ai_client,
-       model_uri](v0::Value arg) -> absl::StatusOr<v0::Value> {
-    return generative_computing::OpenAiCall(
-        jvm, open_ai_client, GENC_TRY(CreateModelInference(model_uri)), arg);
+  config->model_inference_with_config_map[std::string(model_uri)] =
+      [jvm, open_ai_client](v0::Intrinsic intrinsic,
+                            v0::Value arg) -> absl::StatusOr<v0::Value> {
+    v0::Value model_inference;
+    (*model_inference.mutable_intrinsic()) = intrinsic;
+    return generative_computing::OpenAiCall(jvm, open_ai_client,
+                                            model_inference, arg);
   };
 }
 

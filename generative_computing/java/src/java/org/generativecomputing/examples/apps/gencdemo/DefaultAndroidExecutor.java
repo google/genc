@@ -36,7 +36,7 @@ public final class DefaultAndroidExecutor {
     cronetEngine = CronetEngineProvider.createCronetEngine(context);
     cronetCallbackExecutorService = Executors.newFixedThreadPool(THREADPOOL_SIZE);
     httpClient = new HttpClientImpl(cronetEngine, cronetCallbackExecutorService);
-    openAiClient = new OpenAiClient(httpClient, OPENAI_SERVER_URL, OPEN_AI_API_KEY);
+    openAiClient = new OpenAiClient(httpClient);
     googleAiClient = new GoogleAiClient(httpClient);
     llmInferenceClient = new LlmInferenceClient(context);
     wolframAlphaClient = new WolframAlphaClient(httpClient);
@@ -59,10 +59,6 @@ public final class DefaultAndroidExecutor {
   public WolframAlphaClient wolframAlphaClient;
 
   private static final int THREADPOOL_SIZE = 4;
-  private static final String OPENAI_SERVER_URL = "https://api.openai.com/v1/chat/completions";
-  // Fill in Open AI API key.
-  private static final String OPEN_AI_API_KEY = "";
-
   private final CronetEngine cronetEngine;
   private final ExecutorService cronetCallbackExecutorService;
   private final HttpClientImpl httpClient;

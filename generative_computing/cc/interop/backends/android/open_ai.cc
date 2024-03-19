@@ -55,36 +55,19 @@ absl::StatusOr<v0::Value> OpenAiCall(JavaVM* jvm, jobject open_ai_client,
       (func.intrinsic().uri() == intrinsics::kModelInference) &&
       (func.intrinsic().static_parameter().str() == kTestModelUri)) {
     v0::Value resp_pb;
-    resp_pb.set_str(
-        absl::StrCat("Testing on device model with prompt: ", arg.str()));
+    resp_pb.set_str(absl::StrCat("Testing model with prompt: ", arg.str()));
     return resp_pb;
   }
 
+  std::string model_inference_with_config;
+  func.SerializeToString(&model_inference_with_config);
+  const std::string& request = arg.str();
+  LOG(INFO) << "Model inference with config: " << func.DebugString()
+            << "Request to Open AI: " << request;
+
   auto ts = absl::Now();
-  std::string chat_prompt = arg.str();
-
-  std::string json_request = R"(
-    { "model": "gpt-3.5-turbo",
-      "messages": [
-      {
-        "role": "system",
-        "content": "You are an enthusiastic chatbot. Reply as best as you can."
-      },
-      {
-        "role": "user",
-        "content":
-    )";
-  json_request += R"( ")" + chat_prompt + R"("
-      }
-      ]
-    })";
-
-  // TODO(b/317002554): Figure out why multi-line raw literal doesn't print.
-  // Following currently doesn't print json_request.
-  LOG(INFO) << "Json request to OpenAI: " << json_request;
-
-  std::string response_str =
-      generative_computing::CallOpenAiClient(jvm, open_ai_client, json_request);
+  std::string response_str = generative_computing::CallOpenAiClient(
+      jvm, open_ai_client, model_inference_with_config, request);
   LOG(INFO) << "Response time:" << absl::Now() - ts;
   if (response_str.empty()) {
     LOG(ERROR) << "Error encountered in fetching response from OpenAI.";
@@ -98,6 +81,7 @@ absl::StatusOr<v0::Value> OpenAiCall(JavaVM* jvm, jobject open_ai_client,
     return absl::Status(absl::StatusCode::kInvalidArgument,
                         "Failed to parse OpenAI response: " + response_str);
   }
+
   // Return the chat reply
   absl::StatusOr<std::string> message_reply =
       AsString(response["choices"][0]["message"]["content"]);

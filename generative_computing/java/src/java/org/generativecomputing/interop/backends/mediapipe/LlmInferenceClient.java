@@ -16,6 +16,7 @@ limitations under the License
 package src.java.org.generativecomputing.interop.backends.mediapipe;
 
 import android.content.Context;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.flogger.FluentLogger;
 import com.google.mediapipe.tasks.genai.llminference.LlmInference;
 import com.google.mediapipe.tasks.genai.llminference.LlmInference.LlmInferenceOptions;
@@ -40,11 +41,41 @@ public final class LlmInferenceClient {
   private static final String KEY_RANDOM_SEED = "random_seed";
 
   private final Context context;
+  private LlmInferenceOptions llmInferenceOptions;
+  private LlmInference llmInference;
 
   public LlmInferenceClient(Context context) {
     this.context = context;
   }
 
+  @SuppressWarnings("Finalize") // generative-computing:google3-only
+  @Override
+  protected void finalize() {
+    if (llmInference != null) {
+      llmInference.close();
+    }
+  }
+
+  private boolean hasLlmInferenceOptionsChanged(
+      LlmInferenceOptions llmInferenceOptions, LlmInferenceOptions latestLlmInferenceOptions) {
+    return (!llmInferenceOptions.modelPath().equals(latestLlmInferenceOptions.modelPath())
+        || llmInferenceOptions.maxTokens() != latestLlmInferenceOptions.maxTokens()
+        || llmInferenceOptions.topK() != latestLlmInferenceOptions.topK()
+        || llmInferenceOptions.temperature() != latestLlmInferenceOptions.temperature()
+        || llmInferenceOptions.randomSeed() != latestLlmInferenceOptions.randomSeed());
+  }
+
+  private LlmInference getLlmInference(LlmInferenceOptions latestLlmInferenceOptions) {
+    if (llmInferenceOptions == null
+        || llmInference == null
+        || hasLlmInferenceOptionsChanged(llmInferenceOptions, latestLlmInferenceOptions)) {
+      llmInferenceOptions = latestLlmInferenceOptions;
+      llmInference = LlmInference.createFromOptions(context, llmInferenceOptions);
+    }
+    return llmInference;
+  }
+
+  @VisibleForTesting
   public LlmInferenceOptions.Builder getLlmInferenceOptions(Map<String, Value> configSettings) {
     LlmInferenceOptions.Builder llmInferenceOptionsBuilder = LlmInferenceOptions.builder();
     if (configSettings.containsKey(KEY_MODEL_PATH)) {
@@ -119,8 +150,7 @@ public final class LlmInferenceClient {
 
     LlmInferenceOptions.Builder llmInferenceOptionsBuilder = getLlmInferenceOptions(configSettings);
     try {
-      LlmInference llmInference =
-          LlmInference.createFromOptions(context, llmInferenceOptionsBuilder.build());
+      LlmInference llmInference = getLlmInference(llmInferenceOptionsBuilder.build());
 
       String requestString = new String(request);
       logger.atInfo().log(

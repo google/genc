@@ -2,57 +2,109 @@
 
 **GenC** is an open-source framework for building GenAI-powered applications.
 
-GenAI applications often involve LLMs, chains, agent logic, custom functions,
-RAG, ReAct, model cascades and routers, and other types of neural and
-non-neural components connected into complex workflows.
+The central problem GenC aims to solve is the fragmentation of the GenAI
+ecosystem. Many capabilities useful to GenAI developers evolve independently in
+siloed domains, and do not easily compose or interoperate with one-another.
 
-Benefits we provide:
+For example, LangChain/Python/Jupyter is popular as a platform of
+choice for modeling GenAI logic in many domains, but mobile apps for Android
+devices are commonly written in Java or Kotlin, and the two worlds don't
+mix easily. Developers must choose between the rich high-level APIs and ease
+and speed of prototyping offered by the former vs. an easy path to mobile
+deployment or access to latest on-device LLM APIs offered by the latter.
 
-*   Composability & flexibility:
+GenC is a glue framework that enables developers to compose capabilities across
+these and other domains. Our target audience is any GenAI developers,
+especially those seeking benefits such as composability, portability, and deep
+customizability (see the [summary of benefits](generative_computing/docs/benefits.md)).
 
-    *   Ability to freely compose building blocks to express your own
-        application logic.
-    *   Ability to integrate diverse SDKs, platforms, and ecosystems
-        (e.g., LangChain, Android, cloud services, databases, models, etc.).
-    *   Ability to express processing that combines on-device/on-prem and
-        cloud components.
+For example, here's how you can use GenC to author a simple chain powered by a
+device-to-Cloud model cascade in LangChain/Python/Jupyter:
 
-*   Portability & platform independence:
+```
+import generative_computing as genc
+import langchain
 
-    *   Across programming languages (e.g., from Python to Java and C++).
-    *   Across prototyping and production deployments (e.g., from Colab
-        notebooks, to cloud servers, to mobile apps).
-    *   Across on-device and cloud platforms (e.g., Linux, Android, Chrome,
-        iOS, etc.).
-    *   Can be configured with minimal dependencies for lightweight deployments
-        (e.g, on embedded/IoT and other specialized platforms).
+my_app_logic = genc.interop.langchain.create_computation(
+    langchain.chains.LLMChain(
+        llm=genc.interop.langchain.ModelCascade(models=[
+            genc.interop.langchain.CustomModel(uri="/cloud/gemini"),
+            genc.interop.langchain.CustomModel(uri="/device/gemma")]),
+        prompt=langchain.prompts.PromptTemplate(
+            input_variables=["topic"], template="Tell me about {topic}.")))
+```
 
-*   Customizability:
+The result is a platform and language-independent
+**Intermediate Representation** (IR) that can be bundled with your Java app on
+Android, e.g., as an asset, loaded and executed as follows (see a complete
+step-by-step walkthrough and deployment instructions in
+[Tutorial 1](generative_computing/docs/tutorials/tutorial_1_simple_cascade.ipynb)):
 
-    *   Ability to incorporate your own libraries and network services (models,
-        databases, etc.) as GenC building blocks, and mix and match them with
-        those that already exist.
-    *   Ability to create your own custom runtimes.
+```
+myAppLogic = ... // load the application logic, e.g., from an asset
+myRuntime = new DefaultAndroidExecutor(...);
+javaCallable = Runner.create(myAppLogic, myRuntime);
 
-*   Development velocity:
+... = javaCallable.call("scuba diving");
+```
 
-    *   Building blocks allow logic to be expressed succinctly, at high level,
-        and easily modified.
-    *   Portability enables prototype code to be deployed with minimal effort
-        to production environments.
+The example illustrates several dimensions of composability and portability
+offered by GenC:
 
-*   Performance & security:
+*   **Across programming languages**. We offer authoring and runtime APIs in
+    C++, Python, and Java. You can author logic in any of the languages, merge
+    it with logic authored in another language, and load it for execution in
+    yet another. We anticipate extending support to JavaScript, and potentially
+    other languages in the future.
 
-    *   C++ runtime (faster, more secure than Python).
-    *   Asynchronous and parallel functional programming model.
-    *   Application logic, represented in a declarative form, can be statically
-        analyzed, verified, optimized, and executed on scalable distributed
-        platforms.
+*   **Across frontend SDKs and deployment backends**. In the example above,
+    logic was authored using LangChain APIs, but the resulting representation
+    (IR) is no longer coupled to LangChain - it's executed by a lightweight C++
+    runtime (in this case, embedded in a Java app on Android). In general, code executed at runtime has no dependency on SDKs used at the authoring time.
 
-Our target audience is any genAI developers, especially those seeking benefits
-such as composability, portability, and deep customizability.
+    The included demo runs against Gemma models offered by MediaPipe and Gemini
+    models Vertex AI, but it can be easily re-configured to utilize any other
+    LLMs (see [other supported models](generative_computing/docs/models.md)),
+    as well as your own preferred libraries, network services, etc.
 
-For more information, see the following:
+    GenC also allows you to author different parts of your GenAI logic in
+    multiple SDKs, and merge the resulting IR into a single executable
+    structure.
+
+*   **Across prototyping and production platforms**. In
+    [Tutorial 1](generative_computing/docs/tutorials/tutorial_1_simple_cascade.ipynb), we show you
+    how you can run the example code above locally in a Colab notebook, then
+    deploy it unchanged on a mobile device. This seamless portability enables
+    you to quickly iterate and test your code in a target environment during
+    development, this improving your development velocity and streamlining the
+    path to deployment.
+
+    GenC lets you run the same code on Android or in Linux-based
+    environments today, and we plan to introduce support for Chrome, iOS, and
+    various trusted execution environments in the future. This could save you
+    time when targeting multiple product surfaces.
+
+*   **Across devices and cloud**. The example above is powered by a cascade
+    of two models, one running locally on a phone, and one running in Cloud.
+    GenC lets you mix and match on-device and cloud components, as well as to
+    dynamically dispatch any executable logic expressed in GenC across multiple
+    executable environments.
+
+GenC shares common goals with platforms such as LangChain, in that we aim to
+provide modular, customizable development surfaces to maximize developer
+velocity, albeit GenC aims to go further, extending compositionality benefits
+across ecosystems and frameworks.
+
+GenC's relationship to platforms like LangChain is synergistic, characterized
+by layering, as shown on the diagram below. Our overarching goal is to take
+advantage of all capabilities that already exist, and bring them together for
+use by GenAI developers.
+
+![GenC Diagram](genc_diagram.png)
+
+If you're intrigued, please review the
+[summary of GenC's benefits](generative_computing/docs/benefits.md), or dive straight into the
+tutorials and documentation to experience what GenC has to offer:
 
 *   [Tutorials](generative_computing/docs/tutorials/README.md) show diverse
     examples of usage to showcase some of GenC's capabilities.
@@ -79,9 +131,13 @@ For more information, see the following:
     like to grow it, with your help, to support your preferred domain and the
     kinds of services and capabilities you need. We welcome your contributions!
 
+At this stage, GenC should be considered **experimental**, and at the "beta"
+stage of development. You can expect the APIs and capabilities to evolve, in
+part based on demand and feedback from the community.
+We welcome your contributions!
+
 Use [GitHub issues](https://github.com/google/generative_computing/issues) for
 tracking requests and bugs.
 
 Please direct questions to [Stack Overflow](https://stackoverflow.com) using the
-[generative-computing](https://stackoverflow.com/questions/tagged/generative-computing)
-tag.
+[genc](https://stackoverflow.com/questions/tagged/genc) tag.

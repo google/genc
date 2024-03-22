@@ -57,7 +57,7 @@ final class Computations {
   // Default model path for Gemma GPU model to use with Mediapipe LlmInference GenAI Tasks API.
   // Please change this if you copied the on-device model to a different path.
   public static final String MEDIAPIPE_GEMMA_GPU_ON_DEVICE_MODEL_PATH =
-      "/data/local/tmp/llm/model_gpu.tflite";
+      "/data/local/tmp/llm/gemma-2b-it-gpu-int4.bin";
 
   // API Key to use for Open AI model inferences. Get API key and add below:
   // https://platform.openai.com/api-keys.
@@ -121,6 +121,22 @@ final class Computations {
     // Create prompt, model inference chain.
     return Constructor.createSerialChain(
         new ArrayList<>(ImmutableList.of(promptTemplate, openAiModel)));
+  }
+
+  @Nullable
+  public static Value createMediaPipeLlmInferenceModelWithPromptChainDemo() {
+    // Create prompt template to use.
+    Value promptTemplate = Constructor.createPromptTemplate(PROMPT_TEMPLATE_FOR_DEMO);
+
+    // Create MediaPipe LLM Inference backed model inference.
+    Value mediaPipeLlmInferenceModel =
+        Constructor.createModelInferenceWithConfig(
+            MEDIAPIPE_ON_DEVICE_MODEL_URI,
+            createMediaPipeLlmInferenceModelConfig(MEDIAPIPE_GEMMA_GPU_ON_DEVICE_MODEL_PATH));
+
+    // Create prompt, model inference chain.
+    return Constructor.createSerialChain(
+        new ArrayList<>(ImmutableList.of(promptTemplate, mediaPipeLlmInferenceModel)));
   }
 
   @Nullable

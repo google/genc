@@ -47,22 +47,118 @@ request.str = (
 ## On-device models
 
 GenC is a bring-your-own-model (BYOM) framework. Currently, two backends are
-provided to enable on-device models
+provided to enable on-device models.
 
 ### MediaPipe
 
 [MediaPipe](https://developers.google.com/mediapipe) is a cross-platform
-framework and collection of solutions for optimized on-device ML. GenC
-exposes one such solution: LLM Inference.
+framework and collection of solutions for optimized on-device ML. MediaPipe
+recently launched [LLM Inference API](https://developers.google.com/mediapipe/solutions/genai/llm_inference)
+to run large language models (LLMs) completely on-device. As of this writing,
+LLM Inference API supports following models:
 
-As of this writing, MediaPipe supports the following models:
+* [Gemma 2B](https://ai.google.dev/gemma/docs)
+* [Phi-2](https://huggingface.co/microsoft/phi-2)
+* [Falcon-RW-1B](https://huggingface.co/tiiuae/falcon-rw-1b)
+* [StableLM-3B](https://huggingface.co/stabilityai/stablelm-3b-4e1t)
 
-* Gemma
-* StableLM
-* Falcon
-* Phi 2
+GenC connects with MediaPipe LLM Inference API to offer on-device model
+inferences in a GenAI pipeline workflow.
 
-TODO: Obtaining model info
+MediaPipe LLM Inference integration is currently available on Android. We also
+plan to enable iOS, Web integrations as part of GenC on iOS and Web in
+upcoming future.
+
+#### Download Model to Device
+##### Download Model
+Please see instructions at [Models](https://developers.google.com/mediapipe/solutions/genai/llm_inference#models)
+section on the MediaPipe’s LLM Inference site to download one or more of the
+models.
+
+We recommend using Gemma 2B, available on [Kaggle Models](https://www.kaggle.com/models/google/gemma),
+it comes in a format that is already compatible with the LLM Inference API and
+can be directly loaded on the Android phone. If you use another model, you will
+need to convert the model to a MediaPipe-friendly format. See following
+section for conversion steps.
+
+##### Convert Models to MediaPipe format
+Gemma downloaded from non-Kaggle sources and all other external models supported
+via MediaPipe (Phi-2, Falcon-RW-1B, StableLM-3B) need to be converted first to
+use them with LLM Inference API on device.
+
+See instructions at [Convert Model to MediaPipe format](https://developers.google.com/mediapipe/solutions/genai/llm_inference/android#convert-model) to download needed MediaPipe package and run model
+conversion script. Additionally, for easier conversion flow, you could also
+use [Model Conversion Colab](https://colab.sandbox.google.com/github/googlesamples/mediapipe/blob/main/examples/llm_inference/conversion/llm_conversion.ipynb).
+
+
+##### Push the model to the device
+
+Push the downloaded \(and converted\) model to the Android device.
+
+See [Push model instructions](https://developers.google.com/mediapipe/solutions/genai/llm_inference/android#push_model_to_the_device)
+on MediaPipe LLM Inference site. Please take note of the model path used on the
+Android device \(e.g. ```/data/local/tmp/llm/gemma-2b-it-gpu-int4.bin```). We will be using
+the model path in the following sections.
+
+##### Instantiate LLM Inference backed model inference in GenC
+
+LLM Inference API supports several configuration options. When instantiating a
+model inference in GenC, please provide desired values for maxTokens, topK,
+temperature, and randomSeed; alongside the on-device model path.
+See [Configuration options](https://developers.google.com/mediapipe/solutions/genai/llm_inference/android#configuration_options) to learn more about each configuration setting.
+
+Following code illustrates how to create a model inference backed by MediaPipe
+LLM Inference in Java.
+
+```
+// Create MediaPipe LLM Inference backed model inference.
+Value mediaPipeLlmInferenceModelConfig =
+    Constructor.createMediaPipeLlmInferenceModelConfig(
+        /* modelPath= */ "/data/local/tmp/llm/gemma-2b-it-gpu-int4.bin",
+        /* maxTokens= */ 64,
+        /* topK= */ 40,
+        /* temperature= */ 0.8f,
+        /* randomSeed= */ 100);
+
+Value mediaPipeLlmInferenceModel =
+    Constructor.createModelInferenceWithConfig(
+            "/device/llm_inference",
+            mediaPipeLlmInferenceModelConfig);
+```
+
+##### Use LLM Inference in a chain in GenC
+
+Following code illustrates usage of above ```mediaPipeLlmInferenceModel``` llm
+inference model in a simple {prompt, model inference} chain with GenC.
+
+```
+// Create prompt template to use.
+Value promptTemplate = Constructor.createPromptTemplate("Tell me about {topic}?");
+
+// Create prompt, model inference chain.
+return Constructor.createSerialChain(
+  new ArrayList<>(ImmutableList.of(promptTemplate, mediaPipeLlmInferenceModel)));
+}
+```
+
+Additionally, following example illustrates how to instantiate and use
+LLM Inference in a LangChain -> Android deployment. Code is authored in Python
+for IR to be deployed on Android phone:
+
+```
+my_chain = chains.LLMChain(
+      llm=interop.langchain.CustomModel(uri="/device/llm_inference",
+      config={"model_path": "/data/local/tmp/llm/gemma-2b-it-gpu-int4.bin",
+              "max_tokens": 64,
+              "top_k": 40,
+              "temperature": 0.8,
+              "random_seed": 100}),
+      prompt=prompts.PromptTemplate(
+          input_variables=["topic"],
+          template="Q: Tell me about {topic}? A: ",
+      ),
+  )
+```
 
 ### Llama.cpp
 

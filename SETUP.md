@@ -48,10 +48,15 @@ docker run -p 8889:8889 -it -v $PWD:/generative_computing genc:latest /bin/bash
 ### 2. Launch the notebooks
 
 ```
-bash docs/tutorials/jupyter_setup/launch_jupyter.sh
+bash generative_computing/docs/tutorials/jupyter_setup/launch_jupyter.sh
 ```
 
 Open the link in your local browser.
+
+## Android setup
+
+For running GenC on Android and GenC's Android demo app, see
+setup instructions at [android_setup.md](generative_computing/docs/android_setup.md).
 
 Success: You have completed the setup of Generative_computing.
 Create your dream generative AI project, and share your experience with us!

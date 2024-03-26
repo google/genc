@@ -210,10 +210,23 @@ public final class Constructor {
   }
 
   public static Value createGeminiModelConfigForGoogleAiStudio(
-      String apiKey, String endpoint, String requestJsonTemplate) {
+      String apiKey, String endpoint, String jsonRequestTemplate) {
     ImmutableMap<String, Object> map =
         ImmutableMap.of(
-            "api_key", apiKey, "endpoint", endpoint, "json_request_template", requestJsonTemplate);
+            "api_key", apiKey, "endpoint", endpoint, "json_request_template", jsonRequestTemplate);
+    return createModelConfig(map);
+  }
+
+  public static Value createGeminiModelConfigForVertexAi(
+      String accessToken, String endpoint, String jsonRequestTemplate) {
+    ImmutableMap<String, Object> map =
+        ImmutableMap.of(
+            "access_token",
+            accessToken,
+            "endpoint",
+            endpoint,
+            "json_request_template",
+            jsonRequestTemplate);
     return createModelConfig(map);
   }
 

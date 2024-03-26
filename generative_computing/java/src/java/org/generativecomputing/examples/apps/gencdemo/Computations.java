@@ -41,8 +41,9 @@ final class Computations {
   public static final String GOOGLE_AI_STUDIO_GEMINI_PRO_ENDPOINT =
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
 
-  // Default json request template for Gemini-Pro calls. Please feel free to edit this per your
-  // use-case. See configuration at https://ai.google.dev/tutorials/rest_quickstart#configuration.
+  // Default json request template for Gemini-Pro calls on Google Studio. Please feel free to edit
+  // this per your use-case. See more configuration settings and options:
+  // https://ai.google.dev/tutorials/rest_quickstart#configuration.
   public static final String GEMINI_PRO_TEXT_GENERATION_JSON_TEMPLATE =
       "{\n"
           + "  \"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"PROMPT REPLACES"
@@ -53,6 +54,29 @@ final class Computations {
           + "  \"generation_config\":{\n"
           + "     \"temperature\":0.9, \"topP\":1.0, \"maxOutputTokens\":1024}\n"
           + "}";
+
+  // ID of the Google Cloud project. Please fill it with the Project Id used in Google Cloud
+  // platform. Follow instructions to set up a project and get the project id:
+  // https://cloud.google.com/vertex-ai/docs/start/cloud-environment
+  public static final String VERTEX_AI_PROJECT_ID = "";
+
+  // Access token to authenticate Gemini-Pro model inference access on Vertex AI. Follow
+  // instructions to get the access token:
+  // https://cloud.google.com/vertex-ai/docs/authentication#rest
+  public static final String VERTEX_AI_ACCESS_TOKEN = "";
+
+  // Gemini-Pro endpoint URL for Vertex AI. See other regions you can select at:
+  // https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/gemini
+  public static final String VERTEX_AI_GEMINI_PRO_ENDPOINT =
+      "https://us-central1-aiplatform.googleapis.com/v1/projects/"
+          + VERTEX_AI_PROJECT_ID
+          + "/locations/us-central1/publishers/google/models/gemini-1.0-pro:streamGenerateContent";
+
+  // Default json request template for Gemini-Pro calls on Vertex AI.Please feel free to edit this
+  // per your use-case. See other configuration options:
+  // https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/gemini
+  public static final String VERTEX_AI_GEMINI_PRO_TEXT_GENERATION_JSON_TEMPLATE =
+      GEMINI_PRO_TEXT_GENERATION_JSON_TEMPLATE;
 
   // Default model path for Gemma GPU model to use with Mediapipe LlmInference GenAI Tasks API.
   // Please change this if you copied the on-device model to a different path.
@@ -94,6 +118,11 @@ final class Computations {
         apiKey, GOOGLE_AI_STUDIO_GEMINI_PRO_ENDPOINT, GEMINI_PRO_TEXT_GENERATION_JSON_TEMPLATE);
   }
 
+  public static Value createGeminiModelConfigForVertexAi(String accessToken, String endpoint) {
+    return Constructor.createGeminiModelConfigForVertexAi(
+        accessToken, endpoint, VERTEX_AI_GEMINI_PRO_TEXT_GENERATION_JSON_TEMPLATE);
+  }
+
   public static Value createMediaPipeLlmInferenceModelConfig(String modelPath) {
     return Constructor.createMediaPipeLlmInferenceModelConfig(
         modelPath,
@@ -106,6 +135,23 @@ final class Computations {
   public static Value createOpenAiModelConfig(String apiKey) {
     return Constructor.createOpenAiModelConfig(
         apiKey, OPEN_AI_CHAT_COMPLETIONS_ENDPOINT, OPEN_AI_CHAT_COMPLETIONS_JSON_TEMPLATE);
+  }
+
+  @Nullable
+  public static Value createVertexAiGeminiModelWithPromptChainDemo() {
+    // Create prompt template to use.
+    Value promptTemplate = Constructor.createPromptTemplate(PROMPT_TEMPLATE_FOR_DEMO);
+
+    // Create Gemini-Pro model inference with Vertex AI as cloud backend.
+    Value vertexAiGeminiModel =
+        Constructor.createModelInferenceWithConfig(
+            GEMINI_MODEL_URI,
+            createGeminiModelConfigForVertexAi(
+                VERTEX_AI_ACCESS_TOKEN, VERTEX_AI_GEMINI_PRO_ENDPOINT));
+
+    // Create prompt, model inference chain.
+    return Constructor.createSerialChain(
+        new ArrayList<>(ImmutableList.of(promptTemplate, vertexAiGeminiModel)));
   }
 
   @Nullable

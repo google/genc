@@ -10,7 +10,7 @@ own replacement. In what follows, we will focus only on the internal runtime
 concepts needed for the latter.
 
 All execution is mediated by *executors*. An executor is a component that will
-process the IR, orchestrate processing, interact with various backend as
+process the IR, orchestrate processing, interact with various backends as
 needed, and return a result. While, per this description, an executor handles
 execution end-to-end, it's actually a building block. Executors can be (and
 generally are) organized into *executor stacks*, where different executors in
@@ -26,7 +26,7 @@ fundamental, in that this is how an app talks to an executor, how executors
 talk to one-another, and it's an API offered to custom operator implementers to
 enable them to define, e.g., new control flow operators.
 
-You can think of an *executor* as essentially as an abstract "box" inside of
+You can think of an *executor* as essentially an abstract "box" inside of
 which you can statically or dynamically orchestrate processing by "pulling the
 strings" from the outside through handles that point to objects inside of it:
 
@@ -69,13 +69,13 @@ strings" from the outside through handles that point to objects inside of it:
 
 *   The `Dispose` call releases resources associated with a handle (to a thing
     in the box). In most cases, callers don't need to manage lifetime of values
-    explicitly, since it's taken care of the supplied wrapper classes such as
+    explicitly, since it's taken care of by the supplied wrapper classes such as
     `OwnedValueId` that call `Dispose` on your behalf (unless a more elaborate
     lifetime management system is needed).
 
 The above provides flexibility to control the granularity of processing passed
 to an executor, to either submit all of it at once (in a single `CreateValue`
-that is subsequently `Materialize`d to compute it), or to interact with an
+that is subsequently `Materialize`'d to compute it), or to interact with an
 executor in what one might think of as a sort of *eager mode*, where existing
 processing can be arbitrarily dynamically appended to and expanded while it is
 underway. The choice of one vs. the other is up to the developer.

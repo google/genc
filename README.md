@@ -35,13 +35,12 @@ my_app_logic = genc.interop.langchain.create_computation(
 ```
 
 The result is a platform and language-independent
-**Intermediate Representation** (IR) that can be bundled with your Java app on
-Android, e.g., as an asset, loaded and executed as follows (see a complete
-step-by-step walkthrough and deployment instructions in
+**Intermediate Representation** (IR) that can be loaded and executed as follows
+(see a complete step-by-step walkthrough and deployment instructions in
 [Tutorial 1](generative_computing/docs/tutorials/tutorial_1_simple_cascade.ipynb)):
 
 ```
-myAppLogic = ... // load the application logic, e.g., from an asset
+myAppLogic = ... // load the application logic, e.g., from an asset or downloaded at runtime
 myRuntime = new DefaultAndroidExecutor(...);
 javaCallable = Runner.create(myAppLogic, myRuntime);
 
@@ -60,11 +59,13 @@ offered by GenC:
 *   **Across frontend SDKs and deployment backends**. In the example above,
     logic was authored using LangChain APIs, but the resulting representation
     (IR) is no longer coupled to LangChain - it's executed by a lightweight C++
-    runtime (in this case, embedded in a Java app on Android). In general, code executed at runtime has no dependency on SDKs used at the authoring time.
+    runtime (in this case, embedded in a Java app on Android). This C++ runtime
+    can be hosted on edge devices or in Cloud services. In general, code
+    executed at runtime has no dependency on SDKs used at the authoring time.
 
     The included demo runs against Gemma models offered by MediaPipe and Gemini
-    models Vertex AI, but it can be easily re-configured to utilize any other
-    LLMs (see [other supported models](generative_computing/docs/models.md)),
+    models offered by Vertex AI, but it can be easily re-configured to utilize
+    any other LLMs (see [other supported models](generative_computing/docs/models.md)),
     as well as your own preferred libraries, network services, etc.
 
     GenC also allows you to author different parts of your GenAI logic in
@@ -76,11 +77,11 @@ offered by GenC:
     how you can run the example code above locally in a Colab notebook, then
     deploy it unchanged on a mobile device. This seamless portability enables
     you to quickly iterate and test your code in a target environment during
-    development, this improving your development velocity and streamlining the
+    development, improving your development velocity and streamlining the
     path to deployment.
 
     GenC lets you run the same code on Android or in Linux-based
-    environments today, and we plan to introduce support for Chrome, iOS, and
+    environments today, and we plan to introduce support for Web, iOS, and
     various trusted execution environments in the future. This could save you
     time when targeting multiple product surfaces.
 
@@ -92,11 +93,11 @@ offered by GenC:
 
 GenC shares common goals with platforms such as LangChain, in that we aim to
 provide modular, customizable development surfaces to maximize developer
-velocity, albeit GenC aims to go further, extending compositionality benefits
+velocity; albeit GenC aims to go further, extending compositionality benefits
 across ecosystems and frameworks.
 
 GenC's relationship to platforms like LangChain is synergistic, characterized
-by layering, as shown on the diagram below. Our overarching goal is to take
+by layering, as shown in the diagram below. Our overarching goal is to take
 advantage of all capabilities that already exist, and bring them together for
 use by GenAI developers.
 
@@ -109,16 +110,16 @@ tutorials and documentation to experience what GenC has to offer:
 *   [Tutorials](generative_computing/docs/tutorials/README.md) show diverse
     examples of usage to showcase some of GenC's capabilities.
 
+*   [Architecture](generative_computing/docs/architecture.md) covers the system overview and key
+    concepts in GenC.
+
 *   [API documentation](generative_computing/docs/api.md) cover the developer
     and extensibility surfaces.
 
-*   [Model documentation](generative_computing/docs/models.md) lists the
-    supported models.
+*   [Model documentation](generative_computing/docs/models.md) lists the supported models.
 
-*   [Architecture](generative_computing/docs/architecture.md),
-    [IR](generative_computing/docs/ir.md), and
-    [runtime](generative_computing/docs/runtime.md) cover more advanced topics
-    for a deeper level of customization.
+*   [IR](generative_computing/docs/ir.md), and [runtime](generative_computing/docs/runtime.md) cover more advanced
+    topics for a deeper level of customization.
 
 *   [Setup](SETUP.md) instructions explain how to setup a full development
     and runtime environment that you can use to build GenC, run and customize

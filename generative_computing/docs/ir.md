@@ -7,7 +7,7 @@ what enables the composability, portability, flexible deployment, and hybrid
 (device + Cloud) computing benefits.
 
 The structure of the IR is defined by the protocol buffer message named
-`Value` you can find in [computation.proto](../proto/v0/computation.proto).
+`Value`, you can find it in [computation.proto](../proto/v0/computation.proto).
 You can think of this protocol buffer as effectively defining a simple
 domain-specific language (DSL), with the `Value` being a recursive structure
 that represents the processing to be performed.
@@ -147,7 +147,8 @@ values* (or simply *locals*), and then uses those values within the final
 expression, where they can be accessed in a manner similar to a formal function
 parameter (via `Reference`).
 
-Technically redundant, it has a role in making IR simpler and more compact, and enables the IR to more or less follow the same flow as what one would encounter
+Technically redundant, it has a role in making IR simpler and more compact, and
+enables the IR to more or less follow the same flow as what one would encounter
 in a more typical programming language.
 
 Here's an example piece of IR that defines two local values `func` and `arg`,
@@ -177,6 +178,7 @@ block {
       argument { reference { name: "arg" } }
     }
   }
+}
 ```
 
 ### Custom Operators
@@ -185,7 +187,7 @@ The last of the 7 abstractions are pluggable *custom operators*, also called
 *intrinsics*, defined by the `Intrinsic` message. GenC comes with a library of
 basic operators, some of which you've seen in examples listed above (e.g.,
 model inference calls), but the system is designed to make these operators
-plug and play, and the asociated runtime fully modular. As such, none of the
+plug and play, and the associated runtime fully modular. As such, none of the
 operators included with GenC are mandatory, or in any way special. You can
 set up a GenC-based environment that includes your own set of operators, and
 it's up to you to decide which of the operators supplied by GenC, if any, will
@@ -207,9 +209,9 @@ The set of operators included in the GenC repo can be found in
 header file [intrinsic_uris.h](../cc/intrinsics/intrinsic_uris.h).
 
 In order to promote the use of these operators in user-configured runtimes,
-by default all of them will be wired into the runtime by the function `CreateCompleteHandlerSet` declared in a neighboring
-[handler_sets.h](../cc/intrinsics/handler_sets.h), albeit this is also fully
-configurable. See the discussion of extensibility APIs in the
-[api.md](api.md) for how to use it when setting up a custom runtime.
+by default all of them will be wired into the runtime by the function
+`CreateCompleteHandlerSet` declared in a neighboring [handler_sets.h](../cc/intrinsics/handler_sets.h),
+albeit this is also fully configurable. See the discussion of extensibility APIs
+ in the [api.md](api.md) for how to use it when setting up a custom runtime.
 
 

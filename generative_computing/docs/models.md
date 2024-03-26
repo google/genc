@@ -6,43 +6,216 @@ model backends; see section on extensibility in [api.md](api.md)).
 
 ## Cloud models
 
-GenC provides a simple REST interface to allow connection to most cloud model services. We've included examples for the following:
+GenC provides out-of-box connections with most cloud model services. We support
+following backends across all currently supported platforms (Linux, Android) and
+one can author GenAI workflows leveraging these in Python, C++, and Java:
 
-* Google AI Studio (the [tutorials](tutorials) also use AI studio)
-* Google Vertex AI
-* OpenAI
+* [Google AI Studio](https://ai.google.dev/tutorials/rest_quickstart). The [tutorials](tutorials) also use AI studio.
+* [Google Vertex AI](https://cloud.google.com/vertex-ai)
+* [OpenAI](https://platform.openai.com/docs/guides/text-generation/chat-completions-api)
 
-The process is the same for all of these, obtain an API key from the cloud provider and provide this key as part of the generated IR. This can be accomplished with a config to a model:
+In our examples, we use Gemini-Pro, and OpenAI ChatGPT for chat completions,
+however, the model inference setup is configurable to call other models
+supported in above backends and/or other backends \(see [api.md](api.md)\).
+
+Below are the set up steps for each of the above backends:
+
+### [Google AI Studio](https://ai.google.dev/tutorials/rest_quickstart)
+We use the REST API to call model inferences on Gemini-Pro model. The
+configuration includes ```API key```, ```endpoint URL```, and
+```JSON request template```. Please [see instructions](https://ai.google.dev/tutorials/rest_quickstart)
+to get your API key from Google Studio. The ```endpoint URL``` is ```https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent```
+and the ```JSON request template``` contains the model parameters and safety
+settings per the Gemini model's [configuration options](https://ai.google.dev/tutorials/rest_quickstart#configuration).
+
+In our example demos, we have seeded the JSON request template with a [default
+configuration](../python/interop/gemini/create_config.py), however, please feel
+free to use different template per your use-case.
+
+#### Python
+Example code snippets to illustrate model inference construction in Python:
+
+1) Using defaults for some customizations:
 
 ```
-my_cloud_model = genc.interop.langchain.CustomModel(
+api_key = ...
+gemini_model = genc.interop.langchain.CustomModel(
     uri="/cloud/gemini",
-    config=genc.interop.gemini.create_config(API_KEY))
+    config=genc.interop.gemini.create_config(api_key))
 ```
 
-or directly as a REST endpoint
+2) Fully specified customizations:
 
 ```
-// C++
+api_key = ...
+endpoint_url = ...
+json_request_template = ...
+gemini_model = genc.interop.langchain.CustomModel(
+    uri="/cloud/gemini",
+    config=genc.interop.gemini.create_config(
+      api_key = api_key,
+      endpoint = endpoint_url,
+      json_request_template = json_request_template))
+```
+
+See [Tutorial 1](tutorials/tutorial_1_simple_cascade.ipynb) for demo, it uses
+Gemini-Pro via Google AI Studio for cloud model.
+
+In our ```DefaultLocalExecutor``` used in demos, the handler that processes
+the model inference calls for Gemini-Pro and calls the cloud backend is
+registered at the uri ```/cloud/gemini```. You can change this uri string to
+another preference, if you do so, change the model inference handler
+registration to that chosen string in the executor stacks \(see [api.md](api.md)
+for details\).
+
+#### Java
+In Java, you can create the model inference as follows:
+
+```
+Value modelConfig =
+    Constructor.createGeminiModelConfigForGoogleAiStudio(
+      /* apiKey= */ apiKey,
+      /* endpoint= */ endpoint,
+      /* requestJsonTemplate= */ jsonRequestTemplate);
+
+Value geminiModel =
+    Constructor.createModelInferenceWithConfig("/cloud/gemini", modelConfig);
+```
+
+See example chained workflow {prompt, model inference} using Gemini-Pro via
+Google Ai Studio at [Computations](../java/src/java/org/generativecomputing/examples/apps/gencdemo/Computations.java)
+
+#### C++
+For C++, see example code snippet below:
+
+```
+v0::Value model_config = CreateRestModelConfig(end_point, api_key);
+v0::Value model_call =
+      GENC_TRY(CreateModelInferenceWithConfig("/cloud/gemini", model_config))
+```
+Additionally, see demo at [run_gemini_on_ai_studio](../cc/examples/run_gemini_on_ai_studio.cc)
+
+### [Google Vertex AI](https://cloud.google.com/vertex-ai)
+
+To authenticate to Vertex AI, first you need to get an access token. Please see
+instructions in [Authenticate to Vertex AI](https://cloud.google.com/vertex-ai/docs/authentication#authn-how-to)
+to set up your access token. Since we use the REST API in GenC to connect to
+Vertex AI, and if you are running GenC locally on a machine or on an Android
+phone, getting an access token through [these instructions](https://cloud.google.com/vertex-ai/docs/authentication#rest)
+would suffice.
+
+For endpoint, we will be using ```streamGenerateContent``` endpoint on VertexAI.
+The full endpoint URL looks something like this:
+
+```https://{REGION}-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/{REGION}/publishers/google/models/gemini-1.0-pro:streamGenerateContent```.
+
+Please see
+[Vertex AI Gemini reference guide](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/gemini)
+on different regions supported
+\(we will be using ```us-central1``` as the region in our demos\).
+The ```PROJECT_ID``` is the ID of your Google Cloud project. If you are new to
+Google Cloud, please see [Get set up on Google Cloud](https://cloud.google.com/vertex-ai/docs/start/cloud-environment) and [this quickstart guide](https://cloud.google.com/vertex-ai/generative-ai/docs/start/quickstarts/quickstart-multimodal)
+with details on how to set up a Google Cloud account, enable Vertex AI API and
+other useful information.
+
+Similar to Google Studio, the Gemini-Pro API allows developers to specify
+```generationConfig```, ```safetySetting``` and other customization options in
+each request. See [Gemini API reference](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/gemini)
+for settings and API documentation. In GenC, we take ```json_request_template```
+as a configuration param in model inference definition for developers to be able
+to fully specify the request except for the dynamic input prompt.
+
+#### Python
+For model inference creation in Python, see below:
+
+```
+access_token = ...
+endpoint = ...
+json_request_template = ...
+gemini_model = genc.interop.langchain.CustomModel(
+    uri="/cloud/gemini",
+    config= {'access_token': access_token, 'endpoint': endpoint,
+             'json_request_template': json_request_template})
+```
+
+#### Java
+For model inference creation in Java, see below. See full example in
+[Computations.java](../java/src/java/org/generativecomputing/examples/apps/gencdemo/Computations.java).
+
+```
+Value vertexAiGeminiModel = Constructor.createModelInferenceWithConfig(
+    "/cloud/gemini",
+    Constructor.createGeminiModelConfigForVertexAi(
+      accessToken, endpoint, jsonRequestTemplate));
+```
+
+#### C++
+See below for code snippet for C++; additionally please see demo at
+[run_gemini_on_vertex.cc](../cc/examples/run_gemini_on_vertex.cc)
+
+```
 absl::StatusOr<v0::Value> RunGeminiOnVertex(std::string json_request) {
-  std::string api_key = absl::GetFlag(FLAGS_api_key);
+  std::string access_token = absl::GetFlag(access_token);
   std::shared_ptr<Executor> executor = GENC_TRY(CreateDefaultExecutor());
-  v0::Value rest_call = GENC_TRY(CreateRestCall(kEndPoint, api_key));
+  v0::Value rest_call = GENC_TRY(CreateRestCall(endPoint, access_token));
   ...
-
-// Python
-model_call = authoring.create_rest_call(endpoint, FLAGS.api_key)
 ```
 
-Connecting to other endpoints requires updating the endpoint and the API key. Note that some cloud endpoints will expect the request in a certain format. For example, in the [OpenAI Demo](../python/examples/openai_demo.py) a JSON format is created:
+### [OpenAI](https://platform.openai.com/docs/guides/text-generation/chat-completions-api)
+In GenC, we have integrated with OpenAI's Chat completions API to use in LLM
+pipelines and demos. To use this backend, you need to provide an API key, see
+instructions in [OpenAI's quickstart guide](https://platform.openai.com/docs/quickstart)
+on how to set up an account and create an API key.
+
+Additionally, please familiarize yourself with the [Chat completions API](https://platform.openai.com/docs/api-reference/chat/create),
+particularly the settings in the ```request body```. In GenC, we use
+```json_request_template``` to fill in configuration settings in
+```request body``` and as part of GenC pipeline run, the last message is
+appended dynamically. See ```OPEN_AI_CHAT_COMPLETIONS_JSON_TEMPLATE``` in
+[Computations.java](../java/src/java/org/generativecomputing/examples/apps/gencdemo/Computations.java),
+for example. You can similarly create a different custom
+```json_request_template``` per your liking.
+
+The endpoint for OpenAI chat completions is ```https://api.openai.com/v1/chat/completions```
+
+#### Python
+Below is example code snippet for creating OpenAI backed model inference in
+Python. See full example at [OpenAI Demo](../python/examples/openai_demo.py):
 
 ```
-request.str = (
+  api_key = ...
+  endpoint = "https://api.openai.com/v1/chat/completions"
+  model_call = authoring.create_rest_call(endpoint, api_key)
+  runner = runtime.Runner(model_call, executor.create_default_executor())
+  request = pb.Value()
+  request.str = (
       b'{"model": "gpt-3.5-turbo", "messages": [{"role": "user", "content":'
-      b' "Can you help me know things to do in San Fransisco"}]}'
+      b' <PROMPT_QUERY>}]}'
   )
+  result = json.loads(comp(request))
 ```
 
+#### Java
+In Java, you can create OpenAI model inference as follows. See full example in
+[Computations.java](../java/src/java/org/generativecomputing/examples/apps/gencdemo/Computations.java).
+
+```
+// Create Open AI chat completions model inference.
+apiKey = ...
+jsonRequestTemplate = ...
+endpoint = "https://api.openai.com/v1/chat/completions"
+Value openAiModel = Constructor.createModelInferenceWithConfig(
+            "/openai/chatgpt", Constructor.createOpenAiModelConfig(
+      apiKey, endpoint, jsonRequestTemplate));
+```
+
+#### C++
+For C++, see example code snippet below; additionally see demo at
+[run_openai.cc](../cc/examples/run_openai.cc)
+
+```
+v0::Value rest_call = GENC_TRY(CreateRestCall(endpoint, api_key));
+```
 
 ## On-device models
 

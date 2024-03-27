@@ -403,9 +403,9 @@ langchain-community==0.0.11 \
     # via
     #   -r requirements.in
     #   langchain
-langchain-core==0.1.8 \
-    --hash=sha256:93ab72f5ab202526310fad389a45626501fd76ecf56d451111c0d4abe8183407 \
-    --hash=sha256:f4d1837d6d814ed36528b642211933d1f0bd84e1eff361f4630a8c750acc27d0
+langchain-core==0.1.35 \
+    --hash=sha256:862b8415d4deaf4e06833ef826bcef3614d75c3e7fd82b09b1349cc223f02e9a \
+    --hash=sha256:9d790446ea211f4cb620886081cc5a5723bc9a2dc90af1f6205aded2ee61bb71
     # via
     #   -r requirements.in
     #   langchain

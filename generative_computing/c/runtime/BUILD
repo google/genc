@@ -1,4 +1,4 @@
-# C API for Generative computing.
+# C API for GenC.
 
 package(
     default_visibility = ["//visibility:public"],

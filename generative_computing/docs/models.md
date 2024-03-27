@@ -1,4 +1,4 @@
-# Generative Computing (GenC) Models
+# GenC Models
 
 This doc covers the list of models currently supported by code included in the
 GenC repo (note you can always configure the runtime to support your own custom

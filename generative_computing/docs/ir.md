@@ -1,4 +1,4 @@
-# Generative Computing (GenC) Intermediate Representation (IR)
+# GenC's Intermediate Representation (IR)
 
 ## Overview
 

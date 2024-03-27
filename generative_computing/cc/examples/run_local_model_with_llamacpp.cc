@@ -1,4 +1,4 @@
-/* Copyright 2024, The Generative Computing Authors.
+/* Copyright 2024, The GenC Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

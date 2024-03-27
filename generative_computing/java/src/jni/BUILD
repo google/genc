@@ -1,4 +1,4 @@
-# Java native interfaces for Generative computing components.
+# Java native interfaces for GenC components.
 
 package(
     default_visibility = ["//visibility:public"],

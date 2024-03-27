@@ -1,4 +1,4 @@
-# Java API for generative computing.
+# Java API for GenC.
 
 package(
     default_visibility = ["//visibility:public"],

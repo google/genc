@@ -1,4 +1,4 @@
-# Generative Computing Bazel configuration
+# GenC Bazel configuration
 #
 # See https://docs.bazel.build/versions/master/user-manual.html#config for
 # details on the various configuration options.

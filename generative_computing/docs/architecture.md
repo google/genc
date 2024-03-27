@@ -1,6 +1,6 @@
-# Generative Computing (GenC) Architecture
+# GenC Architecture
 
-**Generative Computing** (GenC) is an open-source framework and an initiative
+**GenC** is an open-source framework and an initiative
 to facilitate building GenAI-powered applications in a composable manner, by
 integrating diverse components across platforms and ecosystems and bringing them
 together for use by application developers.

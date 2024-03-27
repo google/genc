@@ -1,4 +1,4 @@
-# Generative Computing (GenC) Tutorials and Demos
+# GenC Tutorials and Demos
 
 ## Tutorial Overview
 

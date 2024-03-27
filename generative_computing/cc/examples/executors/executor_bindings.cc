@@ -1,4 +1,4 @@
-/* Copyright 2023, The Generative Computing Authors.
+/* Copyright 2023, The GenC Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ PYBIND11_MODULE(executor_bindings, m) {
 
   m.def("create_default_executor", &CreateDefaultExecutor,
         "Creates a default executor with predefined components used in "
-        "Generative Computing demos.");
+        "GenC demos.");
 }
 
 }  // namespace

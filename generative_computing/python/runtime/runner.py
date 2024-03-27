@@ -1,4 +1,4 @@
-# Copyright 2023, The Generative Computing Authors.
+# Copyright 2023, The GenC Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Libraries fo constructing runners for executing generative computations."""
+"""Libraries fo constructing runners for executing GenC computations."""
 
 from generative_computing.cc.runtime import executor_bindings
 from generative_computing.proto.v0 import computation_pb2 as pb

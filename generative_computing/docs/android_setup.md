@@ -1,9 +1,9 @@
-# Generative Computing on Android
+# GenC on Android
 
 This guide covers steps to build and install GenC's example app on Android.
 
 ## 1. Clone git repository
-First let's download Generative Computing codebase if not done already. We will
+First let's download GenC codebase if not done already. We will
 assume this gets downloaded to ```generative_computing``` directory locally and
 will be referred to as the project directory in the following steps.
 
@@ -77,7 +77,7 @@ adb install app.apk
 adb push genc_demo.pb /data/local/tmp/genc_demo.pb
 ```
 
-Open "Generative Computing Demo app" on the Android phone. Enter appropriate
+Open "GenC Demo app" on the Android phone. Enter appropriate
 text input for the IR used. In these steps, we used Tutorial 1, which has
 prompt template as "Tell me about {topic}". So, enter any topic in the text
 field, e.g. "scuba diving". See response.
@@ -281,7 +281,7 @@ demo app on the connected Android phone.
 5.  You can also enable adb logcat to see GenC logs in Android Studio.
 
 6.  If the build and install was successful, you will see
-   “Generative computing demo app” installed on the phone.
+   “GenC demo app” installed on the phone.
 
 7.  Now, you can deploy the IR on the phone (see [Tutorial 1](tutorials/tutorial_1_simple_cascade.ipynb))
    or create your own computations in the Java app.

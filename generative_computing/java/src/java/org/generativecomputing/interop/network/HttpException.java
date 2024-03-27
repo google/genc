@@ -1,4 +1,4 @@
-/* Copyright 2023, The Generative Computing Authors.
+/* Copyright 2023, The GenC Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,10 +14,7 @@ limitations under the License
 ==============================================================================*/
 package src.java.org.generativecomputing.interop.network;
 
-/**
- * An exception class used to propagate http request exceptions to callers. TODO(pagarwl): Add
- * canonical status codes in network layer of generative computing.
- */
+/** An exception class used to propagate http request exceptions to callers. */
 public final class HttpException extends Exception {
   public HttpException(String message) {
     super(message);

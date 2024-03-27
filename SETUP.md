@@ -1,4 +1,4 @@
-# Setup Generative Computing
+# Setup GenC
 
 Quick and easy way to setup environment for GenC is using Docker Container:
 

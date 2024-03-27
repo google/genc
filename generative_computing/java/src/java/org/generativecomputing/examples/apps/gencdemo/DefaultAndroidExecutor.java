@@ -1,4 +1,4 @@
-/* Copyright 2023, The Generative Computing Authors.
+/* Copyright 2023, The GenC Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import src.java.org.generativecomputing.interop.network.CronetEngineProvider;
 import src.java.org.generativecomputing.interop.network.HttpClientImpl;
 
 /**
- * An executor used in Generative Computing demos on Android. This contains clients and other
+ * An executor used in GenC demos on Android. This contains clients and other
  * objects generally used across different demos. Please use this as a reference example to create
  * your own executor for your use-cases.
  */

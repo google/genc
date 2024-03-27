@@ -1,4 +1,4 @@
-# Copyright 2023, The Generative Computing Authors.
+# Copyright 2023, The GenC Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@ from generative_computing.cc.examples.executors import executor_bindings
 
 
 def create_default_executor():
-  """Creates a default executor used in generative computing demos.
+  """Creates a default executor used in GenC demos.
 
   Returns:
-    An executor that contains handlers for generative computing demos.
+    An executor that contains handlers for GenC demos.
   """
   return executor_bindings.create_default_executor()

@@ -1,4 +1,4 @@
-# Generative Computing (GenC) APIs
+# GenC APIs
 
 ## Overview
 

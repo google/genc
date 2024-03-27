@@ -1,4 +1,4 @@
-# Generative Computing (GenC) Runtime
+# GenC Runtime
 
 ## Overview
 

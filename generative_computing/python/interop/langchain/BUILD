@@ -62,9 +62,7 @@ py_test(
 py_library(
     name = "custom_chain",
     srcs = ["custom_chain.py"],
-    visibility = [
-        "//visibility:private",  # Only private by automation, not intent. Owner may accept CLs adding visibility. See go/scheuklappen#explicit-private.
-    ],
+    visibility = ["//visibility:private"],
     deps = ["//generative_computing/proto/v0:computation_py_pb2"],
 )
 
@@ -77,9 +75,7 @@ py_test(
 py_library(
     name = "custom_tool",
     srcs = ["custom_tool.py"],
-    visibility = [
-        "//visibility:private",  # Only private by automation, not intent. Owner may accept CLs adding visibility. See go/scheuklappen#explicit-private.
-    ],
+    visibility = ["//visibility:private"],
     deps = [
         "//generative_computing/proto/v0:computation_py_pb2",
         "//generative_computing/python/interop/langchain:custom_chain",
@@ -98,9 +94,7 @@ py_test(
 py_library(
     name = "custom_agent",
     srcs = ["custom_agent.py"],
-    visibility = [
-        "//visibility:private",  # Only private by automation, not intent. Owner may accept CLs adding visibility. See go/scheuklappen#explicit-private.
-    ],
+    visibility = ["//visibility:private"],
     deps = [":custom_tool"],
 )
 

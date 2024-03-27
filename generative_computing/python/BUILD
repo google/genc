@@ -10,7 +10,5 @@ package_group(
 py_library(
     name = "python",
     srcs = ["__init__.py"],
-    visibility = [
-        "//visibility:private",  # Only private by automation, not intent. Owner may accept CLs adding visibility. See go/scheuklappen#explicit-private.
-    ],
+    visibility = ["//visibility:private"],
 )

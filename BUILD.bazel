@@ -19,22 +19,3 @@ package(
 )
 
 licenses(["notice"])
-
-# Generic Android
-config_setting(
-    name = "android",
-    constraint_values = [
-        "@platforms//os:android",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-# Android ARM64.
-config_setting_and_platform(
-    name = "android_arm64",
-    constraint_values = [
-        "@platforms//os:android",
-        "@platforms//cpu:arm64",
-    ],
-    visibility = ["//visibility:public"],
-)

@@ -25,11 +25,11 @@ The key components include:
     is a set of C++ components for executing processing defined in the IR. The
     runtime is deeply configurable, and can be setup with lightweight set of
     dependencies, in a variety of platforms (in Linux environments (e.g. on
-    servers), on Android, etc.), with your own custom backends, additional
-    custom operators of your choosing, or some of the existing operators removed
-    (for streamlining, or to avoid unwanted dependencies), etc., to match
-    diverse use-cases and environments (see the section on extensibility APIs in
-    [api.md](api.md)).
+    servers), on mobile platforms, etc.), with your own custom backends,
+    additional custom operators of your choosing, or some of the existing
+    operators removed (for streamlining, or to avoid unwanted dependencies),
+    etc., to match diverse use-cases and environments (see the section on
+    extensibility APIs in [api.md](api.md)).
 
     The core of the runtime and the extensibility APIs are implemented in C++
     for performance and portability across platforms, but the runtime can be
@@ -93,5 +93,5 @@ When building a new system with GenC, the general flow is as follows:
 GenC can scale to match the complexity of the desired deployment scenario. As
 you can see in the included [tutorials](tutorials/), this can range from a few
 lines of code in a Colab notebook environment, to slightly more when deploying
-from Colab to e.g., Android, and/or creating more complex workflows (as in the
-[ReAct agent example tutorial](tutorials/tutorial_5_langchain_agent.ipynb)).
+from Colab to e.g., a mobile app, and/or creating more complex workflows (as in
+the [ReAct agent example tutorial](tutorials/tutorial_5_langchain_agent.ipynb)).

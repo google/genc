@@ -6,9 +6,9 @@ The central problem GenC aims to solve is the fragmentation of the GenAI
 ecosystem. Many capabilities useful to GenAI developers evolve independently in
 siloed domains, and do not easily compose or interoperate with one-another.
 
-For example, LangChain/Python/Jupyter is popular as a platform of
-choice for modeling GenAI logic in many domains, but mobile apps for Android
-devices are commonly written in Java or Kotlin, and the two worlds don't
+For example, LangChain/Python/Jupyter is popular as a platform of choice for
+modeling GenAI logic in many domains, particularly when prototyping, but e.g.,
+mobile apps are commonly written in Java or Kotlin, and the two worlds don't
 mix easily. Developers must choose between the rich high-level APIs and ease
 and speed of prototyping offered by the former vs. an easy path to mobile
 deployment or access to latest on-device LLM APIs offered by the latter.
@@ -22,7 +22,7 @@ For example, here's how you can use GenC to author a simple chain powered by a
 device-to-Cloud model cascade in LangChain/Python/Jupyter:
 
 ```
-import genc as genc
+import genc
 import langchain
 
 my_app_logic = genc.interop.langchain.create_computation(
@@ -40,8 +40,8 @@ The result is a platform and language-independent
 [Tutorial 1](genc/docs/tutorials/tutorial_1_simple_cascade.ipynb)):
 
 ```
-myAppLogic = ... // load the application logic, e.g., from an asset or downloaded at runtime
-myRuntime = new DefaultAndroidExecutor(...);
+myAppLogic = ... // load the application logic, e.g., from a file or asset
+myRuntime = new DefaultExecutor(...);
 javaCallable = Runner.create(myAppLogic, myRuntime);
 
 ... = javaCallable.call("scuba diving");
@@ -59,7 +59,7 @@ offered by GenC:
 *   **Across frontend SDKs and deployment backends**. In the example above,
     logic was authored using LangChain APIs, but the resulting representation
     (IR) is no longer coupled to LangChain - it's executed by a lightweight C++
-    runtime (in this case, embedded in a Java app on Android). This C++ runtime
+    runtime (in this case, embedded in a Java app). This C++ runtime
     can be hosted on edge devices or in Cloud services. In general, code
     executed at runtime has no dependency on SDKs used at the authoring time.
 
@@ -75,21 +75,20 @@ offered by GenC:
 *   **Across prototyping and production platforms**. In
     [Tutorial 1](genc/docs/tutorials/tutorial_1_simple_cascade.ipynb), we show you
     how you can run the example code above locally in a Colab notebook, then
-    deploy it unchanged on a mobile device. This seamless portability enables
-    you to quickly iterate and test your code in a target environment during
-    development, improving your development velocity and streamlining the
-    path to deployment.
+    deploy it unchanged in a Java client (which may represent, e.g., a mobile
+    app). This kind of seamless portability enables you to quickly iterate
+    and test your code in a target environment during development, improving
+    your development velocity and streamlining the path to deployment.
 
-    GenC lets you run the same code on Android or in Linux-based
-    environments today, and we plan to introduce support for Web, iOS, and
-    various trusted execution environments in the future. This could save you
-    time when targeting multiple product surfaces.
+    The portability offered by GenC lets you run the same code across multiple
+    types of cloud and mobile platforms, which can save you time when targeting
+    multiple product surfaces.
 
 *   **Across devices and cloud**. The example above is powered by a cascade
-    of two models, one running locally on a phone, and one running in Cloud.
-    GenC lets you mix and match on-device and cloud components, as well as to
-    dynamically dispatch any executable logic expressed in GenC across multiple
-    executable environments.
+    of two models, one running locally on the client (e.g., on-device), and one
+    running in Cloud. GenC lets you mix and match on-device and cloud
+    components, as well as to dynamically dispatch any executable logic
+    expressed in GenC across multiple executable environments.
 
 GenC shares common goals with platforms such as LangChain, in that we aim to
 provide modular, customizable development surfaces to maximize developer

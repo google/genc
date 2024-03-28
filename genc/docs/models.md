@@ -7,8 +7,8 @@ model backends; see section on extensibility in [api.md](api.md)).
 ## Cloud models
 
 GenC provides out-of-box connections with most cloud model services. We support
-following backends across all currently supported platforms (Linux, Android) and
-one can author GenAI workflows leveraging these in Python, C++, and Java:
+following backends across all currently supported platforms and one can author
+GenAI workflows leveraging these in Python, C++, and Java:
 
 * [Google AI Studio](https://ai.google.dev/tutorials/rest_quickstart). The [tutorials](tutorials) also use AI studio.
 * [Google Vertex AI](https://cloud.google.com/vertex-ai)
@@ -100,8 +100,8 @@ Additionally, see demo at [run_gemini_on_ai_studio](../cc/examples/run_gemini_on
 To authenticate to Vertex AI, first you need to get an access token. Please see
 instructions in [Authenticate to Vertex AI](https://cloud.google.com/vertex-ai/docs/authentication#authn-how-to)
 to set up your access token. Since we use the REST API in GenC to connect to
-Vertex AI, and if you are running GenC locally on a machine or on an Android
-phone, getting an access token through [these instructions](https://cloud.google.com/vertex-ai/docs/authentication#rest)
+Vertex AI, getting an access token through
+[these instructions](https://cloud.google.com/vertex-ai/docs/authentication#rest)
 would suffice.
 
 For endpoint, we will be using ```streamGenerateContent``` endpoint on VertexAI.
@@ -219,8 +219,7 @@ v0::Value rest_call = GENC_TRY(CreateRestCall(endpoint, api_key));
 
 ## On-device models
 
-GenC is a bring-your-own-model (BYOM) framework. Currently, two backends are
-provided to enable on-device models.
+Currently, two backends are provided to facilitate access to on-device models.
 
 ### MediaPipe
 
@@ -238,10 +237,6 @@ LLM Inference API supports following models:
 GenC connects with MediaPipe LLM Inference API to offer on-device model
 inferences in a GenAI pipeline workflow.
 
-MediaPipe LLM Inference integration is currently available on Android. We also
-plan to enable iOS, Web integrations as part of GenC on iOS and Web in
-upcoming future.
-
 #### Download Model to Device
 ##### Download Model
 Please see instructions at [Models](https://developers.google.com/mediapipe/solutions/genai/llm_inference#models)
@@ -250,7 +245,7 @@ models.
 
 We recommend using Gemma 2B, available on [Kaggle Models](https://www.kaggle.com/models/google/gemma),
 it comes in a format that is already compatible with the LLM Inference API and
-can be directly loaded on the Android phone. If you use another model, you will
+can be directly loaded onto your device. If you use another model, you will
 need to convert the model to a MediaPipe-friendly format. See following
 section for conversion steps.
 
@@ -259,18 +254,21 @@ Gemma downloaded from non-Kaggle sources and all other external models supported
 via MediaPipe (Phi-2, Falcon-RW-1B, StableLM-3B) need to be converted first to
 use them with LLM Inference API on device.
 
-See instructions at [Convert Model to MediaPipe format](https://developers.google.com/mediapipe/solutions/genai/llm_inference/android#convert-model) to download needed MediaPipe package and run model
+See instructions for model conversion in
+[the MediaPipe documentation](https://developers.google.com/mediapipe/solutions/genai/llm_inference)
+to download needed MediaPipe package and run model
 conversion script. Additionally, for easier conversion flow, you could also
 use [Model Conversion Colab](https://colab.sandbox.google.com/github/googlesamples/mediapipe/blob/main/examples/llm_inference/conversion/llm_conversion.ipynb).
 
 
 ##### Push the model to the device
 
-Push the downloaded \(and converted\) model to the Android device.
+Push the downloaded \(and converted\) model to your device.
 
-See [Push model instructions](https://developers.google.com/mediapipe/solutions/genai/llm_inference/android#push_model_to_the_device)
-on MediaPipe LLM Inference site. Please take note of the model path used on the
-Android device \(e.g. ```/data/local/tmp/llm/gemma-2b-it-gpu-int4.bin```). We will be using
+See instructions for pushing models in
+[the MediaPipe documentation](https://developers.google.com/mediapipe/solutions/genai/llm_inference).
+Please take note of the model path used on the
+device \(e.g. ```/data/local/tmp/llm/gemma-2b-it-gpu-int4.bin```). We will be using
 the model path in the following sections.
 
 ##### Instantiate LLM Inference backed model inference in GenC
@@ -278,7 +276,9 @@ the model path in the following sections.
 LLM Inference API supports several configuration options. When instantiating a
 model inference in GenC, please provide desired values for maxTokens, topK,
 temperature, and randomSeed; alongside the on-device model path.
-See [Configuration options](https://developers.google.com/mediapipe/solutions/genai/llm_inference/android#configuration_options) to learn more about each configuration setting.
+See the section on configuration options in
+[the MediaPipe documentation](https://developers.google.com/mediapipe/solutions/genai/llm_inference)
+to learn more about each configuration setting.
 
 Following code illustrates how to create a model inference backed by MediaPipe
 LLM Inference in Java.
@@ -315,8 +315,8 @@ return Constructor.createSerialChain(
 ```
 
 Additionally, following example illustrates how to instantiate and use
-LLM Inference in a LangChain -> Android deployment. Code is authored in Python
-for IR to be deployed on Android phone:
+LLM Inference in a LangChain -> on-device deployment. Code is authored in Python
+for IR to be deployed on your device:
 
 ```
 my_chain = chains.LLMChain(
@@ -351,8 +351,8 @@ quantization technique, and size. For example, one of the most popular options
 and medium size.
 
 These models can be downloaded from Hugging Face (using the website, the
-[Hugging Face CLI](https://huggingface.co/docs/huggingface_hub/en/guides/cli), or GitHub LFS) and directly put on the desired device (e.g. using ADB for an Android device, see
-[Tutorial 1](tutorials/tutorial_1_simple_cascade.ipynb)). Some models to
+[Hugging Face CLI](https://huggingface.co/docs/huggingface_hub/en/guides/cli),
+or GitHub LFS) and directly uploaded onto your device. Some models to
 consider include:
 
 * [Gemma 2B Instruction Tuned](https://huggingface.co/google/gemma-2b-it)
@@ -360,7 +360,9 @@ consider include:
 * [TinyLlama](https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF)
 
 When running the model in your GenC code, you'll need to include the absolute
-model path, the number of threads LlamaCpp can use, and the max tokens to generate (responses may end early if a EOS is detected). For example, if creating the IR in Python to run on an Android phone the following could be used:
+model path, the number of threads LlamaCpp can use, and the max tokens to
+generate (responses may end early if a EOS is detected). For example, if
+creating the IR in Python to run on-device, the following could be used:
 
 ```
 my_chain = chains.LLMChain(

@@ -6,7 +6,6 @@ package(
 
 licenses(["notice"])
 
-# TODO(b/295041820): Figure out how to make an android_jni_library instead.
 exports_files(
     srcs = [
         "executor_jni.cc",
@@ -25,11 +24,9 @@ cc_library(
         "-Wno-write-strings",  # The generated JNI header fails this.
         "-Wno-writable-strings",  # The generated JNI header fails this.
     ],
-    target_compatible_with = [
-        "@platforms//os:android",
-    ],
     visibility = ["//visibility:public"],
     deps = [
+        "@bazel_tools//tools/jdk:jni",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",

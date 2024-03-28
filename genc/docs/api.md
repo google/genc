@@ -14,7 +14,8 @@ a somewhat different audience, discussed in separate sections below:
 *   **Runtime APIs** facilitate execution of the IR that was created using the
     authoring APIs, in various application contexts. This enables application
     developers to embed the authored IR within their applications (e.g., as an
-    ordinary Java callable object in a Java app on Android).
+    ordinary Java callable object in a Java app, or a regular Python object in
+    a Python binary).
 
 *   **Extensibility APIs** enable power users and platform partners to customize
     the platform for advanced use cases (e.g., connect to custom backends, add
@@ -196,7 +197,7 @@ to create model configs for different model ecosystems, and more.)
 Furthermore, to illustrate usage of these APIs and how to construct common
 pipelines and complex workflows in Java, we have added example functions in
 [Computations.java](../java/src/java/org/genc/examples/apps/gencdemo/Computations.java).
-These work well with the ```DefaultAndroidExecutor``` executor stack (see
+These work well with the ```DefaultExecutor``` executor stack (see
 [Java runtime API](api.md) below). Please feel free to use them to get familiar
 with using GenC natively in Java apps.
 
@@ -262,21 +263,20 @@ python_result = runner('Boo!')
 
 ### Java runtime API
 
-A version of a runner for Java (e.g., for use on Android) is defined in
+A version of a runner for Java (e.g., for use in Java apps) is defined in
 [Runner.java](../java/src/java/org/genc/Runner.java).
 Similarly to its Python counterpart, its constructor takes IR and an executor.
 A one-liner executor constructor that can be used for the tutorials and
-examples to run on Android is provided in
-[DefaultAndroidExecutor.java]
-(../java/src/java/org/genc/examples/apps/gencdemo/DefaultAndroidExecutor.java).
+examples to run in a Java app or binary is provided in
+[DefaultExecutor.java]
+(../java/src/java/org/genc/examples/apps/gencdemo/DefaultExecutor.java).
 As noted above, you can setup a custom executor using extensibility APIs
 discussed below.
 
 Here's a code snippet that illustrates example usage:
 
 ```
-DefaultAndroidExecutor executor = new DefaultAndroidExecutor(
-  getApplicationContext());
+DefaultExecutor executor = new DefaultExecutor();
 Value portable_ir = Constructor.createModelInferenceWithConfig(
             "/cloud/gemini", createGeminiModelConfigForGoogleAiStudio(apiKey));
 Runner runner = Runner.create(portable_ir, executor.getExecutorHandle());
@@ -290,8 +290,7 @@ The C++ version of the default executor constructor we created for examples and
 tutorials is provided in
 [cc/examples/executor_stacks.h](../cc/examples/executors/executor_stacks.h).
 As noted above, this is the same as what you get via Python APIs, and it's
-setup for use in Colab-like (non-Android) environments (note the example
-executor for Android was just covered in the preceding section).
+setup for use, e.g., in Linux-based environments.
 
 The C++ version of a runner is defined in
 [cc/runtime/runner.h](../cc/runtime/runner.h). Unlike its Python and Java
@@ -373,18 +372,17 @@ following key concepts:
   e.g., in an on-device executor to delegate entire segments of IR to run in
   cloud. You will not need to set this if you're running locally.
 
-Here's an example snippet of C++ code from
-[cc/runtime/android/android_executor_stacks.cc](../cc/runtime/android/android_executor_stacks.cc)
-that puts these concepts in action. Note that we use all the runtime constructor
+Here's what an example snippet of C++ code  that puts these concepts in action
+might look like. Note that we use all the runtime constructor
 calls mentioned above (`CreateCompleteHandlerSet` and `CreateLocalExecutor`),
 and the only thing that's being customized is the handler config \(see the file
 on how to add model inference handlers and custom function handlers
 in the ```HandlerSetConfig```\). The two calls
 below simply register handlers for Open AI and Gemini models in the config to
-enable routing those calls from IR when deployed on Android.
+enable routing those calls from IR.
 
 ```
-absl::StatusOr<std::shared_ptr<Executor>> CreateAndroidExecutor(
+absl::StatusOr<std::shared_ptr<Executor>> CreateExecutor(
     JavaVM* jvm, jobject open_ai_client, jobject google_ai_client) {
   intrinsics::HandlerSetConfig config;
   SetOpenAiModelInferenceHandler(

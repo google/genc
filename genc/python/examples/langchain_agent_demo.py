@@ -108,7 +108,7 @@ def main(argv: Sequence[str]) -> None:
 
   # IR stands for intermediate representation.
   # It transforms the agent into a computation,
-  # Which can be ported to C++, Android.
+  # Which can be ported to C++, Java, etc.
   portable_ir = genc.interop.langchain.create_computation(agent)
   # To run it localy
   runner = genc.runtime.Runner(portable_ir, executor.create_default_executor())

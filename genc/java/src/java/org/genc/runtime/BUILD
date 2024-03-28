@@ -17,7 +17,7 @@ exports_files(
     visibility = ["//visibility:public"],
 )
 
-android_library(
+java_library(
     name = "runner",
     srcs = ["Runner.java"],
     deps = [
@@ -29,7 +29,7 @@ android_library(
     ],
 )
 
-android_library(
+java_library(
     name = "executor",
     srcs = ["Executor.java"],
     deps = [
@@ -42,7 +42,7 @@ android_library(
     ],
 )
 
-android_library(
+java_library(
     name = "owned_value_id",
     srcs = ["OwnedValueId.java"],
     deps = [
@@ -54,12 +54,12 @@ android_library(
     ],
 )
 
-android_library(
+java_library(
     name = "value_id",
     srcs = ["ValueId.java"],
 )
 
-android_library(
+java_library(
     name = "to_from_value_proto",
     srcs = ["ToFromValueProto.java"],
     deps = ["//genc/proto/v0:computation_java_proto_lite"],

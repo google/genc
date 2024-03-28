@@ -7,7 +7,8 @@ Summary of the benefits offered by GenC:
     *   Ability to freely compose building blocks to express your own
         application logic.
     *   Ability to integrate diverse SDKs, platforms, and ecosystems
-        (e.g., LangChain, Android, cloud services, databases, models, etc.).
+        (e.g., LangChain, mobile platforms, cloud services, databases, models,
+        etc.).
     *   Ability to express processing that combines on-device/on-prem and
         cloud components.
 
@@ -16,8 +17,7 @@ Summary of the benefits offered by GenC:
     *   Across programming languages (e.g., from Python to Java and C++).
     *   Across prototyping and production deployments (e.g., from Colab
         notebooks, to cloud servers, to mobile apps).
-    *   Across on-device and cloud platforms (e.g., Linux, Android, Chrome,
-        iOS, etc.).
+    *   Across different mobile and cloud platforms.
     *   Can be configured with minimal dependencies for lightweight deployments
         (e.g, on embedded/IoT and other specialized platforms).
 

@@ -36,9 +36,8 @@ a handful of example pointers for common scenarios and general orientation:
     read the section about extensibility APIs in
     [api.md](genc/docs/api.md),
     and the included tutorials, and review the
-    [two example setups](genc/cc/examples/executors/)
-    we provided for use with the tutorials/examples included in this repo (one
-    for Colab, and one for Android).
+    [example setups](genc/cc/examples/executors/)
+    we provided for use with the tutorials/examples included in this repo.
 
 *   **If you'd like to add support for a new backend, custom operator, etc.**,
     please likewise read the section about extensibility APIs in

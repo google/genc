@@ -67,7 +67,6 @@ absl::StatusOr<v0::Value> CreateRestModelConfig(std::string endpoint,
                                                 std::string api_key) {
   v0::Value model_config_pb;
   model_config_pb.set_label("model_config");
-  // TODO(b/325090417): match android behavior, consider removal.
   if (api_key.empty()) {
     model_config_pb.set_str(endpoint);
     return model_config_pb;

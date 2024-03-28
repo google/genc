@@ -15,8 +15,6 @@ limitations under the License
 
 package org.genc.authoring;
 
-import androidx.annotation.Nullable;
-import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.ExtensionRegistryLite;
 import com.google.protobuf.InvalidProtocolBufferException;
 import java.util.ArrayList;
@@ -33,7 +31,7 @@ public final class Constructor {
   }
 
   // Creates a model computation with the given model URI.
-  @Nullable
+  // @Nullable
   public static Value createModelInference(String modelUri) {
     try {
       byte[] value = nativeCreateModelInference(modelUri);
@@ -47,7 +45,7 @@ public final class Constructor {
   }
 
   // Returns a model inference proto with the given model URI and model config.
-  @Nullable
+  // @Nullable
   public static Value createModelInferenceWithConfig(String modelUri, Value modelConfig) {
     try {
       byte[] value = nativeCreateModelInferenceWithConfig(modelUri, modelConfig.toByteArray());
@@ -61,7 +59,7 @@ public final class Constructor {
   }
 
   // Creates a prompt template computation with the given template string.
-  @Nullable
+  // @Nullable
   public static Value createPromptTemplate(String templateStr) {
     try {
       byte[] value = nativeCreatePromptTemplate(templateStr);
@@ -75,7 +73,7 @@ public final class Constructor {
   }
 
   // Creates an InjaTemplate.
-  @Nullable
+  // @Nullable
   public static Value createInjaTemplate(String templateStr) {
     try {
       byte[] value = nativeCreateInjaTemplate(templateStr);
@@ -90,7 +88,7 @@ public final class Constructor {
 
   // Creates a fallback expression from a given list of functions. The first
   // successful one is the result; if failed, keep going down the list.
-  @Nullable
+  // @Nullable
   public static Value createFallback(List<Value> functionList) {
     try {
       List<byte[]> serializedFunctionList = new ArrayList<byte[]>();
@@ -109,7 +107,7 @@ public final class Constructor {
 
   // Creates a conditional expression. condition evaluates to a boolean, if true,
   // positive_branch will be executed, else negative_branch.
-  @Nullable
+  // @Nullable
   public static Value createConditional(
       Value condition, Value positiveBranch, Value negativeBranch) {
     try {
@@ -126,7 +124,7 @@ public final class Constructor {
   }
 
   // Returns a custom function proto with the given fn URI.
-  @Nullable
+  // @Nullable
   public static Value createCustomFunction(String fnUri) {
     try {
       byte[] value = nativeCreateCustomFunction(fnUri);
@@ -140,7 +138,7 @@ public final class Constructor {
   }
 
   // Creates a parallel map that applies map_fn to a all input values.
-  @Nullable
+  // @Nullable
   public static Value createParallelMap(Value mapFn) {
     try {
       byte[] value = nativeCreateParallelMap(mapFn.toByteArray());
@@ -154,7 +152,7 @@ public final class Constructor {
   }
 
   // Given a list of functions [f, g, ...] create a chain g(f(...)).
-  @Nullable
+  // @Nullable
   public static Value createSerialChain(List<Value> functionList) {
     try {
       List<byte[]> serializedFunctionList = new ArrayList<byte[]>();
@@ -172,7 +170,7 @@ public final class Constructor {
   }
 
   // Constructs a function call.
-  @Nullable
+  // @Nullable
   public static Value createCall(Value fn, Value arg) {
     try {
       byte[] value = nativeCreateCall(fn.toByteArray(), arg.toByteArray());
@@ -186,7 +184,7 @@ public final class Constructor {
   }
 
   // Constructs a struct from named values
-  @Nullable
+  // @Nullable
   public static Value createStruct(List<Value> valueList) {
     try {
       List<byte[]> serializedValueList = new ArrayList<byte[]>();
@@ -211,16 +209,16 @@ public final class Constructor {
 
   public static Value createGeminiModelConfigForGoogleAiStudio(
       String apiKey, String endpoint, String jsonRequestTemplate) {
-    ImmutableMap<String, Object> map =
-        ImmutableMap.of(
+    Map<String, Object> map =
+        Map.of(
             "api_key", apiKey, "endpoint", endpoint, "json_request_template", jsonRequestTemplate);
     return createModelConfig(map);
   }
 
   public static Value createGeminiModelConfigForVertexAi(
       String accessToken, String endpoint, String jsonRequestTemplate) {
-    ImmutableMap<String, Object> map =
-        ImmutableMap.of(
+    Map<String, Object> map =
+        Map.of(
             "access_token",
             accessToken,
             "endpoint",
@@ -232,8 +230,8 @@ public final class Constructor {
 
   public static Value createMediaPipeLlmInferenceModelConfig(
       String modelPath, int maxTokens, int topK, float temperature, int randomSeed) {
-    ImmutableMap<String, Object> map =
-        ImmutableMap.of(
+    Map<String, Object> map =
+        Map.of(
             "model_path",
             modelPath,
             "max_tokens",
@@ -249,8 +247,8 @@ public final class Constructor {
 
   public static Value createOpenAiModelConfig(
       String apiKey, String endpoint, String requestJsonTemplate) {
-    ImmutableMap<String, Object> map =
-        ImmutableMap.of(
+    Map<String, Object> map =
+        Map.of(
             "api_key", apiKey, "endpoint", endpoint, "json_request_template", requestJsonTemplate);
     return createModelConfig(map);
   }

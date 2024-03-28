@@ -71,11 +71,7 @@ JNIEnv* GetJniEnv(JavaVM* jvm) {
   JNIEnv* env = GetThreadLocalJniEnv(jvm);
   if (env == nullptr) {
     // No JNI environment on native thread, attach the native thread to JVM
-#ifdef __ANDROID__
-    int status = jvm->AttachCurrentThread(&env, nullptr);
-#else
     int status = jvm->AttachCurrentThread((void**)&env, nullptr);
-#endif
     if (status != JNI_OK) {
       LOG(ERROR) << "Current thread attachment to JVM failed.";
       return nullptr;

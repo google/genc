@@ -1,0 +1,292 @@
+/* Copyright 2023, The GenC Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License
+==============================================================================*/
+
+#ifndef GENC_CC_RUNTIME_EXECUTOR_H_
+#define GENC_CC_RUNTIME_EXECUTOR_H_
+
+#include <cstdint>
+#include <limits>
+#include <memory>
+#include <optional>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
+#include "absl/base/thread_annotations.h"
+#include "absl/container/flat_hash_map.h"
+#include "absl/log/check.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
+#include "absl/synchronization/mutex.h"
+#include "absl/types/span.h"
+#include "genc/cc/runtime/status_macros.h"
+#include "genc/proto/v0/computation.pb.h"
+#include "genc/proto/v0/executor.pb.h"
+
+namespace genc {
+
+class OwnedValueId;
+
+using ValueId = uint64_t;
+
+template <class InValRefType, class OutValRefType>
+class ExecutorInterface {
+ public:
+  // Embeds a `Value` into the executor.
+  //
+  // This method is expected to return quickly. It should not block on complex
+  // computation or IO-bound work, instead kicking off that work to run
+  // asynchronously.
+  virtual absl::StatusOr<OutValRefType> CreateValue(const v0::Value& val) = 0;
+
+  // Calls `function` with optional `argument`.
+  //
+  // This method is expected to return quickly. It should not block on complex
+  // computation or IO-bound work, instead kicking off that work to run
+  // asynchronously.
+  virtual absl::StatusOr<OutValRefType> CreateCall(
+      InValRefType function, std::optional<InValRefType> argument) = 0;
+
+  // Creates a structure with a set of ordered `members`.
+  //
+  // `CreateStruct` is most commonly used to pack argument values prior to a
+  // `CreateCall` invocation, or to pack together the final results of a
+  // computation prior to `Materialize`ing them.
+  //
+  // The value that results from `CreateStruct` can also be unpacked using
+  // `CreateSelection`.
+  //
+  // This method is expected to return quickly. It should not block on complex
+  // computation or IO-bound work, instead kicking off that work to run
+  // asynchronously.
+  virtual absl::StatusOr<OutValRefType> CreateStruct(
+      absl::Span<InValRefType> members) = 0;
+
+  // Selects the value at `index` from structure-typed `source` value.
+  //
+  // `CreateSelection` is most commonly used to unpack results after a
+  // `CreateCall` invocation, or to unpack the initial aggregate value provided
+  // in `CreateValue`.
+  //
+  // `CreateSelection` can also be used to unpack values created using
+  // `CreateStruct`.
+  //
+  // This method is expected to return quickly. It should not block on complex
+  // computation or IO-bound work, instead kicking off that work to run
+  // asynchronously.
+  virtual absl::StatusOr<OutValRefType> CreateSelection(InValRefType source,
+                                                        uint32_t index) = 0;
+
+  // Materialize the value as a concrete payload.
+  //
+  // This method is blocking: it may synchronously wait for the result of
+  // complex computations or IO-bound work.
+  // If the argument `value_pb` is not null, populates the value.
+  virtual absl::Status Materialize(InValRefType value, v0::Value* value_pb) = 0;
+
+  // Dispose of a value, releasing any associated resources.
+  virtual absl::Status Dispose(InValRefType value) = 0;
+
+  virtual ~ExecutorInterface() {}
+};
+
+// The basic abstract interface shared among all runtime components.
+// Instances of this interface may specialize in a single atomic function,
+// e.g., just model calls, or composite processing (e.g., chains) where
+// they might delegate to other executor components, or they may represent
+// specializations for a given type of environment (e.g., the entire stack
+// of executors designed for on-device deployment).
+class Executor : public ExecutorInterface<const ValueId, OwnedValueId> {
+ public:
+  // Users of this class should not typically access this function directly.
+  // The `OwnedValueId`s returned will `Dispose` of themselves on destruction.
+
+  virtual ~Executor() {}
+};
+
+// A single-owner `ValueId` which will `Dispose` itself upon destruction.
+class OwnedValueId {
+ public:
+  explicit OwnedValueId(std::weak_ptr<Executor> exec, ValueId id)
+      : exec_(std::move(exec)), id_(id) {}
+
+  OwnedValueId(OwnedValueId&& other)
+      : exec_(std::move(other.exec_)), id_(other.id_) {
+    other.forget();
+  }
+
+  OwnedValueId& operator=(OwnedValueId&& other) {
+    this->release();
+    this->exec_ = std::move(other.exec_);
+    this->id_ = other.id_;
+    other.forget();
+    return *this;
+  }
+
+  // Returns an unowned `ValueId` pointing to the same value.
+  // It is invalid to use the resulting ID after destructing this
+  // `OwnedValueId`.
+  ValueId ref() const {
+    CHECK(id_ != INVALID_ID) << id_ << " != " << INVALID_ID;
+    return id_;
+  }
+
+  // Discards ownership. The caller is responsible for cleanup.
+  void forget() { id_ = INVALID_ID; }
+
+  // Releases the value in the underlying executor, invalidating this object.
+  void release() {
+    if (id_ != INVALID_ID) {
+      if (auto exec_strong = exec_.lock()) {
+        exec_strong->Dispose(id_).IgnoreError();
+      }
+      id_ = INVALID_ID;
+    }
+  }
+
+  operator ValueId() const { return ref(); }
+
+  ~OwnedValueId() { release(); }
+
+ private:
+  std::weak_ptr<Executor> exec_;
+  ValueId id_;
+
+  static const ValueId INVALID_ID = std::numeric_limits<ValueId>::max();
+};
+
+// A base class to allow for easy implementation of `Executor`.
+// `Executor` implementations should typically inherit from
+// `ExecutorBase<executor-specific-value-implementation>`.
+//
+// `ExecutorBase` must always be placed inside of a `shared_ptr`. Constructing
+// an `ExecutorBase` outside of a `shared_ptr` will result in undefined behavior
+// due to the use of `enable_shared_from_this`.
+//
+// NOTE: `ExecutorValue`s must be copy-constructible.
+template <class ExecutorValue>
+class ExecutorBase : public Executor,
+                     public std::enable_shared_from_this<Executor> {
+  static_assert(std::is_copy_constructible<ExecutorValue>::value,
+                "`ExecutorValue`s (the type parameter passed to `ExecutorBase`)"
+                " must be copy-constructible.");
+
+ private:
+  absl::Mutex mutex_;
+  ValueId next_value_id_ ABSL_GUARDED_BY(mutex_) = 0;
+  absl::flat_hash_map<ValueId, ExecutorValue> tracked_values_
+      ABSL_GUARDED_BY(mutex_);
+
+  // Tracks the provided value and returns the ID which refers to it.
+  absl::StatusOr<OwnedValueId> TrackValue(ExecutorValue value) {
+    absl::WriterMutexLock lock(&mutex_);
+    ValueId id = next_value_id_++;
+    tracked_values_.emplace(id, std::move(value));
+    return absl::StatusOr<OwnedValueId>(absl::in_place_t(), shared_from_this(),
+                                        id);
+  }
+
+  // Returns a copy of the value previously stored with `TrackValue`.
+  absl::StatusOr<ExecutorValue> GetTracked(ValueId value_id) {
+    absl::ReaderMutexLock lock(&mutex_);
+    auto value_iter = tracked_values_.find(value_id);
+    if (value_iter == tracked_values_.end()) {
+      return absl::NotFoundError(
+          absl::StrCat(ExecutorName(), " value not found: ", value_id));
+    }
+    return value_iter->second;
+  }
+
+ protected:
+  // Clears all currently tracked values from the executor.
+  // This method is intended to be used by child class destructors to ensure
+  // that the `ExecutorValue` references held by `tracked_values_` have been
+  // destroyed.
+  void ClearTracked() {
+    absl::WriterMutexLock lock(&mutex_);
+    tracked_values_.clear();
+  }
+
+  // Returns the string name of the current executor.
+  virtual absl::string_view ExecutorName() = 0;
+
+  virtual absl::StatusOr<ExecutorValue> CreateExecutorValue(
+      const v0::Value& val) = 0;
+
+  virtual absl::StatusOr<ExecutorValue> CreateCall(
+      ExecutorValue function, std::optional<ExecutorValue> argument) = 0;
+
+  virtual absl::StatusOr<ExecutorValue> CreateStruct(
+      std::vector<ExecutorValue> members) = 0;
+
+  virtual absl::StatusOr<ExecutorValue> CreateSelection(
+      ExecutorValue value, const uint32_t index) = 0;
+
+  virtual absl::Status Materialize(ExecutorValue value, v0::Value* val) = 0;
+
+  ~ExecutorBase() override {}
+
+ public:
+  absl::StatusOr<OwnedValueId> CreateValue(const v0::Value& val) final {
+    return TrackValue(GENC_TRY(CreateExecutorValue(val)));
+  }
+
+  absl::StatusOr<OwnedValueId> CreateCall(
+      const ValueId function,
+      const std::optional<const ValueId> argument) final {
+    ExecutorValue function_val = GENC_TRY(GetTracked(function));
+    std::optional<ExecutorValue> argument_val;
+    if (argument.has_value()) {
+      argument_val = GENC_TRY(GetTracked(argument.value()));
+    }
+    return TrackValue(
+        GENC_TRY(CreateCall(std::move(function_val), std::move(argument_val))));
+  }
+
+  absl::StatusOr<OwnedValueId> CreateStruct(
+      const absl::Span<const ValueId> members) final {
+    std::vector<ExecutorValue> member_values;
+    for (const ValueId member_id : members) {
+      member_values.emplace_back(GENC_TRY(GetTracked(member_id)));
+    }
+    return TrackValue(GENC_TRY(CreateStruct(std::move(member_values))));
+  }
+
+  absl::StatusOr<OwnedValueId> CreateSelection(const ValueId source,
+                                               const uint32_t index) final {
+    return TrackValue(
+        GENC_TRY(CreateSelection(GENC_TRY(GetTracked(source)), index)));
+  }
+
+  absl::Status Materialize(const ValueId value_id, v0::Value* value_pb) final {
+    return Materialize(GENC_TRY(GetTracked(value_id)), value_pb);
+  }
+
+  absl::Status Dispose(const ValueId value) final {
+    absl::WriterMutexLock lock(&mutex_);
+    auto value_iter = tracked_values_.find(value);
+    if (value_iter == tracked_values_.end()) {
+      return absl::NotFoundError(absl::StrCat(
+          ExecutorName(), " value not found: ", value, ", cannot dispose."));
+    }
+    tracked_values_.erase(value_iter);
+    return absl::OkStatus();
+  }
+};
+
+}  // namespace genc
+
+#endif  // GENC_CC_RUNTIME_EXECUTOR_H_

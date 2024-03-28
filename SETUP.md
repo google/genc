@@ -5,15 +5,15 @@ Quick and easy way to setup environment for GenC is using Docker Container:
 ### 1. Clone git repository
 
 ```
-git clone https://github.com/google/generative_computing
+git clone https://github.com/google/genc
 ```
 
 ### 2.Build Docker Container
 
 ```
-cd generative_computing
+cd genc
 docker build -t genc .
-docker run -it -v $PWD:/generative_computing genc:latest /bin/bash -c "cd generative_computing; bash ./setup_android_build_env.sh; /bin/bash"
+docker run -it -v $PWD:/genc genc:latest /bin/bash -c "cd genc; bash ./setup_android_build_env.sh; /bin/bash"
 ```
 
 Note: There will be a (y/N) prompt to accept Android SDK, NDK license as part
@@ -23,7 +23,7 @@ docker container. Check the active images by running "docker images".
 ### 3. Test and run examples
 
 ```
-bazel test generative_computing/...
+bazel test genc/...
 ```
 
 You can navigate to python/examples and pick your favorite example and run
@@ -42,13 +42,13 @@ But it can be useful when you want to quickly test few things.
 Exit the docker container and connect to a open port
 
 ```
-docker run -p 8889:8889 -it -v $PWD:/generative_computing genc:latest /bin/bash
+docker run -p 8889:8889 -it -v $PWD:/genc genc:latest /bin/bash
 ```
 
 ### 2. Launch the notebooks
 
 ```
-bash generative_computing/docs/tutorials/jupyter_setup/launch_jupyter.sh
+bash genc/docs/tutorials/jupyter_setup/launch_jupyter.sh
 ```
 
 Open the link in your local browser.
@@ -56,7 +56,7 @@ Open the link in your local browser.
 ## Android setup
 
 For running GenC on Android and GenC's Android demo app, see
-setup instructions at [android_setup.md](generative_computing/docs/android_setup.md).
+setup instructions at [android_setup.md](genc/docs/android_setup.md).
 
-Success: You have completed the setup of Generative_computing.
+Success: You have completed the setup of GenC.
 Create your dream generative AI project, and share your experience with us!

@@ -1,4 +1,4 @@
-workspace(name = "org_generative_computing")
+workspace(name = "org_genc")
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
@@ -261,7 +261,7 @@ robolectric_repositories()
 load("@rules_python//python:pip.bzl","pip_parse")
 pip_parse(
     name = "notebooks",
-    requirements_lock = "//generative_computing/docs/tutorials/jupyter_setup:requirements.txt",
+    requirements_lock = "//genc/docs/tutorials/jupyter_setup:requirements.txt",
 )
 load("@notebooks//:requirements.bzl", "install_deps")
 install_deps()

@@ -59,5 +59,5 @@ RUN apt-get update && \
 
 # Install deps for running a GenC Jupyter Notebook (used in Tutorials)
 RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt install -y jupyter-notebook
-COPY generative_computing/docs/tutorials/jupyter_setup/requirements.txt /tmp/jupyter-requirements.txt
+COPY genc/docs/tutorials/jupyter_setup/requirements.txt /tmp/jupyter-requirements.txt
 RUN pip3 install -r /tmp/jupyter-requirements.txt

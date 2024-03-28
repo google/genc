@@ -16,13 +16,13 @@ deployment or access to latest on-device LLM APIs offered by the latter.
 GenC is a glue framework that enables developers to compose capabilities across
 these and other domains. Our target audience is any GenAI developers,
 especially those seeking benefits such as composability, portability, and deep
-customizability (see the [summary of benefits](generative_computing/docs/benefits.md)).
+customizability (see the [summary of benefits](genc/docs/benefits.md)).
 
 For example, here's how you can use GenC to author a simple chain powered by a
 device-to-Cloud model cascade in LangChain/Python/Jupyter:
 
 ```
-import generative_computing as genc
+import genc as genc
 import langchain
 
 my_app_logic = genc.interop.langchain.create_computation(
@@ -37,7 +37,7 @@ my_app_logic = genc.interop.langchain.create_computation(
 The result is a platform and language-independent
 **Intermediate Representation** (IR) that can be loaded and executed as follows
 (see a complete step-by-step walkthrough and deployment instructions in
-[Tutorial 1](generative_computing/docs/tutorials/tutorial_1_simple_cascade.ipynb)):
+[Tutorial 1](genc/docs/tutorials/tutorial_1_simple_cascade.ipynb)):
 
 ```
 myAppLogic = ... // load the application logic, e.g., from an asset or downloaded at runtime
@@ -65,7 +65,7 @@ offered by GenC:
 
     The included demo runs against Gemma models offered by MediaPipe and Gemini
     models offered by Vertex AI, but it can be easily re-configured to utilize
-    any other LLMs (see [other supported models](generative_computing/docs/models.md)),
+    any other LLMs (see [other supported models](genc/docs/models.md)),
     as well as your own preferred libraries, network services, etc.
 
     GenC also allows you to author different parts of your GenAI logic in
@@ -73,7 +73,7 @@ offered by GenC:
     structure.
 
 *   **Across prototyping and production platforms**. In
-    [Tutorial 1](generative_computing/docs/tutorials/tutorial_1_simple_cascade.ipynb), we show you
+    [Tutorial 1](genc/docs/tutorials/tutorial_1_simple_cascade.ipynb), we show you
     how you can run the example code above locally in a Colab notebook, then
     deploy it unchanged on a mobile device. This seamless portability enables
     you to quickly iterate and test your code in a target environment during
@@ -104,21 +104,21 @@ use by GenAI developers.
 ![GenC Diagram](genc_diagram.png)
 
 If you're intrigued, please review the
-[summary of GenC's benefits](generative_computing/docs/benefits.md), or dive straight into the
+[summary of GenC's benefits](genc/docs/benefits.md), or dive straight into the
 tutorials and documentation to experience what GenC has to offer:
 
-*   [Tutorials](generative_computing/docs/tutorials/README.md) show diverse
+*   [Tutorials](genc/docs/tutorials/README.md) show diverse
     examples of usage to showcase some of GenC's capabilities.
 
-*   [Architecture](generative_computing/docs/architecture.md) covers the system overview and key
+*   [Architecture](genc/docs/architecture.md) covers the system overview and key
     concepts in GenC.
 
-*   [API documentation](generative_computing/docs/api.md) cover the developer
+*   [API documentation](genc/docs/api.md) cover the developer
     and extensibility surfaces.
 
-*   [Model documentation](generative_computing/docs/models.md) lists the supported models.
+*   [Model documentation](genc/docs/models.md) lists the supported models.
 
-*   [IR](generative_computing/docs/ir.md), and [runtime](generative_computing/docs/runtime.md) cover more advanced
+*   [IR](genc/docs/ir.md), and [runtime](genc/docs/runtime.md) cover more advanced
     topics for a deeper level of customization.
 
 *   [Setup](SETUP.md) instructions explain how to setup a full development
@@ -137,7 +137,7 @@ stage of development. You can expect the APIs and capabilities to evolve, in
 part based on demand and feedback from the community.
 We welcome your contributions!
 
-Use [GitHub issues](https://github.com/google/generative_computing/issues) for
+Use [GitHub issues](https://github.com/google/genc/issues) for
 tracking requests and bugs.
 
 Please direct questions to [Stack Overflow](https://stackoverflow.com) using the

@@ -1,0 +1,38 @@
+# TODO(ndodda): describe this package.
+load("@notebooks//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_binary")
+
+alias(
+    name = "jupyter_core",
+    actual = requirement("jupyter_core"),
+)
+
+py_binary(
+    name = "jupyter",
+    srcs = ["jupyter.py"],
+    data = [
+        ":openai_demo.ipynb",
+        "//genc/docs/tutorials:tutorial_1_simple_cascade.ipynb",
+        "//genc/docs/tutorials:tutorial_2_custom_routing.ipynb",
+        "//genc/docs/tutorials:tutorial_3_custom_runtime.ipynb",
+        "//genc/docs/tutorials:tutorial_4_math_tool_agent.ipynb",
+        "//genc/docs/tutorials:tutorial_5_langchain_agent.ipynb",
+    ],
+    tags = [
+        "nobuilder",
+        "notap",
+    ],
+    visibility = [
+        "//genc/python:python_packages",
+    ],
+    deps = [
+        requirement("notebook"),
+        ":jupyter_core",
+        "//genc/proto/v0:computation_py_pb2",
+        "//genc/python/authoring",
+        "//genc/python/base",
+        "//genc/python/examples",
+        "//genc/python/interop",
+        "//genc/python/runtime",
+    ],
+)

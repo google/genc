@@ -291,9 +291,5 @@ public final class Constructor {
 
   private static native byte[] nativeCreateCall(byte[] fn, byte[] arg);
 
-  static {
-    System.loadLibrary("app");
-  }
-
   private Constructor() {}
 }

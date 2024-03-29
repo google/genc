@@ -252,3 +252,15 @@ http_archive(
   patch_args = ["-p1"],
 )
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "fmeum_rules_jni",
+    sha256 = "9a387a066f683a8aac4d165917dc7fe15ec2a20931894a97e153a9caab6123ca",
+    strip_prefix = "rules_jni-0.4.0",
+    url = "https://github.com/fmeum/rules_jni/archive/refs/tags/v0.4.0.tar.gz",
+)
+
+load("@fmeum_rules_jni//jni:repositories.bzl", "rules_jni_dependencies")
+
+rules_jni_dependencies()

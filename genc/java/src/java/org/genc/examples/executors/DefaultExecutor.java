@@ -15,8 +15,15 @@ limitations under the License
 
 package org.genc.examples.executors;
 
+import com.github.fmeum.rules_jni.RulesJni;
+import java.lang.annotation.Native;
+
 /** An executor used in GenC demos. */
 public final class DefaultExecutor {
+  static {
+    RulesJni.loadLibrary("default_executor_jni", DefaultExecutor.class);
+  }
+
   public DefaultExecutor() {
     executorHandle = createDefaultExecutor();
   }

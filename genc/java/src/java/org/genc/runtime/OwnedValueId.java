@@ -32,9 +32,4 @@ final class OwnedValueId {
   private long nativeHandle;
 
   private static native long ref(long nativeHandle);
-
-  static {
-    // libapp.so needs to be linked or app will crash.
-    System.loadLibrary("app");
-  }
 }

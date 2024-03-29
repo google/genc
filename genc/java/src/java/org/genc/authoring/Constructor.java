@@ -17,6 +17,8 @@ package org.genc.authoring;
 
 import com.google.protobuf.ExtensionRegistryLite;
 import com.google.protobuf.InvalidProtocolBufferException;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +30,18 @@ public final class Constructor {
   // Returns best available ExtensionRegistry.
   public static ExtensionRegistryLite getExtensionRegistry() {
     return ExtensionRegistryLite.getEmptyRegistry();
+  }
+
+  // @Nullable
+  public static Value readComputationFromFile(String filePath) {
+    try {
+      InputStream stream = new FileInputStream(filePath);
+      Value computation = Value.parseFrom(stream, getExtensionRegistry());
+      stream.close();
+      return computation;
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   // Creates a model computation with the given model URI.

@@ -21,6 +21,8 @@ by running "docker images".
 
 ### 3. Test and run examples
 
+Inside your running docker container instance, at the root of the repo, run:
+
 ```
 bazel test genc/...
 ```
@@ -46,7 +48,10 @@ docker run -p 8889:8889 -it -v $PWD:/genc genc:latest /bin/bash
 
 ### 2. Launch the notebooks
 
+Inside your running docker container instance, at the root of the repo, run:
+
 ```
+cd genc
 bash genc/docs/tutorials/jupyter_setup/launch_jupyter.sh
 ```
 

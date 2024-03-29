@@ -30,6 +30,10 @@ class LlamaCpp {
   LlamaCpp() = default;
   ~LlamaCpp() = default;
 
+  bool is_initialized() const {
+    return (context_ != nullptr) && (model_ != nullptr);
+  }
+
   absl::Status InitModel(absl::string_view model_path, int num_threads,
                          int max_tokens);
   absl::Status InitModel(const v0::Value& config);

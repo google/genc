@@ -64,12 +64,13 @@ void SetLlamaCppModelInferenceHandler(intrinsics::HandlerSetConfig* config,
       [](v0::Intrinsic intrinsic, v0::Value arg) -> absl::StatusOr<v0::Value> {
     v0::Value model_inference;
     if (!llama_cpp_client) {
+      llama_cpp_client = new LlamaCpp();
+    }
+    if (!llama_cpp_client->is_initialized()) {
       // If the model hasn't been initialized, parse the config from
       // the intrinsic and create the model.
       const v0::Value& config =
           intrinsic.static_parameter().struct_().element(1);
-
-      llama_cpp_client = new LlamaCpp();
       absl::Status status = llama_cpp_client->InitModel(config);
       if (!status.ok()) {
         return status;

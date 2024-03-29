@@ -26,6 +26,7 @@ cc_library(
     hdrs = ["executor_stacks.h"],
     deps = [
         "//genc/cc/interop/backends:google_ai",
+        "//genc/cc/interop/backends:llamacpp",
         "//genc/cc/intrinsics:handler_sets",
         "//genc/cc/modules/agents:react",
         "//genc/cc/modules/parsers:gemini_parser",

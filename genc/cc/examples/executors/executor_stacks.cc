@@ -30,6 +30,8 @@ limitations under the License
 #include "genc/cc/runtime/executor_stacks.h"
 #include "genc/cc/runtime/status_macros.h"
 
+#include "genc/cc/interop/backends/llamacpp.h"
+
 namespace genc {
 
 // Stateful context that holds state (e.g. memory), which need to remain
@@ -41,8 +43,11 @@ struct ExecutorStacksContext {
 };
 
 namespace {
+constexpr absl::string_view kLlamaCppModelUri = "/device/gemma";
+
 static absl::once_flag context_init_flag;
 static ExecutorStacksContext* exectuor_stacks_context = nullptr;
+LlamaCpp* llama_cpp_client = nullptr;
 constexpr int MAX_CACHE_SIZE_PER_KEY = 200;
 
 // Initializes the executor stacks context.
@@ -52,6 +57,28 @@ static void InitExecutorStacksContext() {
   // Transfer its ownership to a global context.
   exectuor_stacks_context = new ExecutorStacksContext(std::move(local_cache));
 }
+
+void SetLlamaCppModelInferenceHandler(intrinsics::HandlerSetConfig* config,
+                                      absl::string_view model_uri) {
+  config->model_inference_with_config_map[std::string(model_uri)] =
+      [](v0::Intrinsic intrinsic, v0::Value arg) -> absl::StatusOr<v0::Value> {
+    v0::Value model_inference;
+    if (!llama_cpp_client) {
+      // If the model hasn't been initialized, parse the config from
+      // the intrinsic and create the model.
+      const v0::Value& config =
+          intrinsic.static_parameter().struct_().element(1);
+
+      llama_cpp_client = new LlamaCpp();
+      absl::Status status = llama_cpp_client->InitModel(config);
+      if (!status.ok()) {
+        return status;
+      }
+    }
+    return llama_cpp_client->LlamaCppCall(arg);
+  };
+}
+
 }  // namespace
 
 absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultExecutor() {
@@ -70,6 +97,8 @@ absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultExecutor() {
 
   // Set model inference for Gemini backends.
   GENC_TRY(GoogleAI::SetInferenceMap(config.model_inference_with_config_map));
+
+  SetLlamaCppModelInferenceHandler(&config, kLlamaCppModelUri);
 
   // Set access to local cache or other types of memory.
   GENC_TRY(SetCustomFunctionsForLocalValueCache(

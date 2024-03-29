@@ -58,6 +58,7 @@ cc_binary(
     srcs = ["run_local_model_with_llamacpp.cc"],
     deps = [
         "//genc/cc/authoring:constructor",
+        "//genc/cc/examples/executors:executor_stacks",
         "//genc/cc/interop/backends:llamacpp",
         "//genc/cc/intrinsics:handler_sets",
         "//genc/cc/runtime:executor",

@@ -25,11 +25,11 @@ device-to-Cloud model cascade in LangChain/Python/Jupyter:
 import genc
 import langchain
 
-my_app_logic = genc.interop.langchain.create_computation(
+my_app_logic = genc.python.interop.langchain.create_computation(
     langchain.chains.LLMChain(
-        llm=genc.interop.langchain.ModelCascade(models=[
-            genc.interop.langchain.CustomModel(uri="/cloud/gemini"),
-            genc.interop.langchain.CustomModel(uri="/device/gemma")]),
+        llm=genc.python.interop.langchain.ModelCascade(models=[
+            genc.python.interop.langchain.CustomModel(uri="/cloud/gemini"),
+            genc.python.interop.langchain.CustomModel(uri="/device/gemma")]),
         prompt=langchain.prompts.PromptTemplate(
             input_variables=["topic"], template="Tell me about {topic}.")))
 ```
@@ -42,7 +42,7 @@ The result is a platform and language-independent
 ```
 myAppLogic = ... // load the application logic, e.g., from a file or asset
 myRuntime = new DefaultExecutor(...);
-javaCallable = Runner.create(myAppLogic, myRuntime);
+javaCallable = Runner.create(myAppLogic, myRuntime.getExecutorHandle());
 
 ... = javaCallable.call("scuba diving");
 ```
@@ -63,9 +63,9 @@ offered by GenC:
     can be hosted on edge devices or in Cloud services. In general, code
     executed at runtime has no dependency on SDKs used at the authoring time.
 
-    The included demo runs against Gemma models offered by MediaPipe and Gemini
-    models offered by Vertex AI, but it can be easily re-configured to utilize
-    any other LLMs (see [other supported models](genc/docs/models.md)),
+    The included demo runs against Gemma on-device models (via LLamaCPP) and
+    Gemini cloud models offered by Vertex AI, but it can be easily re-configured
+    to utilize any other LLMs (see [other supported models](genc/docs/models.md)),
     as well as your own preferred libraries, network services, etc.
 
     GenC also allows you to author different parts of your GenAI logic in
@@ -112,12 +112,12 @@ tutorials and documentation to experience what GenC has to offer:
 *   [Architecture](genc/docs/architecture.md) covers the system overview and key
     concepts in GenC.
 
-*   [API documentation](genc/docs/api.md) cover the developer
+*   [API documentation](genc/docs/api.md) covers the developer
     and extensibility surfaces.
 
 *   [Model documentation](genc/docs/models.md) lists the supported models.
 
-*   [IR](genc/docs/ir.md), and [runtime](genc/docs/runtime.md) cover more advanced
+*   [IR](genc/docs/ir.md) and [runtime](genc/docs/runtime.md) cover more advanced
     topics for a deeper level of customization.
 
 *   [Setup](SETUP.md) instructions explain how to setup a full development
@@ -126,7 +126,7 @@ tutorials and documentation to experience what GenC has to offer:
     in GitHub; additional support for things like PIP releases, pre-built
     images, etc., will be included in the future).
 
-*   [Contributors](CONTRIBUTING.md) instructions explain where and how you can
+*   [Contributing](CONTRIBUTING.md) instructions explain where and how you can
     contribute to the platform. GenC is designed to be extensible, and we'd
     like to grow it, with your help, to support your preferred domain and the
     kinds of services and capabilities you need. We welcome your contributions!
@@ -134,7 +134,6 @@ tutorials and documentation to experience what GenC has to offer:
 At this stage, GenC should be considered **experimental**, and at the "beta"
 stage of development. You can expect the APIs and capabilities to evolve, in
 part based on demand and feedback from the community.
-We welcome your contributions!
 
 Use [GitHub issues](https://github.com/google/genc/issues) for
 tracking requests and bugs.

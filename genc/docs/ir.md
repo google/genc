@@ -41,8 +41,8 @@ Here's an example piece of IR that uses the function call, with the model
 inference (here to the Gemini model in cloud) representing the function being
 invoked, and the argument in this case being embedded in the IR as a string.
 Note that in a more realistic setting, the argument would come from the user,
-or produced as an output of another piece processing - here we keep it simple
-for demonstration purposes.
+or it would come from an output of another piece processing - here we keep it
+simple for demonstration purposes.
 
 ```
 call {

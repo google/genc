@@ -5,9 +5,9 @@
 The API surface offered by GenC consists of roughly three parts, each targeting
 a somewhat different audience, discussed in separate sections below:
 
-*   **Authoring APIs** facilitate construction of *intermediate representation*
-    (*IR* for short), i.e., instances of the
-    [`computation.proto`](../proto/v0/computation.proto)s, by the
+*   **Authoring APIs** facilitate construction of the
+    [*intermediate representation* (*IR* for short)](ir.md), i.e., instances of
+    the [`computation.proto`](../proto/v0/computation.proto)s, by the
     application developers to express the application logic that they want to
     run using GenC in a portable platform and language-independent manner.
 
@@ -34,10 +34,10 @@ that can be used to add support for new types of frontend SDKs.
 These authoring APIs enable the developer to define their application logic
 using their preferred external SDK, and then have that logic translated into the
 IR form with a one-liner call. By convention, the translation call is always
-named `genc.interop.XYZ.create_computation(...)` in Python (or in an equivalent
-manner in other languages), where `XYZ` is the name of the SDK from which to
-convert, the argument represents an object constructed using that SDK, and the
-result is a well-formed GenC IR.
+named `genc.python.interop.XYZ.create_computation(...)` in Python (or in an
+equivalent manner in other languages), where `XYZ` is the name of the SDK from
+which to convert, the argument represents an object constructed using that SDK,
+and the result is a well-formed GenC IR.
 
 In addition, interop APIs contain various extensions that are intended to
 augment the SDKs with additional functionality, typically as subclasses that
@@ -53,10 +53,10 @@ These can be found in the
 
 Currently included:
 
-*   The converter call `genc.interop.langchain.create_computation` (see above)
-    that, at the time of this writing, understands models, prompt templates,
-    chains, agents, and custom extensions listed below (with more to be added
-    over time).
+*   The converter call `genc.python.interop.langchain.create_computation` (see
+    above) that, at the time of this writing, understands models, prompt
+    templates, chains, agents, and custom extensions listed below (with more to
+    be added over time).
 
 *   Extensions for custom models, model cascades, chains, agents, and tools that
     implement the base interfaces defined in LangChain.
@@ -65,14 +65,14 @@ The snippet below illustrates the use of several of the above:
 
 ```
 my_chain = langchain.chains.LLMChain(
-    llm=genc.interop.langchain.CustomModel(uri="/cloud/gemini"),
+    llm=genc.python.interop.langchain.CustomModel(uri="/cloud/gemini"),
     prompt=langchain.prompts.PromptTemplate(
         input_variables=["location"],
         template="Q: What should I pack for a trip to {location}? A: ",
     ),
 )
 
-portable_ir = genc.interop.langchain.create_computation(my_chain)
+portable_ir = genc.python.interop.langchain.create_computation(my_chain)
 ```
 
 ### Native authoring APIs
@@ -192,14 +192,7 @@ and surfaced in Java via [Constructor.java](../java/src/java/org/genc/authoring/
 The names of the APIs, argument and result types are same as C++ except modified
 to match types in Java. Additionally, a few more convenience APIs have been
 added in Java to increase ease of authoring (for example: convenience functions
-to create model configs for different model ecosystems, and more.)
-
-Furthermore, to illustrate usage of these APIs and how to construct common
-pipelines and complex workflows in Java, we have added example functions in
-[Computations.java](../java/src/java/org/genc/examples/apps/gencdemo/Computations.java).
-These work well with the ```DefaultExecutor``` executor stack (see
-[Java runtime API](api.md) below). Please feel free to use them to get familiar
-with using GenC natively in Java apps.
+to create model configs for different model ecosystems, and more).
 
 ## Runtime APIs
 
@@ -255,16 +248,16 @@ tutorials we've included in this repo.
 Here's a code snippet that illustrates example usage:
 
 ```
-executor = genc.examples.executor.create_default_executor()
-portable_ir = genc.authoring.create_model('test_model')
-runner = genc.runtime.Runner(portable_ir, executor)
+executor = genc.python.examples.executor.create_default_executor()
+portable_ir = genc.python.authoring.create_model('test_model')
+runner = genc.python.runtime.Runner(portable_ir, executor)
 python_result = runner('Boo!')
 ```
 
 ### Java runtime API
 
 A version of a runner for Java (e.g., for use in Java apps) is defined in
-[Runner.java](../java/src/java/org/genc/Runner.java).
+[Runner.java](../java/src/java/org/genc/runtime/Runner.java).
 Similarly to its Python counterpart, its constructor takes IR and an executor.
 A one-liner executor constructor that can be used for the tutorials and
 examples to run in a Java app or binary is provided in

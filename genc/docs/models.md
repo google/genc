@@ -82,9 +82,6 @@ Value geminiModel =
     Constructor.createModelInferenceWithConfig("/cloud/gemini", modelConfig);
 ```
 
-See example chained workflow {prompt, model inference} using Gemini-Pro via
-Google Ai Studio at [Computations](../java/src/java/org/genc/examples/apps/gencdemo/Computations.java)
-
 #### C++
 For C++, see example code snippet below:
 
@@ -132,15 +129,14 @@ For model inference creation in Python, see below:
 access_token = ...
 endpoint = ...
 json_request_template = ...
-gemini_model = genc.interop.langchain.CustomModel(
+gemini_model = genc.python.interop.langchain.CustomModel(
     uri="/cloud/gemini",
     config= {'access_token': access_token, 'endpoint': endpoint,
              'json_request_template': json_request_template})
 ```
 
 #### Java
-For model inference creation in Java, see below. See full example in
-[Computations.java](../java/src/java/org/genc/examples/apps/gencdemo/Computations.java).
+For model inference creation in Java, see below.
 
 ```
 Value vertexAiGeminiModel = Constructor.createModelInferenceWithConfig(
@@ -171,9 +167,7 @@ Additionally, please familiarize yourself with the [Chat completions API](https:
 particularly the settings in the ```request body```. In GenC, we use
 ```json_request_template``` to fill in configuration settings in
 ```request body``` and as part of GenC pipeline run, the last message is
-appended dynamically. See ```OPEN_AI_CHAT_COMPLETIONS_JSON_TEMPLATE``` in
-[Computations.java](../java/src/java/org/genc/examples/apps/gencdemo/Computations.java),
-for example. You can similarly create a different custom
+appended dynamically. You can create a custom
 ```json_request_template``` per your liking.
 
 The endpoint for OpenAI chat completions is ```https://api.openai.com/v1/chat/completions```
@@ -196,8 +190,7 @@ Python. See full example at [OpenAI Demo](../python/examples/openai_demo.py):
 ```
 
 #### Java
-In Java, you can create OpenAI model inference as follows. See full example in
-[Computations.java](../java/src/java/org/genc/examples/apps/gencdemo/Computations.java).
+In Java, you can create OpenAI model inference as follows.
 
 ```
 // Create Open AI chat completions model inference.
@@ -219,119 +212,8 @@ v0::Value rest_call = GENC_TRY(CreateRestCall(endpoint, api_key));
 
 ## On-device models
 
-Currently, two backends are provided to facilitate access to on-device models.
-
-### MediaPipe
-
-[MediaPipe](https://developers.google.com/mediapipe) is a cross-platform
-framework and collection of solutions for optimized on-device ML. MediaPipe
-recently launched [LLM Inference API](https://developers.google.com/mediapipe/solutions/genai/llm_inference)
-to run large language models (LLMs) completely on-device. As of this writing,
-LLM Inference API supports following models:
-
-* [Gemma 2B](https://ai.google.dev/gemma/docs)
-* [Phi-2](https://huggingface.co/microsoft/phi-2)
-* [Falcon-RW-1B](https://huggingface.co/tiiuae/falcon-rw-1b)
-* [StableLM-3B](https://huggingface.co/stabilityai/stablelm-3b-4e1t)
-
-GenC connects with MediaPipe LLM Inference API to offer on-device model
-inferences in a GenAI pipeline workflow.
-
-#### Download Model to Device
-##### Download Model
-Please see instructions at [Models](https://developers.google.com/mediapipe/solutions/genai/llm_inference#models)
-section on the MediaPipe’s LLM Inference site to download one or more of the
-models.
-
-We recommend using Gemma 2B, available on [Kaggle Models](https://www.kaggle.com/models/google/gemma),
-it comes in a format that is already compatible with the LLM Inference API and
-can be directly loaded onto your device. If you use another model, you will
-need to convert the model to a MediaPipe-friendly format. See following
-section for conversion steps.
-
-##### Convert Models to MediaPipe format
-Gemma downloaded from non-Kaggle sources and all other external models supported
-via MediaPipe (Phi-2, Falcon-RW-1B, StableLM-3B) need to be converted first to
-use them with LLM Inference API on device.
-
-See instructions for model conversion in
-[the MediaPipe documentation](https://developers.google.com/mediapipe/solutions/genai/llm_inference)
-to download needed MediaPipe package and run model
-conversion script. Additionally, for easier conversion flow, you could also
-use [Model Conversion Colab](https://colab.sandbox.google.com/github/googlesamples/mediapipe/blob/main/examples/llm_inference/conversion/llm_conversion.ipynb).
-
-
-##### Push the model to the device
-
-Push the downloaded \(and converted\) model to your device.
-
-See instructions for pushing models in
-[the MediaPipe documentation](https://developers.google.com/mediapipe/solutions/genai/llm_inference).
-Please take note of the model path used on the
-device \(e.g. ```/data/local/tmp/llm/gemma-2b-it-gpu-int4.bin```). We will be using
-the model path in the following sections.
-
-##### Instantiate LLM Inference backed model inference in GenC
-
-LLM Inference API supports several configuration options. When instantiating a
-model inference in GenC, please provide desired values for maxTokens, topK,
-temperature, and randomSeed; alongside the on-device model path.
-See the section on configuration options in
-[the MediaPipe documentation](https://developers.google.com/mediapipe/solutions/genai/llm_inference)
-to learn more about each configuration setting.
-
-Following code illustrates how to create a model inference backed by MediaPipe
-LLM Inference in Java.
-
-```
-// Create MediaPipe LLM Inference backed model inference.
-Value mediaPipeLlmInferenceModelConfig =
-    Constructor.createMediaPipeLlmInferenceModelConfig(
-        /* modelPath= */ "/data/local/tmp/llm/gemma-2b-it-gpu-int4.bin",
-        /* maxTokens= */ 64,
-        /* topK= */ 40,
-        /* temperature= */ 0.8f,
-        /* randomSeed= */ 100);
-
-Value mediaPipeLlmInferenceModel =
-    Constructor.createModelInferenceWithConfig(
-            "/device/llm_inference",
-            mediaPipeLlmInferenceModelConfig);
-```
-
-##### Use LLM Inference in a chain in GenC
-
-Following code illustrates usage of above ```mediaPipeLlmInferenceModel``` llm
-inference model in a simple {prompt, model inference} chain with GenC.
-
-```
-// Create prompt template to use.
-Value promptTemplate = Constructor.createPromptTemplate("Tell me about {topic}?");
-
-// Create prompt, model inference chain.
-return Constructor.createSerialChain(
-  new ArrayList<>(ImmutableList.of(promptTemplate, mediaPipeLlmInferenceModel)));
-}
-```
-
-Additionally, following example illustrates how to instantiate and use
-LLM Inference in a LangChain -> on-device deployment. Code is authored in Python
-for IR to be deployed on your device:
-
-```
-my_chain = chains.LLMChain(
-      llm=interop.langchain.CustomModel(uri="/device/llm_inference",
-      config={"model_path": "/data/local/tmp/llm/gemma-2b-it-gpu-int4.bin",
-              "max_tokens": 64,
-              "top_k": 40,
-              "temperature": 0.8,
-              "random_seed": 100}),
-      prompt=prompts.PromptTemplate(
-          input_variables=["topic"],
-          template="Q: Tell me about {topic}? A: ",
-      ),
-  )
-```
+Currently, access to on-device models is facilitated via Llama.cpp. Support for
+additional types of on-device backends will be included in GenC at a later time.
 
 ### Llama.cpp
 
@@ -342,8 +224,9 @@ Phi, Falcon, StableLM, etc (the entire list can be found on the repo).
 
 LlamaCpp includes tools for converting models to its preferred format (GGUF),
 but for standard models it is likely easiest to obtain the models directly as
-GGUF files from Hugging Face. A [Hugging Face search of "GGUF"](https://huggingface.co/models?search=gguf)
-will yield 1000s of models that can easily be run with LlamaCpp.
+GGUF files from Hugging Face. A
+[Hugging Face search of "GGUF"](https://huggingface.co/models?search=gguf)
+will yield 1000s of models that can easily be run with Llama.cpp.
 
 Many models will include many quantization options indicating the bits,
 quantization technique, and size. For example, one of the most popular options
@@ -360,13 +243,13 @@ consider include:
 * [TinyLlama](https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF)
 
 When running the model in your GenC code, you'll need to include the absolute
-model path, the number of threads LlamaCpp can use, and the max tokens to
+model path, the number of threads Llama.cpp can use, and the max tokens to
 generate (responses may end early if a EOS is detected). For example, if
 creating the IR in Python to run on-device, the following could be used:
 
 ```
 my_chain = chains.LLMChain(
-      llm=interop.langchain.CustomModel(uri="/device/llamacpp",
+      llm=genc.python.interop.langchain.CustomModel(uri="/device/gemma",
       config={"model_path": "/data/local/tmp/gemma-2b-it-q4_k_m.gguf",
             "num_threads": 4,
             "max_tokens": 64}),
@@ -377,3 +260,6 @@ my_chain = chains.LLMChain(
   )
 ```
 
+Note the included example runtime used in the tutorials has Llama.cpp registered
+as the handler of the `/device/gemma` model for simplicity's sake, but you can
+opt to use a different name, model, or model provider in your custom deployment.

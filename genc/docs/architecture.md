@@ -12,8 +12,8 @@ architecture and emphasis on extensibility.
 The key components include:
 
 *   **Intermediate Representation (IR)**, discussed in more detail in
-    [ir.md](ir.md), forms the backbone of the platform. You can think of it as
-    a simple functional DSL (domain-specific programming language) for
+    [ir.md](ir.md), that forms the backbone of the platform. You can think of it
+    as a simple functional DSL (domain-specific programming language) for
     expressing processing workflows. Abstractions in this DSL (such as model
     inference calls, prompt templates, custom functions, chains, etc.) match
     the level of granularity in common SDKs (such as LangChain), and the set of
@@ -22,21 +22,21 @@ The key components include:
     own operators, including custom control flow operators).
 
 *   **Modular runtime**, discussed in more detail in [runtime.md](runtime.md),
-    is a set of C++ components for executing processing defined in the IR. The
-    runtime is deeply configurable, and can be setup with lightweight set of
-    dependencies, in a variety of platforms (in Linux environments (e.g. on
-    servers), on mobile platforms, etc.), with your own custom backends,
+    a set of C++ components for executing processing defined in the IR. The
+    runtime is deeply configurable, and can be setup with a lightweight set of
+    dependencies, in a variety of platforms (in Linux environments, e.g. on
+    servers, on mobile platforms, etc.), with your own custom backends,
     additional custom operators of your choosing, or some of the existing
     operators removed (for streamlining, or to avoid unwanted dependencies),
-    etc., to match diverse use-cases and environments (see the section on
-    extensibility APIs in [api.md](api.md)).
+    etc., to match diverse use-cases and environments - see the section on
+    extensibility APIs in [api.md](api.md).
 
     The core of the runtime and the extensibility APIs are implemented in C++
     for performance and portability across platforms, but the runtime can be
     used from other programming languages (e.g., from Python via ```pybind11```,
     from Java via ```JNI```, etc., as shown in our examples).
 
-*   **Development surface**, discussed in [api.md](api.md), facilitates
+*   **Developer surface**, discussed in [api.md](api.md), that facilitates
     expressing processing logic by the developers, converting it into IR, and
     submitting it for execution by the GenC runtime. As discussed in
     [api.md](api.md), we provide a few modes of authoring, from native APIs
@@ -72,15 +72,16 @@ When building a new system with GenC, the general flow is as follows:
     run our examples and tutorials), or it can involve a custom setup that one
     can configure with their preferred backends, a curated set of dependencies,
     etc. See [api.md](api.md) for details on Runtime API, and see the section on
-    Extensibility API for runtime customization. Also, see [runtime.md](runtime.md)
-    for lower-level details if you wish to dig even deeper.
+    Extensibility API for runtime customization. Also, see
+    [runtime.md](runtime.md) for lower-level details if you wish to dig even
+    deeper, and [Tutorial 3](tutorials/tutorial_3_custom_runtime.ipynb) for a
+    walk-through of concrete examples of runtime customization.
 
 *   Developer passes the IR to the constructed runtime instance. Either locally,
     if authoring and execution happen on the same machine and in the same
     process, or else, the developer deploys the IR onto their target platform
     (e.g., a mobile phone), and loads it there against a runtime instance that
-    was configured for that platform (as is done in several of the included
-    tutorials).
+    was configured for that platform.
 
 *   The local runtime where the IR was loaded interprets the structure of the
     submitted computation, and either executes elements of it locally

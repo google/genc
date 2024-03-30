@@ -1,6 +1,6 @@
 # Setup GenC
 
-Quick and easy way to setup environment for GenC is using Docker Container:
+A quick and easy way to setup environment for GenC is using Docker Container:
 
 ### 1. Clone git repository
 
@@ -33,14 +33,15 @@ You can navigate to python/examples and pick your favorite example and run
 bazel run python/examples:$favorite_example
 ```
 
-## Access Genc tutorials with a Jupyter notebook
+## Access GenC tutorials with a Jupyter notebook
 
-Building a Jupyter notebook in docker container has some extra setup to follow.
-But it can be useful when you want to quickly test few things.
+Building a Jupyter notebook in docker container involves some extra setup, but
+it could be useful when you want to quickly test few things, and it will enable
+you to run all the included tutorials.
 
 ### 1. Add open port to docker.
 
-Exit the docker container and connect to a open port
+Exit the docker container, and restart it with an open port 8889 for Jupyter:
 
 ```
 docker run -p 8889:8889 -it -v $PWD:/genc genc:latest /bin/bash
@@ -55,7 +56,10 @@ cd genc
 bash genc/docs/tutorials/jupyter_setup/launch_jupyter.sh
 ```
 
-Open the link in your local browser.
+Once fully initialized, the Jupyter server will print a link on the console
+that you can use to connect to it. Open the link in your local browser on the
+machine, on which you started the docker container (or tunnel port 8889 from
+a remote machine and open the browser there).
 
 Success: You have completed the setup of GenC.
 Create your dream generative AI project, and share your experience with us!

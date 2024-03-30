@@ -14,7 +14,9 @@
 *   [**Tutorial 2.** Custom model routing function based on a scorer](tutorial_2_custom_routing.ipynb).
     This tutorial builds on the preceding one, and shows how to drive the
     decision which model in the cascade to use by a custom routing function
-    based on the on-device LLM evaluating the sensitivity of the input query.
+    based on an LLM evaluating the sensitivity of the input query first,
+    parsing out a Boolean result of this test, then selecting between on-device
+    and cloud models depending on that result.
 
 *   [**Tutorial 3.** Custom Runtime & Tools](tutorial_3_custom_runtime.ipynb).
     This tutorial shows how the runtime itself can be customized to support
@@ -34,7 +36,12 @@
 
 ## Running Tutorials in a Jupyter Notebook
 ### Using the GenC Docker Container
-If you are using the GenC Docker container, then the prerequesites for running the notebook server are already installed. You'll just need to start the Docker container with the appropriate port (`8889`) forwarded to the host. For example, to forward the port and mount a local model directory:
+If you are using the GenC Docker container, then the prerequesites for running
+the notebook server are already installed. You'll just need to start the Docker
+container with the appropriate port (`8889`) forwarded to the host. For example,
+to forward the port and mount a local model directory (see
+[SETUP.md](https://github.com/google/genc/tree/master/SETUP.md) for an
+example):
 
 ```
 docker run -it -v <GenC root>:/genc -v <local models directory>:/models -p 8889:8889 <Docker container tag> /bin/bash
@@ -44,10 +51,12 @@ Once in the container, you can run the notebook server:
 
 ```
 cd genc
-bazel run genc/docs/tutorials/jupyter_setup:jupyter
+bazel run docs/tutorials/jupyter_setup:jupyter
 ```
 
-Once the server starts, the console will include information on a URL that includes an access token (otherwise you'll need to configure a password). For example:
+Once the server starts, the console will include information on a URL that
+includes an access token (otherwise you'll need to configure a password).
+For example:
 
 ```
     To access the server, open this file in a browser:
@@ -57,13 +66,19 @@ Once the server starts, the console will include information on a URL that inclu
         http://127.0.0.1:8889/tree?token=687930d73e648c4e127ae4c585f3a3f578d0611b885a301d
 ```
 
-Because the port is forwarded to the host machine, you can use the last URL with the hostname changed (e.g. `http://localhost:8889/tree?token=687930d73e648c4e127ae4c585f3a3f578d0611b885a301d`)
+Because the port is forwarded to the host machine, you can use the last URL
+as-is on the host (e.g.
+`http://localhost:8889/tree?token=687930d73e648c4e127ae4c585f3a3f578d0611b885a301d`)
 
 ### Without Docker
-Without Docker the steps are fairly similiar but you'll need to first install the prerequisites. We've included a script that installs the prerequsities (Debian and Python deps) and then runs the server. From the GenC root:
+Without Docker the steps are fairly similiar but you'll need to first install
+the prerequisites. We've included a script that installs the prerequsities
+(Debian and Python deps), and then runs the server. From the GenC root:
 
 ```
 bash genc/docs/tutorials/jupyter_setup/launch_jupyter.sh
 ```
 
-After execution the server can be accessed with the URLs+tokens as described in [Using the GenC Docker Container](#using-the-genc-docker-container).
+After execution the server can be accessed with the URLs+tokens as described in
+[Using the GenC Docker Container](#using-the-genc-docker-container).
+

@@ -53,7 +53,7 @@ Inside your running docker container instance, at the root of the repo, run:
 
 ```
 cd genc
-bash genc/docs/tutorials/jupyter_setup/launch_jupyter.sh
+bash docs/tutorials/jupyter_setup/launch_jupyter.sh
 ```
 
 Once fully initialized, the Jupyter server will print a link on the console

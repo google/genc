@@ -22,11 +22,15 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.genc.ToFromValueProto;
 import org.genc.Value;
+import org.genc.runtime.ToFromValueProto;
 
 /** Library for constructing different types of computations. */
 public final class Constructor {
+  static {
+    System.loadLibrary("constructor_jni");
+  }
+
   // Returns best available ExtensionRegistry.
   public static ExtensionRegistryLite getExtensionRegistry() {
     return ExtensionRegistryLite.getEmptyRegistry();

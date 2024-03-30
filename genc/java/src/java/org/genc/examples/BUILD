@@ -7,6 +7,12 @@ licenses(["notice"])
 java_binary(
     name = "genc_demo",
     srcs = ["GencDemo.java"],
+    jvm_flags = [
+        "-Djava.library.path=" +
+        "genc/java/src/native/org/genc/authoring:" +
+        "genc/java/src/native/org/genc/examples/executors:" +
+        "genc/java/src/native/org/genc/runtime",
+    ],
     main_class = "org.genc.examples.GencDemo",
     deps = [
         "//genc/java/src/java/org/genc/authoring:constructor",

@@ -13,9 +13,15 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-package org.genc;
+package org.genc.runtime;
+
+import org.genc.Value;
 
 final class Executor {
+  static {
+    System.loadLibrary("executor_jni");
+  }
+
   public static Executor create(long executorHandle) {
     return new Executor(executorHandle);
   }

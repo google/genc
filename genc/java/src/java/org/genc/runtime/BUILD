@@ -6,17 +6,6 @@ package(
 
 licenses(["notice"])
 
-exports_files(
-    srcs = [
-        "Executor.java",
-        "OwnedValueId.java",
-        "Runner.java",
-        "ToFromValueProto.java",
-        "ValueId.java",
-    ],
-    visibility = ["//visibility:public"],
-)
-
 java_library(
     name = "runner",
     srcs = ["Runner.java"],
@@ -32,11 +21,13 @@ java_library(
 java_library(
     name = "executor",
     srcs = ["Executor.java"],
+    data = [
+        "//genc/java/src/native/org/genc/runtime:libexecutor_jni.so",
+        "//genc/java/src/native/org/genc/runtime:libowned_value_id_jni.so",
+    ],
     deps = [
         ":owned_value_id",
         ":value_id",
-        "//genc/java/src/java/org/genc/runtime/jni:executor_jni",
-        "//genc/java/src/java/org/genc/runtime/jni:owned_value_id_jni",
         "//genc/proto/v0:computation_java_proto_lite",
         "//genc/proto/v0:executor_java_proto_lite",
     ],
@@ -45,10 +36,12 @@ java_library(
 java_library(
     name = "owned_value_id",
     srcs = ["OwnedValueId.java"],
+    data = [
+        "//genc/java/src/native/org/genc/runtime:libexecutor_jni.so",
+        "//genc/java/src/native/org/genc/runtime:libowned_value_id_jni.so",
+    ],
     deps = [
         ":value_id",
-        "//genc/java/src/java/org/genc/runtime/jni:executor_jni",
-        "//genc/java/src/java/org/genc/runtime/jni:owned_value_id_jni",
         "//genc/proto/v0:computation_java_proto_lite",
         "//genc/proto/v0:executor_java_proto_lite",
     ],

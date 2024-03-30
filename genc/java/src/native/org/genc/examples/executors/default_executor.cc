@@ -28,7 +28,8 @@ GC_Executor* GC_create_default_executor(JavaVM* jvm, JNIEnv* env) {
   return e;
 }
 
-extern "C" jlong
+extern "C"
+JNIEXPORT jlong JNICALL
 Java_org_genc_examples_executors_DefaultExecutor_createDefaultExecutor(  // NOLINT
     JNIEnv* env, jobject obj) {
   JavaVM* jvm;

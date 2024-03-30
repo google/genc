@@ -13,11 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include "genc/java/src/java/org/genc/runtime/jni/executor_jni.h"
+#include <jni.h>
+#include <stddef.h>
+
+#include <cstdint>
+#include <memory>
 
 #include "genc/c/runtime/c_api.h"
 #include "genc/c/runtime/gc_buffer.h"
-#include "genc/cc/runtime/executor.h"
 #include "genc/proto/v0/computation.pb.h"
 #include "genc/proto/v0/executor.pb.h"
 
@@ -71,7 +74,12 @@ GC_Executor* requireHandle(JNIEnv* env, jlong handle) {
 
 }  // namespace
 
-JNIEXPORT jlong JNICALL Java_org_genc_Executor_createValue(
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+JNIEXPORT jlong JNICALL
+Java_org_genc_runtime_Executor_createValue(
     JNIEnv* env, jclass clazz, jlong executor_handle, jbyteArray value) {
   GC_Executor* gc_executor = requireHandle(env, executor_handle);
   if (gc_executor == nullptr) {
@@ -96,7 +104,8 @@ JNIEXPORT jlong JNICALL Java_org_genc_Executor_createValue(
   return reinterpret_cast<jlong>(owned_value_id);
 }
 
-JNIEXPORT jlong JNICALL Java_org_genc_Executor_createCall(
+JNIEXPORT jlong JNICALL
+Java_org_genc_runtime_Executor_createCall(
     JNIEnv* env, jclass clazz, jlong executor_handle, jlong function,
     jlong arg) {
   GC_Executor* gc_executor = requireHandle(env, executor_handle);
@@ -108,7 +117,8 @@ JNIEXPORT jlong JNICALL Java_org_genc_Executor_createCall(
   return reinterpret_cast<jlong>(owned_value_id);
 }
 
-JNIEXPORT jbyteArray JNICALL Java_org_genc_Executor_materialize(
+JNIEXPORT jbyteArray JNICALL
+Java_org_genc_runtime_Executor_materialize(
     JNIEnv* env, jclass clazz, jlong executor_handle, jlong value) {
   GC_Executor* gc_executor = requireHandle(env, executor_handle);
   if (gc_executor == nullptr) {
@@ -123,7 +133,8 @@ JNIEXPORT jbyteArray JNICALL Java_org_genc_Executor_materialize(
   return ret;
 }
 
-JNIEXPORT void JNICALL Java_org_genc_Executor_dispose(
+JNIEXPORT void JNICALL
+Java_org_genc_runtime_Executor_dispose(
     JNIEnv* env, jclass clazz, jlong executor_handle, jlong value) {
   GC_Executor* gc_executor = requireHandle(env, executor_handle);
   if (gc_executor == nullptr) {
@@ -131,3 +142,7 @@ JNIEXPORT void JNICALL Java_org_genc_Executor_dispose(
   }
   GC_dispose(gc_executor, value);
 }
+
+#ifdef __cplusplus
+}  // extern "C"
+#endif  // __cplusplus

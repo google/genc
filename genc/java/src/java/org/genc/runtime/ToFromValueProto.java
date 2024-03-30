@@ -13,10 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-package org.genc;
+package org.genc.runtime;
 
 import java.util.List;
 import java.util.Map;
+import org.genc.Struct;
+import org.genc.Value;
 
 /** Util functions to convert to/from 'Value' proto. */
 public final class ToFromValueProto {

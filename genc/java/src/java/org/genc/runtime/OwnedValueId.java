@@ -13,9 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-package org.genc;
+package org.genc.runtime;
 
 final class OwnedValueId {
+  static {
+    System.loadLibrary("owned_value_id_jni");
+  }
 
   public static OwnedValueId create(long nativeHandle) {
     return new OwnedValueId(nativeHandle);

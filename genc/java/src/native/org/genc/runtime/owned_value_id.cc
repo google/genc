@@ -13,13 +13,22 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include "genc/java/src/java/org/genc/runtime/jni/owned_value_id_jni.h"
+#include <jni.h>
 
 #include "genc/c/runtime/c_api.h"
 
-JNIEXPORT jlong JNICALL Java_org_genc_OwnedValueId_ref(
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+JNIEXPORT jlong JNICALL
+Java_org_genc_runtime_OwnedValueId_ref(
     JNIEnv* env, jclass clazz, jlong value_handle) {
   GC_OwnedValueId* owned_value_id =
       reinterpret_cast<GC_OwnedValueId*>(value_handle);
   return GC_GetValue(owned_value_id);
 }
+
+#ifdef __cplusplus
+}  // extern "C"
+#endif  // __cplusplus

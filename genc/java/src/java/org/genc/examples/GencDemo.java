@@ -15,16 +15,24 @@ limitations under the License
 
 package org.genc.examples;
 
-import org.genc.Runner;
 import org.genc.Value;
 import org.genc.authoring.Constructor;
 import org.genc.examples.executors.DefaultExecutor;
+import org.genc.runtime.Runner;
 
-/** Demo client for testing deployment in Java. */
+/**
+ * Demo client for testing deployment in Java.
+ *
+ * <p>USAGE: bazel run genc/java/src/java/org/genc/examples:genc_demo -- <ir_file> <prompt>
+ *
+ * <p>NOTE: The `bazel run` rule populates the Java library path from the BUILD file. If you want to
+ * compile and run the binary manually, rather than using `blaze run`, you'll need to set that path
+ * upon invocation manually yourself.
+ */
 public final class GencDemo {
   public static void main(String[] args) {
-    Value ir = Constructor.readComputationFromFile(args[0]);
     DefaultExecutor executor = new DefaultExecutor();
+    Value ir = Constructor.readComputationFromFile(args[0]);
     Runner runner = Runner.create(ir, executor.getExecutorHandle());
     String result = runner.call(args[1]);
     System.out.println(result);

@@ -358,31 +358,31 @@ jbyteArray GC_create_call(JNIEnv* env, jbyteArray fn, jbyteArray arg) {
                             static_cast<jbyteArray>(nullptr));
 }
 
-extern "C" jbyteArray
+extern "C" JNIEXPORT jbyteArray JNICALL
 Java_org_genc_authoring_Constructor_nativeCreateModelInference(  // NOLINT
     JNIEnv* env, jobject obj, jstring model_uri) {
   return GC_create_model_inference(env, model_uri);
 }
 
-extern "C" jbyteArray
+extern "C" JNIEXPORT jbyteArray JNICALL
 Java_org_genc_authoring_Constructor_nativeCreateModelInferenceWithConfig(  // NOLINT
     JNIEnv* env, jobject obj, jstring model_uri, jbyteArray config) {
   return GC_create_model_inference_with_config(env, model_uri, config);
 }
 
-extern "C" jbyteArray
+extern "C" JNIEXPORT jbyteArray JNICALL
 Java_org_genc_authoring_Constructor_nativeCreatePromptTemplate(  // NOLINT
     JNIEnv* env, jobject obj, jstring template_str) {
   return GC_create_prompt_template(env, template_str);
 }
 
-extern "C" jbyteArray
+extern "C" JNIEXPORT jbyteArray JNICALL
 Java_org_genc_authoring_Constructor_nativeCreateFallback(  // NOLINT
     JNIEnv* env, jobject obj, jobject list) {
   return GC_create_fallback(env, list);
 }
 
-extern "C" jbyteArray
+extern "C" JNIEXPORT jbyteArray JNICALL
 Java_org_genc_authoring_Constructor_nativeCreateConditional(  // NOLINT
     JNIEnv* env, jobject obj, jbyteArray condition, jbyteArray positive_branch,
     jbyteArray negative_branch) {
@@ -390,37 +390,37 @@ Java_org_genc_authoring_Constructor_nativeCreateConditional(  // NOLINT
                                negative_branch);
 }
 
-extern "C" jbyteArray
+extern "C" JNIEXPORT jbyteArray JNICALL
 Java_org_genc_authoring_Constructor_nativeCreateCustomFunction(  // NOLINT
     JNIEnv* env, jobject obj, jstring fn_uri) {
   return GC_create_custom_function(env, fn_uri);
 }
 
-extern "C" jbyteArray
+extern "C" JNIEXPORT jbyteArray JNICALL
 Java_org_genc_authoring_Constructor_nativeCreateInjaTemplate(  // NOLINT
     JNIEnv* env, jobject obj, jstring template_str) {
   return GC_create_inja_template(env, template_str);
 }
 
-extern "C" jbyteArray
+extern "C" JNIEXPORT jbyteArray JNICALL
 Java_org_genc_authoring_Constructor_nativeCreateParallelMap(  // NOLINT
     JNIEnv* env, jobject obj, jbyteArray map) {
   return GC_create_parallel_map(env, map);
 }
 
-extern "C" jbyteArray
+extern "C" JNIEXPORT jbyteArray JNICALL
 Java_org_genc_authoring_Constructor_nativeCreateSerialChain(  // NOLINT
     JNIEnv* env, jobject obj, jobject list) {
   return GC_create_serial_chain(env, list);
 }
 
-extern "C" jbyteArray
+extern "C" JNIEXPORT jbyteArray JNICALL
 Java_org_genc_authoring_Constructor_nativeCreateStruct(  // NOLINT
     JNIEnv* env, jobject obj, jobject list) {
   return GC_create_struct(env, list);
 }
 
-extern "C" jbyteArray
+extern "C" JNIEXPORT jbyteArray JNICALL
 Java_org_genc_authoring_Constructor_nativeCreateCall(  // NOLINT
     JNIEnv* env, jobject obj, jbyteArray fn, jbyteArray arg) {
   return GC_create_call(env, fn, arg);

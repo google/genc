@@ -32,10 +32,14 @@ import org.genc.runtime.Runner;
 public final class GencDemo {
   public static void main(String[] args) {
     DefaultExecutor executor = new DefaultExecutor();
-    Value ir = Constructor.readComputationFromFile(args[0]);
-    Runner runner = Runner.create(ir, executor.getExecutorHandle());
-    String result = runner.call(args[1]);
-    System.out.println(result);
+    try {
+      Value ir = Constructor.readComputationFromFile(args[0]);
+      Runner runner = Runner.create(ir, executor.getExecutorHandle());
+      String result = runner.call(args[1]);
+      System.out.println(result);
+    } finally {
+      executor.cleanupExecutor();
+    }
   }
 
   private GencDemo() {}

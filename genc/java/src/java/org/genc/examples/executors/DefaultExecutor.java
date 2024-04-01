@@ -42,6 +42,7 @@ public final class DefaultExecutor {
   }
 
   public long cleanupExecutor() {
+    executorService.shutdownNow();
     return cleanupExecutorState();
   }
 

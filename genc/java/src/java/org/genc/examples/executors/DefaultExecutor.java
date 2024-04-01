@@ -15,6 +15,13 @@ limitations under the License
 
 package org.genc.examples.executors;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import src.java.org.genc.interop.backends.googleai.GoogleAiClient;
+import src.java.org.genc.interop.backends.openai.OpenAiClient;
+import src.java.org.genc.interop.backends.wolframalpha.WolframAlphaClient;
+import src.java.org.genc.interop.network.JavaHttpClientImpl;
+
 /** An executor used in GenC demos. */
 public final class DefaultExecutor {
   static {
@@ -22,14 +29,36 @@ public final class DefaultExecutor {
   }
 
   public DefaultExecutor() {
-    executorHandle = createDefaultExecutor();
+    executorService = Executors.newFixedThreadPool(THREADPOOL_SIZE);
+    httpClient = new JavaHttpClientImpl(executorService);
+    googleAiClient = new GoogleAiClient(httpClient);
+    openAiClient = new OpenAiClient(httpClient);
+    wolframAlphaClient = new WolframAlphaClient(httpClient);
+    executorHandle = createDefaultExecutor(openAiClient, googleAiClient, wolframAlphaClient);
   }
 
   public long getExecutorHandle() {
     return executorHandle;
   }
 
+  public long cleanupExecutor() {
+    return cleanupExecutorState();
+  }
+
+  // Objects are referenced in C++ over JNI.
+  public GoogleAiClient googleAiClient;
+  public OpenAiClient openAiClient;
+  public WolframAlphaClient wolframAlphaClient;
+
+  private static final int THREADPOOL_SIZE = 4;
+  private final ExecutorService executorService;
+  private final JavaHttpClientImpl httpClient;
   private final long executorHandle;
 
-  private native long createDefaultExecutor();
+  private native long createDefaultExecutor(
+      OpenAiClient openAiClient,
+      GoogleAiClient googleAiClient,
+      WolframAlphaClient wolframAlphaClient);
+
+  private native long cleanupExecutorState();
 }

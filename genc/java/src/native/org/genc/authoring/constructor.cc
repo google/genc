@@ -358,6 +358,21 @@ jbyteArray GC_create_call(JNIEnv* env, jbyteArray fn, jbyteArray arg) {
                             static_cast<jbyteArray>(nullptr));
 }
 
+jbyteArray GC_create_wolfram_alpha(JNIEnv* env, jstring app_id) {
+  std::string app_id_str = GetString(env, app_id);
+  absl::string_view app_id_view(app_id_str);
+  absl::StatusOr<v0::Value> wolfram_alpha = CreateWolframAlpha(app_id_view);
+  if (!wolfram_alpha.ok()) {
+    LOG(ERROR) << "Failed to create wolfram alpha: " << wolfram_alpha.status();
+    return nullptr;
+  }
+  const v0::Value computation_proto = wolfram_alpha.value();
+  absl::StatusOr<jbyteArray> computation_bytes =
+      GetJbyteArrayFromProto(env, computation_proto);
+  return GetValueOrLogError(computation_bytes,
+                            static_cast<jbyteArray>(nullptr));
+}
+
 extern "C" JNIEXPORT jbyteArray JNICALL
 Java_org_genc_authoring_Constructor_nativeCreateModelInference(  // NOLINT
     JNIEnv* env, jobject obj, jstring model_uri) {
@@ -424,6 +439,12 @@ extern "C" JNIEXPORT jbyteArray JNICALL
 Java_org_genc_authoring_Constructor_nativeCreateCall(  // NOLINT
     JNIEnv* env, jobject obj, jbyteArray fn, jbyteArray arg) {
   return GC_create_call(env, fn, arg);
+}
+
+extern "C" JNIEXPORT jbyteArray JNICALL
+Java_org_genc_authoring_Constructor_nativeCreateWolframAlpha(  // NOLINT
+    JNIEnv* env, jobject obj, jstring app_id) {
+  return GC_create_wolfram_alpha(env, app_id);
 }
 
 }  // namespace genc

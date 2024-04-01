@@ -11,7 +11,7 @@ cc_library(
     deps = [
         "//genc/c/runtime:c_api",
         "//genc/c/runtime:c_api_internal",
-        "//genc/cc/examples/executors:executor_stacks",
+        "//genc/cc/examples/executors:java_executor_stacks",
         "//genc/cc/runtime:status_macros",
         "//genc/java/src/jni:copy_jni_hdr_lib",
         "//genc/java/src/jni:jni_utils",

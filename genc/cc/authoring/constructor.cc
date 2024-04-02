@@ -85,6 +85,18 @@ absl::StatusOr<v0::Value> CreateRestModelConfig(std::string endpoint,
   return model_config_pb;
 }
 
+absl::StatusOr<v0::Value> CreateRestModelConfigWithJsonRequestTemplate(
+    std::string endpoint,
+    std::string api_key,
+    std::string json_request_template) {
+  v0::Value model_config_pb = GENC_TRY(
+      CreateRestModelConfig(endpoint, api_key));
+  v0::Value* template_pb = model_config_pb.mutable_struct_()->add_element();
+  template_pb->set_label("json_request_template");
+  template_pb->set_str(json_request_template);
+  return model_config_pb;
+}
+
 absl::StatusOr<v0::Value> CreateLlamaCppConfig(std::string model_path,
                                                int num_threads,
                                                int max_tokens) {

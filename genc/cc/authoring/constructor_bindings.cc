@@ -132,6 +132,11 @@ PYBIND11_MODULE(constructor_bindings, m) {
   m.def("create_rest_model_config", &CreateRestModelConfig,
         "Returns an model config that represents a model call behind rest "
         "endpoint");
+
+  m.def("create_rest_model_config_with_json_request_template",
+        &CreateRestModelConfigWithJsonRequestTemplate,
+        "Returns an model config that represents a model call behind rest "
+        "endpoint, with a JSON request template.");
 }
 
 }  // namespace

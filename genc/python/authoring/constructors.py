@@ -43,18 +43,23 @@ def create_model_with_config(model_uri, model_config):
   return constructor_bindings.create_model_with_config(model_uri, model_config)
 
 
-def create_rest_model_config(endpoint, api_key=""):
+def create_rest_model_config(endpoint, api_key="", json_request_template=""):
   """Creates a model computation with the given model URI and model config.
 
   Args:
     endpoint: The REST endpoint of the model.
     api_key: An optional API key.
+    json_request_template: An optional JSON request template.
 
   Returns:
     A value that represents the model config. That can be used in conjunction
     with create_model_with_config.
   """
-  return constructor_bindings.create_rest_model_config(endpoint, api_key)
+  if json_request_template:
+    return constructor_bindings.create_rest_model_config_with_json_request_template(
+        endpoint, api_key, json_request_template)
+  else:
+    return constructor_bindings.create_rest_model_config(endpoint, api_key)
 
 
 def create_prompt_template(template_str):

@@ -72,6 +72,13 @@ absl::StatusOr<v0::Value> CreateModelInference(absl::string_view model_uri);
 absl::StatusOr<v0::Value> CreateRestModelConfig(std::string endpoint,
                                                std::string api_key = "");
 
+// Returns a model config for models behind REST endpoint,
+// including a JSON request template.
+absl::StatusOr<v0::Value> CreateRestModelConfigWithJsonRequestTemplate(
+    std::string endpoint,
+    std::string api_key,
+    std::string json_request_template);
+
 absl::StatusOr<v0::Value> CreateLlamaCppConfig(std::string model_path,
                                                int num_threads = 1,
                                                int max_tokens = 32);

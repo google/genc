@@ -63,18 +63,22 @@ final class LocalModelWithLlamacpp {
   }
 
   public static void main(String[] args) {
-    if (args.length != 2) {
-      System.out.println(
-          "Usage: bazel run genc/java/src/java/org/genc/examples:local_model_with_llama_cpp --"
-              + " <model_path> <prompt>");
-      return;
-    }
-
     DefaultExecutor executor = new DefaultExecutor();
-    Value ir = createLocalModelPromptChain(args[0]);
-    Runner runner = Runner.create(ir, executor.getExecutorHandle());
-    String result = runner.call(args[1]);
-    System.out.println(result);
+    try {
+      if (args.length != 2) {
+        System.out.println(
+            "Usage: bazel run genc/java/src/java/org/genc/examples:local_model_with_llama_cpp --"
+                + " <model_path> <prompt>");
+        return;
+      }
+
+      Value ir = createLocalModelPromptChain(args[0]);
+      Runner runner = Runner.create(ir, executor.getExecutorHandle());
+      String result = runner.call(args[1]);
+      System.out.println(result);
+    } finally {
+      executor.cleanupExecutor();
+    }
   }
 
   private LocalModelWithLlamacpp() {}

@@ -71,18 +71,22 @@ public final class OpenAiDemo {
   }
 
   public static void main(String[] args) {
-    if (args.length != 2) {
-      System.out.println(
-          "Usage: bazel run genc/java/src/java/org/genc/examples:open_ai_demo -- <api_key>"
-              + " <prompt>");
-      return;
-    }
-
     DefaultExecutor executor = new DefaultExecutor();
-    Value ir = createOpenAiModelWithPromptChain(args[0]);
-    Runner runner = Runner.create(ir, executor.getExecutorHandle());
-    String result = runner.call(args[1]);
-    System.out.println(result);
+    try {
+      if (args.length != 2) {
+        System.out.println(
+            "Usage: bazel run genc/java/src/java/org/genc/examples:open_ai_demo -- <api_key>"
+                + " <prompt>");
+        return;
+      }
+
+      Value ir = createOpenAiModelWithPromptChain(args[0]);
+      Runner runner = Runner.create(ir, executor.getExecutorHandle());
+      String result = runner.call(args[1]);
+      System.out.println(result);
+    } finally {
+      executor.cleanupExecutor();
+    }
   }
 
   private OpenAiDemo() {}

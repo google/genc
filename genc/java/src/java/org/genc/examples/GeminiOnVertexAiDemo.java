@@ -85,18 +85,22 @@ final class GeminiOnVertexAiDemo {
   }
 
   public static void main(String[] args) {
-    if (args.length != 3) {
-      System.out.println(
-          "Usage: bazel run genc/java/src/java/org/genc/examples:gemini_on_vertex_ai"
-              + " -- <access_token> <endpoint> <prompt>");
-      return;
-    }
-
     DefaultExecutor executor = new DefaultExecutor();
-    Value ir = createGeminiModelWithPromptChain(args[0], args[1]);
-    Runner runner = Runner.create(ir, executor.getExecutorHandle());
-    String result = runner.call(args[2]);
-    System.out.println(result);
+    try {
+      if (args.length != 3) {
+        System.out.println(
+            "Usage: bazel run genc/java/src/java/org/genc/examples:gemini_on_vertex_ai"
+                + " -- <access_token> <endpoint> <prompt>");
+        return;
+      }
+
+      Value ir = createGeminiModelWithPromptChain(args[0], args[1]);
+      Runner runner = Runner.create(ir, executor.getExecutorHandle());
+      String result = runner.call(args[2]);
+      System.out.println(result);
+    } finally {
+      executor.cleanupExecutor();
+    }
   }
 
   private GeminiOnVertexAiDemo() {}

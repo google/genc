@@ -12,7 +12,7 @@ java_library(
     data = ["//genc/java/src/native/org/genc/authoring:libconstructor_jni.so"],
     deps = [
         "//genc/java/src/java/org/genc/runtime:to_from_value_proto",
-        "//genc/proto/v0:computation_java_proto_lite",
+        "//genc/proto/v0:computation_java_proto",
         "@com_google_protobuf//java/lite",
         "@maven//:com_google_code_findbugs_jsr305",
         "@maven//:com_google_guava_guava",

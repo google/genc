@@ -100,19 +100,15 @@ public final class WolframAlphaClient {
     try {
       HttpOptions httpOptions = createHttpOptions(ENDPOINT_URL, HttpOptions.HttpMethod.GET);
       HttpRequest httpRequest = createHttpRequest(appIdStr, requestStr);
-      logger.atInfo().log(
-          "Sending request to Wolfram Alpha: HttpRequest: %s, HttpOptions: %s",
-          httpRequest, httpOptions);
+
       ListenableFuture<HttpResponse> future = httpClient.send(httpRequest, httpOptions);
       HttpResponse httpResponse = future.get();
-      logger.atInfo().log("Received response from Wolfram Alpha: %s", httpResponse);
       response = httpResponse.getResponse().toStringUtf8();
     } catch (Exception e) {
       if (e instanceof InterruptedException) {
         Thread.currentThread().interrupt();
       }
-      logger.atWarning().withCause(e).log(
-          "Wolfram Alpha client returned error: %s", e.getMessage());
+      logger.atSevere().withCause(e).log("Wolfram Alpha client returned error.");
     }
     return response;
   }

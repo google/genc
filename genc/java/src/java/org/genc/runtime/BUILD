@@ -13,8 +13,7 @@ java_library(
         ":executor",
         ":owned_value_id",
         ":to_from_value_proto",
-        "//genc/proto/v0:computation_java_proto_lite",
-        "//genc/proto/v0:executor_java_proto_lite",
+        "//genc/proto/v0:computation_java_proto",
     ],
 )
 
@@ -28,8 +27,7 @@ java_library(
     deps = [
         ":owned_value_id",
         ":value_id",
-        "//genc/proto/v0:computation_java_proto_lite",
-        "//genc/proto/v0:executor_java_proto_lite",
+        "//genc/proto/v0:computation_java_proto",
     ],
 )
 
@@ -42,8 +40,6 @@ java_library(
     ],
     deps = [
         ":value_id",
-        "//genc/proto/v0:computation_java_proto_lite",
-        "//genc/proto/v0:executor_java_proto_lite",
     ],
 )
 
@@ -55,5 +51,5 @@ java_library(
 java_library(
     name = "to_from_value_proto",
     srcs = ["ToFromValueProto.java"],
-    deps = ["//genc/proto/v0:computation_java_proto_lite"],
+    deps = ["//genc/proto/v0:computation_java_proto"],
 )

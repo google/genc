@@ -98,7 +98,7 @@ public final class OpenAiClient {
       logger.atSevere().log(
           "For model uri: %s, required config settings were not provided. Expected 'endpoint',"
               + " 'api_key', and 'json_request_template'. Found: %s",
-          modelUri, Arrays.asList(configSettings));
+          modelUri, Arrays.asList(configSettings.keySet()));
       return false;
     }
     return true;
@@ -161,21 +161,20 @@ public final class OpenAiClient {
       return response;
     }
     byte[] updatedRequestBytes = updatedRequestStr.getBytes(UTF_8);
+
     HttpRequest httpRequest = createHttpRequestWithPostBody(updatedRequestBytes);
     HttpOptions httpOptions = createHttpOptions(endpoint, apiKey, HttpOptions.HttpMethod.POST);
 
     try {
-      logger.atInfo().log(
-          "Sending request to OpenAI: HttpRequest: %s, HttpOptions: %s", httpRequest, httpOptions);
+
       ListenableFuture<HttpResponse> future = httpClient.send(httpRequest, httpOptions);
       HttpResponse httpResponse = future.get();
-      logger.atInfo().log("Received response from OpenAI: %s", httpResponse);
       response = httpResponse.getResponse().toStringUtf8();
     } catch (Exception e) {
       if (e instanceof InterruptedException) {
         Thread.currentThread().interrupt();
       }
-      logger.atWarning().withCause(e).log("OpenAI client returned error: %s", e.getMessage());
+      logger.atSevere().withCause(e).log("OpenAI client returned error.");
     }
     return response;
   }

@@ -20,7 +20,6 @@ cc_library(
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/time",
         "@nlohmann_json//:json",
     ],
     alwayslink = 1,
@@ -60,7 +59,6 @@ cc_library(
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/time",
         "@nlohmann_json//:json",
     ],
     alwayslink = 1,
@@ -100,7 +98,6 @@ cc_library(
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/time",
     ],
     alwayslink = 1,
 )

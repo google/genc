@@ -101,7 +101,6 @@ public class JavaHttpClientImpl implements HttpClient {
       executor.execute(
           () -> {
             try {
-              logger.atFine().log("Sending HTTP request to: %s", finalHttpRequest.uri());
               java.net.http.HttpResponse<byte[]> httpResponse =
                   httpClient.send(finalHttpRequest, BodyHandlers.ofByteArray());
               if (httpResponse.statusCode() == HTTP_STATUS_OK) {
@@ -113,13 +112,13 @@ public class JavaHttpClientImpl implements HttpClient {
                     "Received non StatusOK status code: %d", httpResponse.statusCode());
                 settableFuture.setException(
                     new HttpException(
-                        "Http request failed with status code: " + httpResponse.statusCode()));
+                        " Http request failed with status code: " + httpResponse.statusCode()));
               }
             } catch (Exception e) {
               if (e instanceof InterruptedException) {
                 Thread.currentThread().interrupt();
               }
-              logger.atInfo().log("Failure encountered in sending HTTP request!");
+              logger.atSevere().withCause(e).log("Failure encountered in sending HTTP request.");
               settableFuture.setException(e);
             }
           });

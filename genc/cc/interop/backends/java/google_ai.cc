@@ -23,8 +23,6 @@ limitations under the License
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
-#include "absl/time/clock.h"
-#include "absl/time/time.h"
 #include "genc/cc/interop/backends/java/google_ai_client_jni.h"
 #include "genc/cc/intrinsics/intrinsic_uris.h"
 #include "genc/proto/v0/computation.pb.h"
@@ -63,13 +61,9 @@ absl::StatusOr<v0::Value> GoogleAiCall(JavaVM* jvm, jobject google_ai_client,
   std::string model_inference_with_config;
   func.SerializeToString(&model_inference_with_config);
   const std::string& request = arg.str();
-  LOG(INFO) << "Model inference with config: " << func.DebugString()
-            << "Request to Google AI: " << request;
 
-  auto ts = absl::Now();
   std::string response_str = genc::CallGoogleAiClient(
       jvm, google_ai_client, model_inference_with_config, request);
-  LOG(INFO) << "Response time: " << absl::Now() - ts;
   if (response_str.empty()) {
     LOG(ERROR) << "Error encountered in fetching response from Google AI.";
     return absl::Status(absl::StatusCode::kInternal,

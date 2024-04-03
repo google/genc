@@ -117,7 +117,7 @@ public final class GoogleAiClient {
       logger.atSevere().log(
           "For model uri: %s, required config settings were not provided. Expected 'endpoint',"
               + " 'json_request_template', and one of 'api_key' or 'access_token'. Found: %s",
-          modelUri, Arrays.asList(configSettings));
+          modelUri, Arrays.asList(configSettings.keySet()));
       return false;
     }
     return true;
@@ -197,18 +197,15 @@ public final class GoogleAiClient {
     HttpRequest httpRequest = createHttpRequestWithPostBody(apiKey, updatedRequestBytes);
 
     try {
-      logger.atInfo().log(
-          "Sending request to Google AI: HttpRequest: %s, HttpOptions: %s",
-          httpRequest, httpOptions);
+
       ListenableFuture<HttpResponse> future = httpClient.send(httpRequest, httpOptions);
       HttpResponse httpResponse = future.get();
-      logger.atInfo().log("Received response from Google AI: %s", httpResponse);
       response = httpResponse.getResponse().toStringUtf8();
     } catch (Exception e) {
       if (e instanceof InterruptedException) {
         Thread.currentThread().interrupt();
       }
-      logger.atWarning().withCause(e).log("Google AI client returned error: %s", e.getMessage());
+      logger.atSevere().withCause(e).log("Google AI client returned error.");
     }
     return response;
   }

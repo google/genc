@@ -21,8 +21,6 @@ limitations under the License
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
-#include "absl/time/clock.h"
-#include "absl/time/time.h"
 #include "genc/cc/interop/backends/java/wolfram_alpha_client_jni.h"
 #include "genc/cc/runtime/status_macros.h"
 #include "genc/proto/v0/computation.pb.h"
@@ -37,14 +35,10 @@ absl::StatusOr<v0::Value> WolframAlphaHandler::call(
     const v0::Value& func, const v0::Value& arg) const {
   std::string config;
   func.SerializeToString(&config);
-  std::string request = arg.str();
-  LOG(INFO) << "Wolfram Alpha's config: " << func.DebugString()
-            << "request to Wolfram Alpha: " << request;
+  const std::string& request = arg.str();
 
-  auto ts = absl::Now();
   std::string response_str = genc::CallWolframAlphaClient(
       jvm_, wolfram_alpha_client_, config, request);
-  LOG(INFO) << "Response time: " << absl::Now() - ts;
   if (response_str.empty()) {
     LOG(ERROR) << "Error encountered in fetching response from Wolfram Alpha.";
     return absl::Status(absl::StatusCode::kInternal,

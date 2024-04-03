@@ -16,6 +16,11 @@ cc_proto_library(
     deps = [":http_request_response_proto"],
 )
 
+java_proto_library(
+    name = "http_request_response_java_proto",
+    deps = [":http_request_response_proto"],
+)
+
 java_lite_proto_library(
     name = "http_request_response_java_proto_lite",
     deps = [":http_request_response_proto"],

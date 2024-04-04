@@ -42,8 +42,8 @@ final class LocalModelWithLlamacpp {
   // Default prompt template used in demo. Please feel free to edit this per your liking.
   public static final String PROMPT_TEMPLATE_FOR_DEMO = "Tell me about {topic}";
 
-  public static Value createLlamacppModelConfig(String modelPath) {
-    return Constructor.createLlamaModelConfig(
+  public static Value createLlamaCppConfig(String modelPath) {
+    return Constructor.createLlamaCppConfig(
         modelPath, LLAMACPP_ON_DEVICE_MODEL_NUM_THREADS, LLAMACPP_ON_DEVICE_MODEL_MAX_TOKENS);
   }
 
@@ -55,7 +55,7 @@ final class LocalModelWithLlamacpp {
     // Create on-device inference computation.
     Value onDeviceModel =
         Constructor.createModelInferenceWithConfig(
-            LLAMACPP_MODEL_URI, createLlamacppModelConfig(modelPath));
+            LLAMACPP_MODEL_URI, createLlamaCppConfig(modelPath));
 
     // Create prompt, model inference chain.
     return Constructor.createSerialChain(

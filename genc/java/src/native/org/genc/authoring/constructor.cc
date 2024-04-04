@@ -228,7 +228,10 @@ jbyteArray GC_create_conditional(JNIEnv* env, jbyteArray condition,
       ParseProtoFromByteArray<v0::Value>(env, negative_branch);
   if (!condition_proto.ok() || !positive_branch_proto.ok() ||
       !negative_branch_proto.ok()) {
-    LOG(ERROR) << "Failed to parse conditional params: ";
+    LOG(ERROR) << "Failed to parse one or more of params in conditional: "
+               << condition_proto.status() << " "
+               << positive_branch_proto.status() << " "
+               << negative_branch_proto.status();
     return nullptr;
   }
 
@@ -340,7 +343,8 @@ jbyteArray GC_create_call(JNIEnv* env, jbyteArray fn, jbyteArray arg) {
   absl::StatusOr<v0::Value> arg_proto =
       ParseProtoFromByteArray<v0::Value>(env, arg);
   if (!fn_proto.ok() || !arg_proto.ok()) {
-    LOG(ERROR) << "Failed to parse params to create_call: ";
+    LOG(ERROR) << "Failed to parse one or more of params in create_call: "
+               << fn_proto.status() << " " << arg_proto.status();
     return nullptr;
   }
 
@@ -367,6 +371,241 @@ jbyteArray GC_create_wolfram_alpha(JNIEnv* env, jstring app_id) {
     return nullptr;
   }
   const v0::Value computation_proto = wolfram_alpha.value();
+  absl::StatusOr<jbyteArray> computation_bytes =
+      GetJbyteArrayFromProto(env, computation_proto);
+  return GetValueOrLogError(computation_bytes,
+                            static_cast<jbyteArray>(nullptr));
+}
+
+jbyteArray GC_create_repeat(JNIEnv* env, jint num_steps, jbyteArray body_fn) {
+  int c_num_steps = (int)num_steps;
+  absl::StatusOr<v0::Value> body_fn_proto =
+      ParseProtoFromByteArray<v0::Value>(env, body_fn);
+  if (!body_fn_proto.ok()) {
+    LOG(ERROR) << "Failed to parse body_fn param in create_repeat: "
+               << body_fn_proto.status();
+    return nullptr;
+  }
+  absl::StatusOr<v0::Value> repeat_proto =
+      CreateRepeat(c_num_steps, body_fn_proto.value());
+
+  if (!repeat_proto.ok()) {
+    LOG(ERROR) << "Failed to create repeat: " << repeat_proto.status();
+    return nullptr;
+  }
+  const v0::Value computation_proto = repeat_proto.value();
+  absl::StatusOr<jbyteArray> computation_bytes =
+      GetJbyteArrayFromProto(env, computation_proto);
+  return GetValueOrLogError(computation_bytes,
+                            static_cast<jbyteArray>(nullptr));
+}
+
+jbyteArray GC_create_lambda(JNIEnv* env, jstring arg_name, jbyteArray body) {
+  std::string arg_name_str = GetString(env, arg_name);
+  absl::string_view arg_name_view(arg_name_str);
+  absl::StatusOr<v0::Value> body_proto =
+      ParseProtoFromByteArray<v0::Value>(env, body);
+  if (!body_proto.ok()) {
+    LOG(ERROR) << "Failed to parse body param in create_lambda:  "
+               << body_proto.status();
+    return nullptr;
+  }
+  absl::StatusOr<v0::Value> lambda_proto =
+      CreateLambda(arg_name_view, body_proto.value());
+
+  if (!lambda_proto.ok()) {
+    LOG(ERROR) << "Failed to create lambda: " << lambda_proto.status();
+    return nullptr;
+  }
+  const v0::Value computation_proto = lambda_proto.value();
+  absl::StatusOr<jbyteArray> computation_bytes =
+      GetJbyteArrayFromProto(env, computation_proto);
+  return GetValueOrLogError(computation_bytes,
+                            static_cast<jbyteArray>(nullptr));
+}
+
+jbyteArray GC_create_reference(JNIEnv* env, jstring arg_name) {
+  std::string arg_name_str = GetString(env, arg_name);
+  absl::string_view arg_name_view(arg_name_str);
+
+  absl::StatusOr<v0::Value> reference_proto = CreateReference(arg_name_view);
+
+  if (!reference_proto.ok()) {
+    LOG(ERROR) << "Failed to create reference: " << reference_proto.status();
+    return nullptr;
+  }
+  const v0::Value computation_proto = reference_proto.value();
+  absl::StatusOr<jbyteArray> computation_bytes =
+      GetJbyteArrayFromProto(env, computation_proto);
+  return GetValueOrLogError(computation_bytes,
+                            static_cast<jbyteArray>(nullptr));
+}
+
+jbyteArray GC_create_regex_partial_match(JNIEnv* env, jstring pattern_str) {
+  std::string c_pattern_str = GetString(env, pattern_str);
+  absl::string_view pattern_str_view(c_pattern_str);
+
+  absl::StatusOr<v0::Value> regex_partial_match_proto =
+      CreateRegexPartialMatch(pattern_str_view);
+
+  if (!regex_partial_match_proto.ok()) {
+    LOG(ERROR) << "Failed to create regex_partial_match: "
+               << regex_partial_match_proto.status();
+    return nullptr;
+  }
+  const v0::Value computation_proto = regex_partial_match_proto.value();
+  absl::StatusOr<jbyteArray> computation_bytes =
+      GetJbyteArrayFromProto(env, computation_proto);
+  return GetValueOrLogError(computation_bytes,
+                            static_cast<jbyteArray>(nullptr));
+}
+
+jbyteArray GC_create_logical_not(JNIEnv* env) {
+  absl::StatusOr<v0::Value> logical_not_proto = CreateLogicalNot();
+
+  if (!logical_not_proto.ok()) {
+    LOG(ERROR) << "Failed to create logical_not: "
+               << logical_not_proto.status();
+    return nullptr;
+  }
+  const v0::Value computation_proto = logical_not_proto.value();
+  absl::StatusOr<jbyteArray> computation_bytes =
+      GetJbyteArrayFromProto(env, computation_proto);
+  return GetValueOrLogError(computation_bytes,
+                            static_cast<jbyteArray>(nullptr));
+}
+
+jbyteArray GC_create_repeated_conditional_chain(JNIEnv* env, jint num_steps,
+                                                jobject list) {
+  int c_num_steps = (int)num_steps;
+  std::vector<v0::Value> value_list = GetValueVectorFromJavaList(env, list);
+  if (value_list.empty()) {
+    return nullptr;
+  }
+  absl::StatusOr<v0::Value> repeated_conditional_chain_proto =
+      CreateRepeatedConditionalChain(c_num_steps, value_list);
+  if (!repeated_conditional_chain_proto.ok()) {
+    LOG(ERROR) << "Failed to create repeated_conditional_chain proto: "
+               << repeated_conditional_chain_proto.status();
+    return nullptr;
+  }
+  const v0::Value computation_proto = repeated_conditional_chain_proto.value();
+  absl::StatusOr<jbyteArray> computation_bytes =
+      GetJbyteArrayFromProto(env, computation_proto);
+  return GetValueOrLogError(computation_bytes,
+                            static_cast<jbyteArray>(nullptr));
+}
+
+jbyteArray GC_create_breakable_chain(JNIEnv* env, jobject list) {
+  std::vector<v0::Value> value_list = GetValueVectorFromJavaList(env, list);
+  if (value_list.empty()) {
+    return nullptr;
+  }
+  absl::StatusOr<v0::Value> breakable_chain_proto =
+      CreateBreakableChain(value_list);
+  if (!breakable_chain_proto.ok()) {
+    LOG(ERROR) << "Failed to create breakable_chain proto: "
+               << breakable_chain_proto.status();
+    return nullptr;
+  }
+  const v0::Value computation_proto = breakable_chain_proto.value();
+  absl::StatusOr<jbyteArray> computation_bytes =
+      GetJbyteArrayFromProto(env, computation_proto);
+  return GetValueOrLogError(computation_bytes,
+                            static_cast<jbyteArray>(nullptr));
+}
+
+jbyteArray GC_create_logger(JNIEnv* env) {
+  absl::StatusOr<v0::Value> logger_proto = CreateLogger();
+
+  if (!logger_proto.ok()) {
+    LOG(ERROR) << "Failed to create logger: " << logger_proto.status();
+    return nullptr;
+  }
+  const v0::Value computation_proto = logger_proto.value();
+  absl::StatusOr<jbyteArray> computation_bytes =
+      GetJbyteArrayFromProto(env, computation_proto);
+  return GetValueOrLogError(computation_bytes,
+                            static_cast<jbyteArray>(nullptr));
+}
+
+jbyteArray GC_create_selection(JNIEnv* env, jbyteArray source, jint index) {
+  absl::StatusOr<v0::Value> source_proto =
+      ParseProtoFromByteArray<v0::Value>(env, source);
+  if (!source_proto.ok()) {
+    LOG(ERROR) << "Failed to parse source param in create_selection: "
+               << source_proto.status();
+    return nullptr;
+  }
+  int c_index = (int)index;
+
+  absl::StatusOr<v0::Value> selection_proto =
+      CreateSelection(source_proto.value(), c_index);
+
+  if (!selection_proto.ok()) {
+    LOG(ERROR) << "Failed to create selection: " << selection_proto.status();
+    return nullptr;
+  }
+  const v0::Value computation_proto = selection_proto.value();
+  absl::StatusOr<jbyteArray> computation_bytes =
+      GetJbyteArrayFromProto(env, computation_proto);
+  return GetValueOrLogError(computation_bytes,
+                            static_cast<jbyteArray>(nullptr));
+}
+
+jbyteArray GC_create_lambda_for_conditional(JNIEnv* env, jbyteArray condition,
+                                            jbyteArray positive_branch,
+                                            jbyteArray negative_branch) {
+  absl::StatusOr<v0::Value> condition_proto =
+      ParseProtoFromByteArray<v0::Value>(env, condition);
+  absl::StatusOr<v0::Value> positive_branch_proto =
+      ParseProtoFromByteArray<v0::Value>(env, positive_branch);
+  absl::StatusOr<v0::Value> negative_branch_proto =
+      ParseProtoFromByteArray<v0::Value>(env, negative_branch);
+  if (!condition_proto.ok() || !positive_branch_proto.ok() ||
+      !negative_branch_proto.ok()) {
+    LOG(ERROR) << "Failed to parse one or more params in "
+                  "create_lambda_for_conditional: "
+               << condition_proto.status() << " "
+               << positive_branch_proto.status() << " "
+               << negative_branch_proto.status();
+    return nullptr;
+  }
+
+  absl::StatusOr<v0::Value> lambda_for_conditional = CreateLambdaForConditional(
+      condition_proto.value(), positive_branch_proto.value(),
+      negative_branch_proto.value());
+  if (!lambda_for_conditional.ok()) {
+    LOG(ERROR) << "Failed to create lambda_for_conditional proto: "
+               << lambda_for_conditional.status();
+    return nullptr;
+  }
+  const v0::Value computation_proto = lambda_for_conditional.value();
+  absl::StatusOr<jbyteArray> computation_bytes =
+      GetJbyteArrayFromProto(env, computation_proto);
+  return GetValueOrLogError(computation_bytes,
+                            static_cast<jbyteArray>(nullptr));
+}
+
+jbyteArray GC_create_while(JNIEnv* env, jbyteArray condition_fn,
+                           jbyteArray body_fn) {
+  absl::StatusOr<v0::Value> condition_fn_proto =
+      ParseProtoFromByteArray<v0::Value>(env, condition_fn);
+  absl::StatusOr<v0::Value> body_fn_proto =
+      ParseProtoFromByteArray<v0::Value>(env, body_fn);
+  if (!condition_fn_proto.ok() || !body_fn_proto.ok()) {
+    LOG(ERROR) << "Failed to parse one or more params in create_while params: "
+               << condition_fn_proto.status() << " " << body_fn_proto.status();
+    return nullptr;
+  }
+
+  absl::StatusOr<v0::Value> while_proto =
+      CreateWhile(condition_fn_proto.value(), body_fn_proto.value());
+  if (!while_proto.ok()) {
+    LOG(ERROR) << "Failed to create while proto: " << while_proto.status();
+    return nullptr;
+  }
+  const v0::Value computation_proto = while_proto.value();
   absl::StatusOr<jbyteArray> computation_bytes =
       GetJbyteArrayFromProto(env, computation_proto);
   return GetValueOrLogError(computation_bytes,
@@ -445,6 +684,74 @@ extern "C" JNIEXPORT jbyteArray JNICALL
 Java_org_genc_authoring_Constructor_nativeCreateWolframAlpha(  // NOLINT
     JNIEnv* env, jobject obj, jstring app_id) {
   return GC_create_wolfram_alpha(env, app_id);
+}
+
+extern "C" JNIEXPORT jbyteArray JNICALL
+Java_org_genc_authoring_Constructor_nativeCreateRepeat(  // NOLINT
+    JNIEnv* env, jobject obj, jint num_steps, jbyteArray body_fn) {
+  return GC_create_repeat(env, num_steps, body_fn);
+}
+
+extern "C" JNIEXPORT jbyteArray JNICALL
+Java_org_genc_authoring_Constructor_nativeCreateLambda(  // NOLINT
+    JNIEnv* env, jobject obj, jstring arg_name, jbyteArray body) {
+  return GC_create_lambda(env, arg_name, body);
+}
+
+extern "C" JNIEXPORT jbyteArray JNICALL
+Java_org_genc_authoring_Constructor_nativeCreateReference(  // NOLINT
+    JNIEnv* env, jobject obj, jstring arg_name) {
+  return GC_create_reference(env, arg_name);
+}
+
+extern "C" JNIEXPORT jbyteArray JNICALL
+Java_org_genc_authoring_Constructor_nativeCreateRegexPartialMatch(  // NOLINT
+    JNIEnv* env, jobject obj, jstring pattern_str) {
+  return GC_create_regex_partial_match(env, pattern_str);
+}
+
+extern "C" JNIEXPORT jbyteArray JNICALL
+Java_org_genc_authoring_Constructor_nativeCreateLogicalNot(  // NOLINT
+    JNIEnv* env, jobject obj) {
+  return GC_create_logical_not(env);
+}
+
+extern "C" JNIEXPORT jbyteArray JNICALL
+Java_org_genc_authoring_Constructor_nativeCreateRepeatedConditionalChain(  // NOLINT
+    JNIEnv* env, jobject obj, jint num_steps, jobject list) {
+  return GC_create_repeated_conditional_chain(env, num_steps, list);
+}
+
+extern "C" JNIEXPORT jbyteArray JNICALL
+Java_org_genc_authoring_Constructor_nativeCreateBreakableChain(  // NOLINT
+    JNIEnv* env, jobject obj, jobject list) {
+  return GC_create_breakable_chain(env, list);
+}
+
+extern "C" JNIEXPORT jbyteArray JNICALL
+Java_org_genc_authoring_Constructor_nativeCreateLogger(  // NOLINT
+    JNIEnv* env, jobject obj) {
+  return GC_create_logger(env);
+}
+
+extern "C" JNIEXPORT jbyteArray JNICALL
+Java_org_genc_authoring_Constructor_nativeCreateSelection(  // NOLINT
+    JNIEnv* env, jobject obj, jbyteArray source, jint index) {
+  return GC_create_selection(env, source, index);
+}
+
+extern "C" JNIEXPORT jbyteArray JNICALL
+Java_org_genc_authoring_Constructor_nativeCreateLambdaForConditional(  // NOLINT
+    JNIEnv* env, jobject obj, jbyteArray condition, jbyteArray positive_branch,
+    jbyteArray negative_branch) {
+  return GC_create_lambda_for_conditional(env, condition, positive_branch,
+                                          negative_branch);
+}
+
+extern "C" JNIEXPORT jbyteArray JNICALL
+Java_org_genc_authoring_Constructor_nativeCreateWhile(  // NOLINT
+    JNIEnv* env, jobject obj, jbyteArray condition_fn, jbyteArray body_fn) {
+  return GC_create_while(env, condition_fn, body_fn);
 }
 
 }  // namespace genc

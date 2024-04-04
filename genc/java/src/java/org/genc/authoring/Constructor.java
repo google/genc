@@ -203,7 +203,7 @@ public final class Constructor {
     }
   }
 
-  // Constructs a struct from named values
+  // Constructs a struct from named values.
   @Nullable
   public static Value createStruct(List<Value> valueList) {
     try {
@@ -221,6 +221,173 @@ public final class Constructor {
     }
   }
 
+  // Constructs a repeat loop with given number of steps.
+  @Nullable
+  public static Value createRepeat(int numSteps, Value bodyFn) {
+    try {
+      byte[] value = nativeCreateRepeat(numSteps, bodyFn.toByteArray());
+      if (value == null) {
+        return null;
+      }
+      return Value.parseFrom(value, getExtensionRegistry());
+    } catch (InvalidProtocolBufferException e) {
+      return null;
+    }
+  }
+
+  // Constructs a lambda with given argName and body.
+  @Nullable
+  public static Value createLambda(String argName, Value body) {
+    try {
+      byte[] value = nativeCreateLambda(argName, body.toByteArray());
+      if (value == null) {
+        return null;
+      }
+      return Value.parseFrom(value, getExtensionRegistry());
+    } catch (InvalidProtocolBufferException e) {
+      return null;
+    }
+  }
+
+  // Constructs a reference to given argName.
+  @Nullable
+  public static Value createReference(String argName) {
+    try {
+      byte[] value = nativeCreateReference(argName);
+      if (value == null) {
+        return null;
+      }
+      return Value.parseFrom(value, getExtensionRegistry());
+    } catch (InvalidProtocolBufferException e) {
+      return null;
+    }
+  }
+
+  // Constructs a regular expression partial match with the given pattern.
+  @Nullable
+  public static Value createRegexPartialMatch(String patternStr) {
+    try {
+      byte[] value = nativeCreateRegexPartialMatch(patternStr);
+      if (value == null) {
+        return null;
+      }
+      return Value.parseFrom(value, getExtensionRegistry());
+    } catch (InvalidProtocolBufferException e) {
+      return null;
+    }
+  }
+
+  // Constructs a logical not expression.
+  @Nullable
+  public static Value createLogicalNot() {
+    try {
+      byte[] value = nativeCreateLogicalNot();
+      if (value == null) {
+        return null;
+      }
+      return Value.parseFrom(value, getExtensionRegistry());
+    } catch (InvalidProtocolBufferException e) {
+      return null;
+    }
+  }
+
+  // Constructs a repeated conditional chain expression.
+  @Nullable
+  public static Value createRepeatedConditionalChain(int numSteps, List<Value> bodyFns) {
+    try {
+      List<byte[]> serializedValueList = new ArrayList<>();
+      for (Value value : bodyFns) {
+        serializedValueList.add(value.toByteArray());
+      }
+      byte[] value = nativeCreateRepeatedConditionalChain(numSteps, serializedValueList);
+      if (value == null) {
+        return null;
+      }
+      return Value.parseFrom(value, getExtensionRegistry());
+    } catch (InvalidProtocolBufferException e) {
+      return null;
+    }
+  }
+
+  // Constructs a breakable chain expression.
+  @Nullable
+  public static Value createBreakableChain(List<Value> fnsList) {
+    try {
+      List<byte[]> serializedValueList = new ArrayList<>();
+      for (Value value : fnsList) {
+        serializedValueList.add(value.toByteArray());
+      }
+      byte[] value = nativeCreateBreakableChain(serializedValueList);
+      if (value == null) {
+        return null;
+      }
+      return Value.parseFrom(value, getExtensionRegistry());
+    } catch (InvalidProtocolBufferException e) {
+      return null;
+    }
+  }
+
+  // Constructs a logger expression.
+  @Nullable
+  public static Value createLogger() {
+    try {
+      byte[] value = nativeCreateLogger();
+      if (value == null) {
+        return null;
+      }
+      return Value.parseFrom(value, getExtensionRegistry());
+    } catch (InvalidProtocolBufferException e) {
+      return null;
+    }
+  }
+
+  // Constructs a selection expression.
+  @Nullable
+  public static Value createSelection(Value source, int index) {
+    try {
+      byte[] value = nativeCreateSelection(source.toByteArray(), index);
+      if (value == null) {
+        return null;
+      }
+      return Value.parseFrom(value, getExtensionRegistry());
+    } catch (InvalidProtocolBufferException e) {
+      return null;
+    }
+  }
+
+  // Constructs a lambda for conditional.
+  @Nullable
+  public static Value createLambdaForConditional(
+      Value condition, Value positiveBranch, Value negativeBranch) {
+    try {
+      byte[] value =
+          nativeCreateLambdaForConditional(
+              condition.toByteArray(), positiveBranch.toByteArray(), negativeBranch.toByteArray());
+      if (value == null) {
+        return null;
+      }
+      return Value.parseFrom(value, getExtensionRegistry());
+    } catch (InvalidProtocolBufferException e) {
+      return null;
+    }
+  }
+
+  // Constructs a while loop.
+  @Nullable
+  public static Value createWhile(Value conditionFn, Value bodyFn) {
+    try {
+      byte[] value = nativeCreateWhile(conditionFn.toByteArray(), bodyFn.toByteArray());
+      if (value == null) {
+        return null;
+      }
+      return Value.parseFrom(value, getExtensionRegistry());
+    } catch (InvalidProtocolBufferException e) {
+      return null;
+    }
+  }
+
+  // Constructs a model config Value proto with a map of key, value pairs specifying configuration
+  // settings.
   public static Value createModelConfig(Map<String, Object> configMap) {
     Value.Builder modelConfig = Value.newBuilder(ToFromValueProto.toValueProto(configMap));
     modelConfig.setLabel("model_config");
@@ -286,10 +453,18 @@ public final class Constructor {
     return createModelConfig(map);
   }
 
-  public static Value createLlamaModelConfig(String modelPath, int numThreads, int maxTokens) {
+  public static Value createLlamaCppConfig(String modelPath, int numThreads, int maxTokens) {
     ImmutableMap<String, Object> map =
         ImmutableMap.of(
             "model_path", modelPath, "num_threads", numThreads, "max_tokens", maxTokens);
+    return Constructor.createModelConfig(map);
+  }
+
+  public static Value createRestModelConfig(
+      String endpoint, String apiKey, String jsonRequestTemplate) {
+    ImmutableMap<String, Object> map =
+        ImmutableMap.of(
+            "endpoint", endpoint, "api_key", apiKey, "json_request_template", jsonRequestTemplate);
     return Constructor.createModelConfig(map);
   }
 
@@ -318,6 +493,30 @@ public final class Constructor {
   private static native byte[] nativeCreateCall(byte[] fn, byte[] arg);
 
   private static native byte[] nativeCreateWolframAlpha(String appId);
+
+  private static native byte[] nativeCreateRepeat(int numSteps, byte[] bodyFn);
+
+  private static native byte[] nativeCreateLambda(String argName, byte[] body);
+
+  private static native byte[] nativeCreateReference(String argName);
+
+  private static native byte[] nativeCreateRegexPartialMatch(String patternStr);
+
+  private static native byte[] nativeCreateLogicalNot();
+
+  private static native byte[] nativeCreateRepeatedConditionalChain(
+      int numSteps, List<byte[]> bodyFns);
+
+  private static native byte[] nativeCreateBreakableChain(List<byte[]> fnsList);
+
+  private static native byte[] nativeCreateLogger();
+
+  private static native byte[] nativeCreateSelection(byte[] source, int index);
+
+  private static native byte[] nativeCreateLambdaForConditional(
+      byte[] condition, byte[] positiveBranch, byte[] negativeBranch);
+
+  private static native byte[] nativeCreateWhile(byte[] conditionFn, byte[] bodyFn);
 
   private Constructor() {}
 }

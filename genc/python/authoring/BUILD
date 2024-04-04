@@ -34,13 +34,19 @@ py_library(
     visibility = [
         "//genc/python:python_packages",
     ],
-    deps = ["//genc/proto/v0:computation_py_pb2"],
+    deps = [
+        "//genc/proto/v0:computation_py_pb2",
+        "//genc/python/base:to_from_value_proto",
+    ],
 )
 
 py_test(
     name = "constructors_test",
     srcs = ["constructors_test.py"],
-    deps = [":constructors"],
+    deps = [
+        ":constructors",
+        "//genc/python/base:to_from_value_proto",
+    ],
 )
 
 py_library(

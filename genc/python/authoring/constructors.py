@@ -14,6 +14,7 @@
 """Libraries for constructing computations."""
 
 from genc.cc.authoring import constructor_bindings
+from genc.python.base import to_from_value_proto
 
 
 # TODO(b/307573292): deprecate python constructors available via C++ bindings.
@@ -363,3 +364,18 @@ def create_parallel_map(map_fn):
     A computation that represents a parallel map expression.
   """
   return constructor_bindings.create_parallel_map(map_fn)
+
+
+def create_model_config(config_map):
+  """Constructs a model config.
+
+  Args:
+    config_map: A dict[str, Any] representing a map of key, value pairs for
+      configuration settings.
+
+  Returns:
+    A computation that represents model config.
+  """
+  model_config = to_from_value_proto.to_value_proto(config_map)
+  model_config.label = "model_config"
+  return model_config

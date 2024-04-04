@@ -15,6 +15,7 @@
 
 from absl.testing import absltest
 from genc.python.authoring import constructors
+from genc.python.base import to_from_value_proto
 
 
 class ConstructorsTest(absltest.TestCase):
@@ -144,6 +145,13 @@ class ConstructorsTest(absltest.TestCase):
         'x',
         constructors.create_call(model, constructors.create_reference('x')))
     self.assertEqual(str(comp1), str(comp2))
+
+  def test_create_model_config(self):
+    config_map = {'key_1': 'value_1', 'key_2': 100}
+    comp = constructors.create_model_config(config_map=config_map)
+    expected_comp = to_from_value_proto.to_value_proto(config_map)
+    expected_comp.label = 'model_config'
+    self.assertEqual(str(comp), str(expected_comp))
 
 
 if __name__ == '__main__':

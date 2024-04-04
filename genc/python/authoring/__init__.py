@@ -24,6 +24,7 @@ from genc.python.authoring.constructors import create_lambda_from_fn
 from genc.python.authoring.constructors import create_logger
 from genc.python.authoring.constructors import create_logical_not
 from genc.python.authoring.constructors import create_model
+from genc.python.authoring.constructors import create_model_config
 from genc.python.authoring.constructors import create_model_with_config
 from genc.python.authoring.constructors import create_named_value
 from genc.python.authoring.constructors import create_parallel_map

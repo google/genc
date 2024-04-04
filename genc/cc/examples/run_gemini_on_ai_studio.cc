@@ -44,8 +44,22 @@ absl::StatusOr<v0::Value> RunGeminiOnAIStudio(std::string query) {
   std::shared_ptr<Executor> executor = GENC_TRY(CreateDefaultExecutor());
   std::string end_point =
       "https://generativelanguage.googleapis.com/v1beta/models/"
-      "gemini-pro:generateContent?key=";
-  v0::Value model_config = GENC_TRY(CreateRestModelConfig(end_point, api_key));
+      "gemini-pro:generateContent";
+  std::string json_request_template =
+      R"pb(
+      {
+        "contents":[{"role":"user","parts":[{"text":"PROMPT REPLACES THIS"}]}],
+        "safety_settings":[{
+          "category":"HARM_CATEGORY_SEXUALLY_EXPLICIT",
+          "threshold":"BLOCK_LOW_AND_ABOVE"}],
+          "generation_config":{
+          "temperature":0.9, "topP":1.0, "maxOutputTokens":1024}
+      }
+    )pb";
+
+  v0::Value model_config = GENC_TRY(
+      CreateRestModelConfigWithJsonRequestTemplate(
+          end_point, api_key, json_request_template));
   v0::Value model_call =
       GENC_TRY(CreateModelInferenceWithConfig("/cloud/gemini", model_config));
   Runner runner = GENC_TRY(Runner::Create(executor));

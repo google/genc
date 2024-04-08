@@ -22,7 +22,6 @@ py_library(
     ],
     deps = [
         "//genc/proto/v0:computation_py_pb2",
-        "//genc/proto/v0:executor_py_pb2",
         "//genc/python/base:to_from_value_proto",
     ],
 )

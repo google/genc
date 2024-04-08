@@ -16,6 +16,72 @@ package genc.v0;
 
 import "genc/proto/v0/computation.proto";
 
-option java_outer_classname = "ExecutorProto";
-option java_multiple_files = true;
-option java_package = "org.genc";
+// Remote executor endpoint (the service counterpart of `executor.h`).
+service Executor {
+  // Maps to `CreateValue` in `executor.h`.
+  rpc CreateValue(CreateValueRequest) returns (CreateValueResponse) {}
+  // Maps to `CreateCall` in `executor.h`.
+  rpc CreateCall(CreateCallRequest) returns (CreateCallResponse) {}
+  // Maps to `CreateStruct` in `executor.h`.
+  rpc CreateStruct(CreateStructRequest) returns (CreateStructResponse) {}
+  // Maps to `CreateSelection` in `executor.h`.
+  rpc CreateSelection(CreateSelectionRequest)
+      returns (CreateSelectionResponse) {}
+  // Maps to `Materialize` in `executor.h`.
+  rpc Materialize(MaterializeRequest) returns (MaterializeResponse) {}
+  // Maps to `Dispose` in `executor.h`.
+  rpc Dispose(DisposeRequest) returns (DisposeResponse) {}
+}
+
+message CreateValueRequest {
+  Value value = 1;
+}
+
+message CreateValueResponse {
+  ValueRef value_ref = 1;
+}
+
+// A reference to a value that lives in the executor.
+message ValueRef {
+  string id = 1;
+}
+
+message CreateCallRequest {
+  ValueRef function_ref = 1;
+  ValueRef argument_ref = 2;
+}
+
+message CreateCallResponse {
+  ValueRef result_ref = 1;
+}
+
+message CreateStructRequest {
+  repeated ValueRef element_ref = 1;
+}
+
+message CreateStructResponse {
+  ValueRef struct_ref = 1;
+}
+
+message CreateSelectionRequest {
+  ValueRef source_ref = 1;
+  int32 index = 3;
+}
+
+message CreateSelectionResponse {
+  ValueRef selection_ref = 1;
+}
+
+message MaterializeRequest {
+  ValueRef value_ref = 1;
+}
+
+message MaterializeResponse {
+  Value value = 1;
+}
+
+message DisposeRequest {
+  repeated ValueRef value_ref = 1;
+}
+
+message DisposeResponse {}

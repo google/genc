@@ -12,7 +12,7 @@ git_repository(
 git_repository(
     name = "com_google_protobuf",
     remote = "https://github.com/protocolbuffers/protobuf.git",
-    tag = "v3.21.9",
+    tag = "v26.1",
 )
 
 git_repository(
@@ -37,7 +37,7 @@ git_repository(
 git_repository(
     name = "rules_python",
     remote = "https://github.com/bazelbuild/rules_python.git",
-    tag = "0.5.0",
+    tag = "0.31.0",
 )
 
 http_archive(
@@ -52,12 +52,16 @@ http_archive(
 git_repository(
     name = "com_github_grpc_grpc",
     remote = "https://github.com/grpc/grpc.git",
-    tag = "v1.43.0",
+    tag = "v1.62.1",
 )
 
 load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
 
 grpc_deps()
+
+load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
+
+grpc_extra_deps()
 
 git_repository(
     name = "com_google_googletest",
@@ -65,11 +69,10 @@ git_repository(
     tag = "release-1.11.0",
 )
 
-http_archive(
+git_repository(
     name = "com_google_absl",
-    sha256 = "3ea49a7d97421b88a8c48a0de16c16048e17725c7ec0f1d3ea2683a2a75adc21",
-    strip_prefix = "abseil-cpp-20230125.0",
-    url = "https://github.com/abseil/abseil-cpp/archive/refs/tags/20230125.0.tar.gz",
+    commit = "66665d8d2e3fedff340b83f9841ca427145a7b26",
+    remote = "https://github.com/abseil/abseil-cpp.git",
 )
 
 http_archive(
@@ -86,7 +89,6 @@ http_archive(
   strip_prefix = "curl-8.4.0",
   build_file = "//bazel:curl.BUILD",
 )
-
 
 new_git_repository(
     name = "pybind11",
@@ -105,9 +107,16 @@ git_repository(
     remote = "https://github.com/pybind/pybind11_abseil.git",
 )
 
+load("@com_google_protobuf//bazel:system_python.bzl", "system_python")
+
+system_python(
+    name = "system_python",
+    minimum_python_version = "3.7",
+)
+
 git_repository(
     name = "pybind11_protobuf",
-    commit = "80f3440cd8fee124e077e2e47a8a17b78b451363",
+    branch = "main",
     remote = "https://github.com/pybind/pybind11_protobuf.git",
 )
 
@@ -233,15 +242,8 @@ http_archive(
 )
 
 load("@robolectric//bazel:robolectric.bzl", "robolectric_repositories")
-robolectric_repositories()
 
-load("@rules_python//python:pip.bzl","pip_parse")
-pip_parse(
-    name = "notebooks",
-    requirements_lock = "//genc/docs/tutorials/jupyter_setup:requirements.txt",
-)
-load("@notebooks//:requirements.bzl", "install_deps")
-install_deps()
+robolectric_repositories()
 
 http_archive(
   name = "llama_cpp",
@@ -251,8 +253,6 @@ http_archive(
   patches = ["//bazel:llama_cpp.PATCH"],
   patch_args = ["-p1"],
 )
-
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "fmeum_rules_jni",
@@ -264,3 +264,36 @@ http_archive(
 load("@fmeum_rules_jni//jni:repositories.bzl", "rules_jni_dependencies")
 
 rules_jni_dependencies()
+
+http_archive(
+    name = "build_bazel_rules_swift",
+    sha256 = "bf2861de6bf75115288468f340b0c4609cc99cc1ccc7668f0f71adfd853eedb3",
+    url = "https://github.com/bazelbuild/rules_swift/releases/download/1.7.1/rules_swift.1.7.1.tar.gz",
+)
+
+http_archive(
+    name = "com_google_googleapis",
+    sha256 = "38701e513aff81c89f0f727e925bf04ac4883913d03a60cdebb2c2a5f10beb40",
+    strip_prefix = "googleapis-86fa44cc5ee2136e87c312f153113d4dd8e9c4de",
+    urls = [
+        "https://github.com/googleapis/googleapis/archive/86fa44cc5ee2136e87c312f153113d4dd8e9c4de.tar.gz",
+    ],
+)
+
+load("@com_google_googleapis//:repository_rules.bzl", "switched_rules_by_language")
+
+switched_rules_by_language(
+    name = "com_google_googleapis_imports",
+    cc = True,
+    grpc = True,
+    python = True,
+)
+
+http_archive(
+    name = "platforms",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.6/platforms-0.0.6.tar.gz",
+        "https://github.com/bazelbuild/platforms/releases/download/0.0.6/platforms-0.0.6.tar.gz",
+    ],
+    sha256 = "5308fc1d8865406a49427ba24a9ab53087f17f5266a7aabbfc28823f3916e1ca",
+)

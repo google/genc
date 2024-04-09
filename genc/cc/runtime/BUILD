@@ -231,3 +231,24 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_library(
+    name = "executor_service",
+    srcs = ["executor_service.cc"],
+    hdrs = ["executor_service.h"],
+    target_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+    ],
+    deps = [
+        ":executor",
+        ":status_macros",
+        "//genc/proto/v0:computation_cc_proto",
+        "//genc/proto/v0:executor_cc_grpc_proto",
+        "//genc/proto/v0:executor_cc_proto",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+    ],
+)

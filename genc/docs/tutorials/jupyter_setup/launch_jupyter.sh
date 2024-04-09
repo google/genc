@@ -20,6 +20,4 @@
 
 apt install jupyter-notebook
 
-pip install -r docs/tutorials/jupyter_setup/pip_jupyter.txt
-
 bazel run docs/tutorials/jupyter_setup:jupyter

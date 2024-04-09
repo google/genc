@@ -1,10 +1,4 @@
-load("@notebooks//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary")
-
-alias(
-    name = "jupyter_core",
-    actual = requirement("jupyter_core"),
-)
 
 py_binary(
     name = "jupyter",
@@ -25,8 +19,6 @@ py_binary(
         "//genc/python:python_packages",
     ],
     deps = [
-        requirement("notebook"),
-        ":jupyter_core",
         "//genc/proto/v0:computation_py_pb2",
         "//genc/python/authoring",
         "//genc/python/base",

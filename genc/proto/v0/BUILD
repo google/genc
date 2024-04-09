@@ -1,3 +1,4 @@
+load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
 load("@com_github_grpc_grpc//bazel:python_rules.bzl", "py_proto_library")
 load("@rules_cc//cc:defs.bzl", "cc_proto_library")
 
@@ -42,4 +43,11 @@ proto_library(
 cc_proto_library(
     name = "executor_cc_proto",
     deps = [":executor_proto"],
+)
+
+cc_grpc_library(
+    name = "executor_cc_grpc_proto",
+    srcs = [":executor_proto"],
+    grpc_only = True,
+    deps = [":executor_cc_proto"],
 )

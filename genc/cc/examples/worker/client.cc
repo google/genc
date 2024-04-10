@@ -13,7 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
+#include <fstream>
 #include <iostream>
+#include <iterator>
 #include <memory>
 #include <string>
 
@@ -37,14 +39,51 @@ limitations under the License
 //     --server=<address> --ir=<ir_file> --prompt=<prompt_string>
 
 ABSL_FLAG(std::string, server, "", "The address of the worker server.");
+ABSL_FLAG(bool, ssl, false, "Whether to use SSL for communication.");
+ABSL_FLAG(std::string, cert, "", "The path to the root cert.");
+ABSL_FLAG(std::string, target_override, "", "The expected target name.");
 
 namespace genc {
+namespace {
+std::string ReadFile(std::string filename) {
+  std::ifstream file {filename};
+  std::string content {
+    std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>()};
+  return content;
+}
+}  // namespace
 
-absl::Status RunClient(std::string server_address) {
-  std::shared_ptr<grpc::ChannelCredentials> creds =
-      grpc::InsecureChannelCredentials();
-  std::shared_ptr<grpc::Channel> channel =
-      grpc::CreateChannel(server_address, creds);
+std::string CreateServerAddress() {
+  return absl::GetFlag(FLAGS_server);
+}
+
+std::shared_ptr<grpc::ChannelCredentials> CreateChannelCredentials() {
+  if (absl::GetFlag(FLAGS_ssl)) {
+    grpc::SslCredentialsOptions options;
+    std::string cert = absl::GetFlag(FLAGS_cert);
+    if (!cert.empty()) {
+      options.pem_root_certs = ReadFile(cert);
+    }
+    return grpc::SslCredentials(options);
+  } else {
+    return grpc::InsecureChannelCredentials();
+  }
+}
+
+std::shared_ptr<grpc::Channel> CreateChannel() {
+  std::string server_address = CreateServerAddress();
+  std::shared_ptr<grpc::ChannelCredentials> creds = CreateChannelCredentials();
+  std::string target_override = absl::GetFlag(FLAGS_target_override);
+  if (!target_override.empty()) {
+    grpc::ChannelArguments args;
+    args.SetSslTargetNameOverride(target_override);
+    return grpc::CreateCustomChannel(server_address, creds, args);
+  }
+  return grpc::CreateChannel(server_address, creds);
+}
+
+absl::Status RunClient() {
+  std::shared_ptr<grpc::Channel> channel = CreateChannel();
   std::unique_ptr<v0::Executor::StubInterface> executor_stub(
       v0::Executor::NewStub(channel));
   v0::CreateValueRequest request;
@@ -52,18 +91,19 @@ absl::Status RunClient(std::string server_address) {
   grpc::ClientContext client_context;
   grpc::Status status =
       executor_stub->CreateValue(&client_context, request, &response);
-  if (!status.ok()) {
+  if (status.ok()) {
+    std::cout << "Client returned: " << response.DebugString() << "\n";
+    return absl::OkStatus();
+  } else {
     return absl::InternalError(status.error_message());
   }
-  return absl::OkStatus();
 }
 
 }  // namespace genc
 
 int main(int argc, char* argv[]) {
   absl::ParseCommandLine(argc, argv);
-  absl::Status status = genc::RunClient(
-      absl::GetFlag(FLAGS_server));
+  absl::Status status = genc::RunClient();
   if (!status.ok()) {
     std::cout << "Client failed with status: " << status << "\n";
   }

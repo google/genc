@@ -13,7 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
+#include <fstream>
 #include <iostream>
+#include <iterator>
 #include <memory>
 #include <string>
 
@@ -35,15 +37,50 @@ limitations under the License
 //
 // Example usage:
 //   bazel run genc/cc/examples/worker:server -- --port=<port>
+//
+// For secure communication using SSL/TLS, you need to additionally pass the
+// private key and certificate. You can generate a self-signed certificate
+// for testing, e.g., using the `openssl` tool, as follows:
+//   openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem \
+//     -sha256 -days 3650 -nodes
+// Assuming you ran the above in the `/tmp` directory, and the key and cert
+// are there, you can then start the server on port 10000 as follows:
+//   bazel run genc/cc/examples/worker:server -- \
+//     --port=10000 --cert=/tmp/cert.pem --key=/tmp/key.pem
 
 ABSL_FLAG(int, port, 0, "The port to listed on.");
+ABSL_FLAG(std::string, key, "", "Path to the private key for SSL/TLS.");
+ABSL_FLAG(std::string, cert, "", "Path to the certificate for SSL/TLS.");
 
 namespace genc {
+namespace {
+std::string ReadFile(std::string filename) {
+  std::ifstream file {filename};
+  std::string content {
+    std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>()};
+  return content;
+}
+}  // namespace
 
-absl::Status RunServer(int port) {
-  std::string server_address = absl::StrCat("[::]:", port);
-  std::shared_ptr<grpc::ServerCredentials> creds =
-      grpc::InsecureServerCredentials();
+std::string CreateServerAddress() {
+  return absl::StrCat("[::]:", absl::GetFlag(FLAGS_port));
+}
+
+std::shared_ptr<grpc::ServerCredentials> CreateServerCredentials() {
+  std::string key = absl::GetFlag(FLAGS_key);
+  if (key.empty()) {
+    return grpc::InsecureServerCredentials();
+  }
+  std::string cert = absl::GetFlag(FLAGS_cert);
+  grpc::SslServerCredentialsOptions options;
+  options.pem_key_cert_pairs.push_back({ReadFile(key), ReadFile(cert)});
+  options.pem_root_certs = ReadFile(cert);
+  return grpc::SslServerCredentials(options);
+}
+
+absl::Status RunServer() {
+  std::string server_address = CreateServerAddress();
+  std::shared_ptr<grpc::ServerCredentials> creds = CreateServerCredentials();
   std::shared_ptr<v0::Executor::Service> service =
       GENC_TRY(CreateExecutorService());
   grpc::ServerBuilder builder;
@@ -59,8 +96,7 @@ absl::Status RunServer(int port) {
 
 int main(int argc, char* argv[]) {
   absl::ParseCommandLine(argc, argv);
-  absl::Status status = genc::RunServer(
-      absl::GetFlag(FLAGS_port));
+  absl::Status status = genc::RunServer();
   if (!status.ok()) {
     std::cout << "Server failed with status: " << status << "\n";
   }

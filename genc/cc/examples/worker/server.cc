@@ -31,6 +31,8 @@ limitations under the License
 
 // An example worker binary that hosts a gRPC service endpoint.
 //
+// NOTE: This server has not been fully implemented yet.
+//
 // Example usage:
 //   bazel run genc/cc/examples/worker:server -- --port=<port>
 

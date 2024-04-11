@@ -25,6 +25,7 @@ limitations under the License
 #include "llama.h"
 
 namespace genc {
+
 class LlamaCpp {
  public:
   LlamaCpp() = default;
@@ -54,6 +55,13 @@ class LlamaCpp {
   struct llama_context* context_;
   int max_tokens_;
 };
+
+absl::StatusOr<v0::Value> CallLlamaCpp(
+    const v0::Value& config, const v0::Value& arg);
+
+std::function<absl::StatusOr<v0::Value>(v0::Intrinsic, v0::Value)>
+GetLlamaCppInferenceFn();
+
 }  // namespace genc
 
 #endif  // GENC_GOOGLE_CC_INTEROP_BACKENDS_LLAMACPP_H_

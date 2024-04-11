@@ -17,13 +17,20 @@ limitations under the License
 #include <string>
 #include <vector>
 
+#include "absl/base/thread_annotations.h"
 #include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_join.h"
+#include "absl/synchronization/mutex.h"
 #include "genc/cc/intrinsics/model_inference.h"
 #include "genc/proto/v0/computation.pb.h"
 #include "llama.h"
+
+namespace genc {
+ABSL_CONST_INIT absl::Mutex client_mutex(absl::kConstInit);
+ABSL_CONST_INIT LlamaCpp* shared_client ABSL_GUARDED_BY(mutex) = nullptr;
+}  // namespace genc
 
 namespace {
 constexpr int kMaxTokenLength = 32;  // Max token length in characters.
@@ -58,6 +65,7 @@ absl::StatusOr<int> getIntParam(const genc::v0::Value& param) {
   }
 }
 }  // namespace
+
 namespace genc {
 
 absl::Status LlamaCpp::InitModel(absl::string_view model_path,
@@ -239,4 +247,28 @@ absl::Status LlamaCpp::SetInferenceMap(
   };
   return absl::OkStatus();
 }
+
+absl::StatusOr<v0::Value> CallLlamaCpp(
+    const v0::Value& config, const v0::Value& arg) {
+  absl::MutexLock l(&client_mutex);
+  if (!shared_client) {
+    shared_client = new LlamaCpp();
+  }
+  if (!shared_client->is_initialized()) {
+    absl::Status status = shared_client->InitModel(config);
+    if (!status.ok()) {
+      return status;
+    }
+  }
+  return shared_client->LlamaCppCall(arg);
+}
+
+std::function<absl::StatusOr<v0::Value>(v0::Intrinsic, v0::Value)>
+GetLlamaCppInferenceFn() {
+  return [](v0::Intrinsic intrinsic, v0::Value arg) ->
+      absl::StatusOr<v0::Value> {
+    return CallLlamaCpp(intrinsic.static_parameter().struct_().element(1), arg);
+  };
+}
+
 }  // namespace genc

@@ -19,11 +19,13 @@ limitations under the License
 #include <memory>
 
 #include "absl/status/statusor.h"
+#include "genc/cc/runtime/executor.h"
 #include "genc/proto/v0/executor.grpc.pb.h"
 
 namespace genc {
 
-absl::StatusOr<std::shared_ptr<v0::Executor::Service>> CreateExecutorService();
+absl::StatusOr<std::shared_ptr<v0::Executor::Service>> CreateExecutorService(
+     std::shared_ptr<Executor> executor);
 
 }  // namespace genc
 

@@ -177,15 +177,16 @@ cc_library(
     name = "prompt_template",
     srcs = ["prompt_template.cc"],
     hdrs = ["prompt_template.h"],
+    copts = ["-std=c++17"],
     deps = [
         ":intrinsic_uris",
         "//genc/cc/runtime:intrinsic_handler",
         "//genc/proto/v0:computation_cc_proto",
-        "@com_github_google_re2//:re2",
         "@com_google_absl//absl/container:flat_hash_set",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:str_format",
+        "@com_googlesource_code_re2//:re2",
     ],
 )
 
@@ -197,9 +198,9 @@ cc_library(
         ":intrinsic_uris",
         "//genc/cc/runtime:intrinsic_handler",
         "//genc/proto/v0:computation_cc_proto",
-        "@com_github_google_re2//:re2",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
+        "@com_googlesource_code_re2//:re2",
     ],
 )
 

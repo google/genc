@@ -18,10 +18,16 @@ limitations under the License
 #include <iterator>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "genc/cc/runtime/executor.h"
+#include "genc/cc/runtime/remote_executor.h"
+#include "genc/cc/runtime/runner.h"
+#include "genc/cc/runtime/status_macros.h"
 #include "genc/proto/v0/executor.grpc.pb.h"
 #include "genc/proto/v0/executor.pb.h"
 #include "include/grpcpp/channel.h"
@@ -29,6 +35,7 @@ limitations under the License
 #include "include/grpcpp/create_channel.h"
 #include "include/grpcpp/security/credentials.h"
 #include "include/grpcpp/support/status.h"
+#include "google/protobuf/text_format.h"
 
 // An example worker client that interacts with a worker server over gRPC.
 //
@@ -36,9 +43,14 @@ limitations under the License
 //
 // Example usage:
 //   bazel run genc/cc/examples/worker:client -- \
-//     --server=<address> --ir=<ir_file> --prompt=<prompt_string>
+//     --server=<address> --ir=<ir_ascii_string> --prompt=<prompt_string>
+//
+// For a secure gRPC connection over SSL/TLS, you can additionally specify:
+//   --ssl --cert=<path-to-cert> --target_override=<expected-target-name>
 
 ABSL_FLAG(std::string, server, "", "The address of the worker server.");
+ABSL_FLAG(std::string, ir, "", "The IR string in the ASCII form.");
+ABSL_FLAG(std::string, prompt, "", "The prompt string.");
 ABSL_FLAG(bool, ssl, false, "Whether to use SSL for communication.");
 ABSL_FLAG(std::string, cert, "", "The path to the root cert.");
 ABSL_FLAG(std::string, target_override, "", "The expected target name.");
@@ -82,21 +94,40 @@ std::shared_ptr<grpc::Channel> CreateChannel() {
   return grpc::CreateChannel(server_address, creds);
 }
 
+absl::StatusOr<v0::Value> CreateFn() {
+  std::string ir_ascii_string = absl::GetFlag(FLAGS_ir);
+  if (ir_ascii_string.empty()) {
+    return absl::InvalidArgumentError("IR is required.");
+  }
+  v0::Value value;
+  if (!::google::protobuf::TextFormat::ParseFromString(ir_ascii_string, &value)) {
+    return absl::InvalidArgumentError("Could not parse the IR.");
+  }
+  return value;
+}
+
+absl::StatusOr<v0::Value> CreateArg() {
+  std::string prompt_string = absl::GetFlag(FLAGS_prompt);
+  if (prompt_string.empty()) {
+    return absl::InvalidArgumentError("Prompt is required.");
+  }
+  v0::Value value;
+  value.set_str(prompt_string);
+  return value;
+}
+
 absl::Status RunClient() {
+  v0::Value func = GENC_TRY(CreateFn());
+  v0::Value arg = GENC_TRY(CreateArg());
   std::shared_ptr<grpc::Channel> channel = CreateChannel();
   std::unique_ptr<v0::Executor::StubInterface> executor_stub(
       v0::Executor::NewStub(channel));
-  v0::CreateValueRequest request;
-  v0::CreateValueResponse response;
-  grpc::ClientContext client_context;
-  grpc::Status status =
-      executor_stub->CreateValue(&client_context, request, &response);
-  if (status.ok()) {
-    std::cout << "Client returned: " << response.DebugString() << "\n";
-    return absl::OkStatus();
-  } else {
-    return absl::InternalError(status.error_message());
-  }
+  std::shared_ptr<Executor> executor =
+      GENC_TRY(CreateRemoteExecutor(std::move(executor_stub)));
+  Runner runner = GENC_TRY(Runner::Create(func, executor));
+  v0::Value result = GENC_TRY(runner.Run(arg));
+  std::cout << "\n" << result.DebugString() << "\n\n";
+  return absl::OkStatus();
 }
 
 }  // namespace genc

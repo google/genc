@@ -24,19 +24,15 @@ limitations under the License
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
-#include "genc/cc/intrinsics/model_inference_with_config.h"
-#include "genc/cc/runtime/control_flow_executor.h"
+#include "genc/cc/examples/executors/executor_stacks.h"
 #include "genc/cc/runtime/executor.h"
 #include "genc/cc/runtime/executor_service.h"
-#include "genc/cc/runtime/inline_executor.h"
-#include "genc/cc/runtime/intrinsic_handler.h"
 #include "genc/cc/runtime/status_macros.h"
 #include "genc/proto/v0/executor.grpc.pb.h"
 #include "genc/proto/v0/executor.pb.h"
 #include "include/grpcpp/security/server_credentials.h"
 #include "include/grpcpp/server.h"
 #include "include/grpcpp/server_builder.h"
-#include "genc/cc/interop/backends/llamacpp.h"
 
 // An example worker binary that hosts a gRPC service endpoint.
 //
@@ -86,13 +82,7 @@ std::shared_ptr<grpc::ServerCredentials> CreateServerCredentials() {
 }
 
 absl::StatusOr<std::shared_ptr<Executor>> CreateExecutor() {
-  std::shared_ptr<IntrinsicHandlerSet> handlers =
-      std::make_shared<IntrinsicHandlerSet>();
-  intrinsics::ModelInferenceWithConfig::InferenceMap inference_map;
-  inference_map["/gemma"] = GetLlamaCppInferenceFn();
-  handlers->AddHandler(new intrinsics::ModelInferenceWithConfig(inference_map));
-  return CreateControlFlowExecutor(
-      handlers, GENC_TRY(CreateInlineExecutor(handlers)));
+  return CreateDefaultExecutor();
 }
 
 absl::Status RunServer() {

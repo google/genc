@@ -16,10 +16,10 @@ cc_library(
     deps = [
         "//genc/cc/intrinsics:custom_function",
         "//genc/proto/v0:computation_cc_proto",
-        "@com_github_google_re2//:re2",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings:str_format",
+        "@com_googlesource_code_re2//:re2",
     ],
 )
 

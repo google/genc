@@ -6,26 +6,7 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 git_repository(
     name = "bazel_skylib",
     remote = "https://github.com/bazelbuild/bazel-skylib.git",
-    tag = "1.3.0",
-)
-
-git_repository(
-    name = "com_google_protobuf",
-    remote = "https://github.com/protocolbuffers/protobuf.git",
-    tag = "v26.1",
-)
-
-git_repository(
-    name = "pantor_inja",
-    remote = "https://github.com/pantor/inja.git",
-    tag = "v3.4.0",
-    build_file = "//bazel:inja.BUILD",
-)
-
-git_repository(
-    name = "nlohmann_json",
-    remote = "https://github.com/nlohmann/json.git",
-    tag = "v3.11.3",
+    tag = "1.5.0",
 )
 
 git_repository(
@@ -35,18 +16,62 @@ git_repository(
 )
 
 git_repository(
+    name = "rules_cc",
+    remote = "https://github.com/bazelbuild/rules_cc.git",
+    tag = "0.0.9",
+)
+
+git_repository(
+    name = "rules_foreign_cc",
+    remote = "https://github.com/bazelbuild/rules_foreign_cc.git",
+    tag = "0.10.1",
+)
+
+git_repository(
     name = "rules_python",
     remote = "https://github.com/bazelbuild/rules_python.git",
     tag = "0.31.0",
 )
 
-http_archive(
+git_repository(
     name = "rules_pkg",
-    sha256 = "8a298e832762eda1830597d64fe7db58178aa84cd5926d76d5b744d6558941c2",
-    urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_pkg/releases/download/0.7.0/rules_pkg-0.7.0.tar.gz",
-        "https://github.com/bazelbuild/rules_pkg/releases/download/0.7.0/rules_pkg-0.7.0.tar.gz",
-    ],
+    remote = "https://github.com/bazelbuild/rules_pkg.git",
+    tag = "0.10.1",
+)
+
+git_repository(
+    name = "platforms",
+    remote = "https://github.com/bazelbuild/platforms.git",
+    tag = "0.0.9",
+)
+
+git_repository(
+    name = "build_bazel_rules_swift",
+    remote = "https://github.com/bazelbuild/rules_swift.git",
+    tag = "1.18.0",
+)
+
+git_repository(
+    name = "com_google_absl",
+    tag = "20240116.2",
+    remote = "https://github.com/abseil/abseil-cpp.git",
+)
+
+load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
+
+rules_foreign_cc_dependencies()
+
+git_repository(
+    name = "com_googlesource_code_re2",
+    remote = "https://github.com/google/re2.git",
+    tag = "2024-04-01",
+    repo_mapping = {"@abseil-cpp": "@com_google_absl"},
+)
+
+git_repository(
+    name = "com_google_protobuf",
+    remote = "https://github.com/protocolbuffers/protobuf.git",
+    tag = "v26.1",
 )
 
 git_repository(
@@ -67,12 +92,6 @@ git_repository(
     name = "com_google_googletest",
     remote = "https://github.com/google/googletest.git",
     tag = "release-1.11.0",
-)
-
-git_repository(
-    name = "com_google_absl",
-    commit = "66665d8d2e3fedff340b83f9841ca427145a7b26",
-    remote = "https://github.com/abseil/abseil-cpp.git",
 )
 
 http_archive(
@@ -121,16 +140,6 @@ git_repository(
 )
 
 http_archive(
-    name = "com_github_google_re2",
-    sha256 = "8b4a8175da7205df2ad02e405a950a02eaa3e3e0840947cd598e92dca453199b",
-    strip_prefix = "re2-2023-06-01",
-    urls = [
-        "https://github.com/google/re2/archive/refs/tags/2023-06-01.tar.gz",
-        "https://storage.googleapis.com/mirror.tensorflow.org/github.com/google/re2/archive/refs/tags/2023-06-01.tar.gz",
-    ],
-)
-
-http_archive(
     name = "rules_jvm_external",
     sha256 = "cd1a77b7b02e8e008439ca76fd34f5b07aecb8c752961f9640dea15e9e5ba1ca",
     strip_prefix = "rules_jvm_external-4.2",
@@ -173,24 +182,6 @@ maven_install(
         "https://repo1.maven.org/maven2",
     ],
 )
-
-http_archive(
-    name = "rules_cc",
-    sha256 = "691a29db9c336349e48e04c5c2f4873f2890af5cbfa6e51f4de87fefe6169294",
-    strip_prefix = "rules_cc-2f8c04c04462ab83c545ab14c0da68c3b4c96191",
-    urls = ["https://github.com/bazelbuild/rules_cc/archive/2f8c04c04462ab83c545ab14c0da68c3b4c96191.zip"],
-)
-
-http_archive(
-    name = "rules_foreign_cc",
-    sha256 = "c2cdcf55ffaf49366725639e45dedd449b8c3fe22b54e31625eb80ce3a240f1e",
-    strip_prefix = "rules_foreign_cc-0.1.0",
-    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.1.0.zip",
-)
-
-load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
-
-rules_foreign_cc_dependencies()
 
 # Edge TPU
 http_archive(
@@ -266,12 +257,6 @@ load("@fmeum_rules_jni//jni:repositories.bzl", "rules_jni_dependencies")
 rules_jni_dependencies()
 
 http_archive(
-    name = "build_bazel_rules_swift",
-    sha256 = "bf2861de6bf75115288468f340b0c4609cc99cc1ccc7668f0f71adfd853eedb3",
-    url = "https://github.com/bazelbuild/rules_swift/releases/download/1.7.1/rules_swift.1.7.1.tar.gz",
-)
-
-http_archive(
     name = "com_google_googleapis",
     sha256 = "38701e513aff81c89f0f727e925bf04ac4883913d03a60cdebb2c2a5f10beb40",
     strip_prefix = "googleapis-86fa44cc5ee2136e87c312f153113d4dd8e9c4de",
@@ -289,11 +274,16 @@ switched_rules_by_language(
     python = True,
 )
 
-http_archive(
-    name = "platforms",
-    urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.6/platforms-0.0.6.tar.gz",
-        "https://github.com/bazelbuild/platforms/releases/download/0.0.6/platforms-0.0.6.tar.gz",
-    ],
-    sha256 = "5308fc1d8865406a49427ba24a9ab53087f17f5266a7aabbfc28823f3916e1ca",
+git_repository(
+    name = "pantor_inja",
+    remote = "https://github.com/pantor/inja.git",
+    tag = "v3.4.0",
+    build_file = "//bazel:inja.BUILD",
 )
+
+git_repository(
+    name = "nlohmann_json",
+    remote = "https://github.com/nlohmann/json.git",
+    tag = "v3.11.3",
+)
+

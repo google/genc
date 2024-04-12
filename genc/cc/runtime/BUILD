@@ -180,6 +180,24 @@ cc_library(
 )
 
 cc_library(
+    name = "remote_executor",
+    srcs = ["remote_executor.cc"],
+    hdrs = ["remote_executor.h"],
+    deps = [
+        ":executor",
+        ":status_macros",
+        ":threading",
+        "//genc/proto/v0:computation_cc_proto",
+        "//genc/proto/v0:executor_cc_grpc_proto",
+        "//genc/proto/v0:executor_cc_proto",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_library(
     name = "status_macros",
     hdrs = ["status_macros.h"],
     deps = [

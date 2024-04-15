@@ -34,6 +34,12 @@ git_repository(
 )
 
 git_repository(
+    name = "rules_rust",
+    remote = "https://github.com/bazelbuild/rules_rust.git",
+    tag = "0.42.1",
+)
+
+git_repository(
     name = "rules_pkg",
     remote = "https://github.com/bazelbuild/rules_pkg.git",
     tag = "0.10.1",
@@ -287,3 +293,14 @@ git_repository(
     tag = "v3.11.3",
 )
 
+git_repository(
+    name = "io_grpc_grpc_java",
+    remote = "https://github.com/grpc/grpc-java.git",
+    tag = "v1.63.0",
+)
+
+git_repository(
+    name = "oak",
+    remote = "https://github.com/project-oak/oak.git",
+    branch = "main",
+)

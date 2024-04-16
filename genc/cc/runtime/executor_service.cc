@@ -25,6 +25,7 @@ limitations under the License
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_cat.h"
+#include "genc/cc/base/to_from_grpc_status.h"
 #include "genc/cc/runtime/executor.h"
 #include "genc/proto/v0/executor.grpc.pb.h"
 #include "genc/proto/v0/executor.pb.h"
@@ -33,15 +34,6 @@ limitations under the License
 
 namespace genc {
 namespace {
-
-grpc::Status AbslToGrpcStatus(absl::Status status) {
-  if (status.ok()) {
-    return grpc::Status::OK;
-  } else {
-    return grpc::Status(static_cast<grpc::StatusCode>(status.code()),
-                        std::string(status.message()));
-  }
-}
 
 v0::ValueRef ValueIdToRef(ValueId id) {
   v0::ValueRef value_ref;

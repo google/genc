@@ -23,6 +23,7 @@ limitations under the License
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "genc/cc/base/read_file.h"
+#include "genc/cc/interop/oak/client.h"
 #include "genc/cc/runtime/executor.h"
 #include "genc/cc/runtime/remote_executor.h"
 #include "genc/cc/runtime/runner.h"
@@ -50,6 +51,7 @@ limitations under the License
 ABSL_FLAG(std::string, server, "", "The address of the worker server.");
 ABSL_FLAG(std::string, ir, "", "The IR string in the ASCII form.");
 ABSL_FLAG(std::string, prompt, "", "The prompt string.");
+ABSL_FLAG(bool, oak, false, "Whether to use project Oak for communication.");
 ABSL_FLAG(bool, ssl, false, "Whether to use SSL for communication.");
 ABSL_FLAG(std::string, cert, "", "The path to the root cert.");
 ABSL_FLAG(std::string, target_override, "", "The expected target name.");
@@ -111,8 +113,12 @@ absl::Status RunClient() {
   v0::Value func = GENC_TRY(CreateFn());
   v0::Value arg = GENC_TRY(CreateArg());
   std::shared_ptr<grpc::Channel> channel = CreateChannel();
-  std::unique_ptr<v0::Executor::StubInterface> executor_stub(
-      v0::Executor::NewStub(channel));
+  std::unique_ptr<v0::Executor::StubInterface> executor_stub;
+  if (absl::GetFlag(FLAGS_oak)) {
+    executor_stub = GENC_TRY(CreateOakClient(channel));
+  } else {
+    executor_stub = v0::Executor::NewStub(channel);
+  }
   std::shared_ptr<Executor> executor =
       GENC_TRY(CreateRemoteExecutor(std::move(executor_stub)));
   Runner runner = GENC_TRY(Runner::Create(func, executor));

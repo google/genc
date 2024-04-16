@@ -1,4 +1,4 @@
-/* Copyright 2024, The GenC Authors.
+/* Copyright 2023, The GenC Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,18 +13,19 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include <memory>
+#include <fstream>
+#include <iterator>
+#include <string>
 
-#include "absl/status/status.h"
-#include "absl/status/statusor.h"
-#include "genc/cc/interop/oak/client.h"
-#include "cc/client/client.h"
+#include "genc/cc/base/read_file.h"
 
 namespace genc {
 
-absl::StatusOr<std::unique_ptr<oak::client::OakClient>> CreateOakClient() {
-  // TODO(b/333410413): Do something.
-  return absl::UnimplementedError("This functionality is not implemented.");
+std::string ReadFile(std::string filename) {
+  std::ifstream file {filename};
+  std::string content {
+    std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>()};
+  return content;
 }
 
 }  // namespace genc

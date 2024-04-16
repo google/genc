@@ -1,4 +1,4 @@
-/* Copyright 2024, The GenC Authors.
+/* Copyright 2023, The GenC Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,18 +13,15 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#ifndef GENC_CC_INTEROP_OAK_CLIENT_H_
-#define GENC_CC_INTEROP_OAK_CLIENT_H_
+#ifndef GENC_CC_BASE_READ_FILE_H_
+#define GENC_CC_BASE_READ_FILE_H_
 
-#include <memory>
-
-#include "absl/status/statusor.h"
-#include "cc/client/client.h"
+#include <string>
 
 namespace genc {
 
-absl::StatusOr<std::unique_ptr<oak::client::OakClient>> CreateOakClient();
+std::string ReadFile(std::string filename);
 
 }  // namespace genc
 
-#endif  // GENC_CC_INTEROP_OAK_CLIENT_H_
+#endif  // GENC_CC_BASE_READ_FILE_H_

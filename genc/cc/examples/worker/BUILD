@@ -8,6 +8,7 @@ cc_binary(
     name = "client",
     srcs = ["client.cc"],
     deps = [
+        "//genc/cc/base:read_file",
         "//genc/cc/runtime:executor",
         "//genc/cc/runtime:remote_executor",
         "//genc/cc/runtime:runner",
@@ -29,6 +30,7 @@ cc_binary(
     name = "server",
     srcs = ["server.cc"],
     deps = [
+        "//genc/cc/base:read_file",
         "//genc/cc/examples/executors:executor_stacks",
         "//genc/cc/runtime:executor",
         "//genc/cc/runtime:executor_service",

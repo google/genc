@@ -85,3 +85,25 @@ message DisposeRequest {
 }
 
 message DisposeResponse {}
+
+message ExecutorRequest {
+  oneof request {
+    CreateValueRequest create_value = 1;
+    CreateCallRequest create_call = 2;
+    CreateStructRequest create_struct = 3;
+    CreateSelectionRequest create_selection = 4;
+    MaterializeRequest materialize = 5;
+    DisposeRequest dispose = 6;
+  }
+}
+
+message ExecutorResponse {
+  oneof response {
+    CreateValueResponse create_value = 1;
+    CreateCallResponse create_call = 2;
+    CreateStructResponse create_struct = 3;
+    CreateSelectionResponse create_selection = 4;
+    MaterializeResponse materialize = 5;
+    DisposeResponse dispose = 6;
+  }
+}

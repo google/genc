@@ -13,9 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include <fstream>
 #include <iostream>
-#include <iterator>
 #include <memory>
 #include <string>
 #include <utility>
@@ -24,6 +22,7 @@ limitations under the License
 #include "absl/flags/parse.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "genc/cc/base/read_file.h"
 #include "genc/cc/runtime/executor.h"
 #include "genc/cc/runtime/remote_executor.h"
 #include "genc/cc/runtime/runner.h"
@@ -56,14 +55,6 @@ ABSL_FLAG(std::string, cert, "", "The path to the root cert.");
 ABSL_FLAG(std::string, target_override, "", "The expected target name.");
 
 namespace genc {
-namespace {
-std::string ReadFile(std::string filename) {
-  std::ifstream file {filename};
-  std::string content {
-    std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>()};
-  return content;
-}
-}  // namespace
 
 std::string CreateServerAddress() {
   return absl::GetFlag(FLAGS_server);

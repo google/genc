@@ -24,6 +24,7 @@ limitations under the License
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
+#include "genc/cc/base/read_file.h"
 #include "genc/cc/examples/executors/executor_stacks.h"
 #include "genc/cc/runtime/executor.h"
 #include "genc/cc/runtime/executor_service.h"
@@ -56,14 +57,6 @@ ABSL_FLAG(std::string, key, "", "Path to the private key for SSL/TLS.");
 ABSL_FLAG(std::string, cert, "", "Path to the certificate for SSL/TLS.");
 
 namespace genc {
-namespace {
-std::string ReadFile(std::string filename) {
-  std::ifstream file {filename};
-  std::string content {
-    std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>()};
-  return content;
-}
-}  // namespace
 
 std::string CreateServerAddress() {
   return absl::StrCat("[::]:", absl::GetFlag(FLAGS_port));

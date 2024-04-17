@@ -31,3 +31,22 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_library(
+    name = "bi_map",
+    hdrs = ["bi_map.h"],
+    deps = [
+        "@com_google_absl//absl/base:core_headers",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_test(
+    name = "bi_map_test",
+    srcs = ["bi_map_test.cc"],
+    deps = [
+        ":bi_map",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

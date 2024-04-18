@@ -109,6 +109,7 @@ cc_library(
         ":inline_executor",
         ":intrinsic_handler",
         ":status_macros",
+        ":threading",
         "//genc/cc/interop/backends:google_ai",
         "//genc/cc/intrinsics:handler_sets",
         "@com_google_absl//absl/base",

@@ -20,13 +20,15 @@ limitations under the License
 
 #include "absl/status/statusor.h"
 #include "genc/cc/runtime/executor.h"
+#include "genc/cc/runtime/threading.h"
 #include "genc/proto/v0/executor.grpc.pb.h"
 
 namespace genc {
 
 // Creates an executor that forwards all requests to a remote backend.
 absl::StatusOr<std::shared_ptr<Executor>> CreateRemoteExecutor(
-    std::unique_ptr<v0::Executor::StubInterface> executor_stub);
+    std::unique_ptr<v0::Executor::StubInterface> executor_stub,
+    std::shared_ptr<ThreadPool> thread_pool = nullptr);
 
 }  // namespace genc
 

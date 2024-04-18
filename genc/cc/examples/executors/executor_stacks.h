@@ -20,6 +20,7 @@ limitations under the License
 
 #include "absl/status/statusor.h"
 #include "genc/cc/runtime/executor.h"
+#include "genc/cc/runtime/threading.h"
 
 namespace genc {
 
@@ -27,6 +28,10 @@ namespace genc {
 // Use this for convenience that can run all the examples, tutorials. For
 // advanced uses, use CreateLocalExecutor to setup custom executors.
 absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultExecutor();
+
+absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultExecutorWithThreadPool(
+     std::shared_ptr<ThreadPool> thread_pool);
+
 }  // namespace genc
 
 #endif  // GENC_CC_EXAMPLES_EXECUTORS_EXECUTOR_STACKS_H_

@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
+#include <algorithm>
 #include <cstdint>
 #include <future>  // NOLINT
 #include <memory>
@@ -81,9 +82,11 @@ using ValueFuture =
 
 class RemoteExecutor : public ExecutorBase<ValueFuture> {
  public:
-  explicit RemoteExecutor(std::unique_ptr<ExecutorStub> stub)
+  explicit RemoteExecutor(
+      std::unique_ptr<ExecutorStub> stub,
+      std::shared_ptr<ThreadPool> thread_pool = nullptr)
       : executor_stub_(stub.release()),
-        thread_pool_(nullptr) {}
+        thread_pool_(thread_pool) {}
 
   ~RemoteExecutor() override = default;
 
@@ -200,14 +203,16 @@ class RemoteExecutor : public ExecutorBase<ValueFuture> {
 
  private:
   const std::shared_ptr<ExecutorStub> executor_stub_;
-  ThreadPool* const thread_pool_;
+  const std::shared_ptr<ThreadPool> thread_pool_;
 };
 
 }  // namespace
 
 absl::StatusOr<std::shared_ptr<Executor>> CreateRemoteExecutor(
-    std::unique_ptr<v0::Executor::StubInterface> executor_stub) {
-  return std::make_shared<RemoteExecutor>(std::move(executor_stub));
+    std::unique_ptr<v0::Executor::StubInterface> executor_stub,
+    std::shared_ptr<ThreadPool> thread_pool) {
+  return std::make_shared<RemoteExecutor>(
+      std::move(executor_stub), std::move(thread_pool));
 }
 
 }  // namespace genc

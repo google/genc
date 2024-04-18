@@ -35,6 +35,7 @@ cc_library(
         "//genc/cc/runtime:executor",
         "//genc/cc/runtime:executor_stacks",
         "//genc/cc/runtime:status_macros",
+        "//genc/cc/runtime:threading",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/status:statusor",
     ],

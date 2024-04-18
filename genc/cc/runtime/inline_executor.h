@@ -21,12 +21,14 @@ limitations under the License
 #include "absl/status/statusor.h"
 #include "genc/cc/runtime/executor.h"
 #include "genc/cc/runtime/intrinsic_handler.h"
+#include "genc/cc/runtime/threading.h"
 
 namespace genc {
 
 // Creates an executor that specializes in handling inline intrinsic calls.
 absl::StatusOr<std::shared_ptr<Executor>> CreateInlineExecutor(
-    std::shared_ptr<IntrinsicHandlerSet> handler_set);
+    std::shared_ptr<IntrinsicHandlerSet> handler_set,
+    std::shared_ptr<ThreadPool> thread_pool = nullptr);
 
 }  // namespace genc
 

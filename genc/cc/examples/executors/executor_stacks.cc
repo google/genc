@@ -29,6 +29,7 @@ limitations under the License
 #include "genc/cc/runtime/executor.h"
 #include "genc/cc/runtime/executor_stacks.h"
 #include "genc/cc/runtime/status_macros.h"
+#include "genc/cc/runtime/threading.h"
 
 #include "genc/cc/interop/backends/llamacpp.h"
 
@@ -83,6 +84,11 @@ void SetLlamaCppModelInferenceHandler(intrinsics::HandlerSetConfig* config,
 }  // namespace
 
 absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultExecutor() {
+  return CreateDefaultExecutorWithThreadPool(nullptr);
+}
+
+absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultExecutorWithThreadPool(
+    std::shared_ptr<ThreadPool> thread_pool) {
   // Init the context only once.
   absl::call_once(context_init_flag, InitExecutorStacksContext);
 
@@ -105,7 +111,8 @@ absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultExecutor() {
   GENC_TRY(SetCustomFunctionsForLocalValueCache(
       config.custom_function_map, *exectuor_stacks_context->local_cache_));
 
-  return CreateLocalExecutor(intrinsics::CreateCompleteHandlerSet(config));
+  return CreateLocalExecutor(
+      intrinsics::CreateCompleteHandlerSet(config), thread_pool);
 }
 
 }  // namespace genc

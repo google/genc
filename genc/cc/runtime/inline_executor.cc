@@ -60,8 +60,11 @@ using ValueFuture = std::shared_future<absl::StatusOr<ExecutorValue>>;
 // Executor that specializes in handling inline intrinsics.
 class InlineExecutor : public ExecutorBase<ValueFuture> {
  public:
-  explicit InlineExecutor(std::shared_ptr<IntrinsicHandlerSet> handler_set)
-      : thread_pool_(nullptr), intrinsic_handlers_(std::move(handler_set)) {}
+  explicit InlineExecutor(
+      std::shared_ptr<IntrinsicHandlerSet> handler_set,
+      std::shared_ptr<ThreadPool> thread_pool = nullptr)
+      : thread_pool_(std::move(thread_pool)),
+        intrinsic_handlers_(std::move(handler_set)) {}
 
   ~InlineExecutor() override { ClearTracked(); }
 
@@ -149,15 +152,17 @@ class InlineExecutor : public ExecutorBase<ValueFuture> {
   }
 
  private:
-  ThreadPool* const thread_pool_;
+  const std::shared_ptr<ThreadPool> thread_pool_;
   const std::shared_ptr<IntrinsicHandlerSet> intrinsic_handlers_;
 };
 
 }  // namespace
 
 absl::StatusOr<std::shared_ptr<Executor>> CreateInlineExecutor(
-    std::shared_ptr<IntrinsicHandlerSet> handler_set) {
-  return std::make_shared<InlineExecutor>(std::move(handler_set));
+    std::shared_ptr<IntrinsicHandlerSet> handler_set,
+    std::shared_ptr<ThreadPool> thread_pool) {
+  return std::make_shared<InlineExecutor>(
+      std::move(handler_set), std::move(thread_pool));
 }
 
 }  // namespace genc

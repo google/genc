@@ -39,8 +39,8 @@ class ThreadPool {
 // TODO(b/295015950): Bring in the thread pool support here if truly necessary.
 template <typename Func,
           typename ReturnValue = typename std::result_of_t<Func()>>
-std::shared_future<ReturnValue> ThreadRun(Func lambda,
-                                          ThreadPool* thread_pool = nullptr) {
+std::shared_future<ReturnValue> ThreadRun(
+    Func lambda, std::shared_ptr<ThreadPool> thread_pool = nullptr) {
   using TaskT = std::packaged_task<ReturnValue()>;
   TaskT task(std::move(lambda));
   auto future_ptr = std::shared_future<ReturnValue>(task.get_future());

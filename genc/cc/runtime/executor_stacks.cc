@@ -24,13 +24,15 @@ limitations under the License
 #include "genc/cc/runtime/inline_executor.h"
 #include "genc/cc/runtime/intrinsic_handler.h"
 #include "genc/cc/runtime/status_macros.h"
+#include "genc/cc/runtime/threading.h"
 
 namespace genc {
 
 absl::StatusOr<std::shared_ptr<Executor>> CreateLocalExecutor(
-    std::shared_ptr<IntrinsicHandlerSet> handler_set) {
-  return CreateControlFlowExecutor(handler_set,
-                                   GENC_TRY(CreateInlineExecutor(handler_set)));
+    std::shared_ptr<IntrinsicHandlerSet> handler_set,
+    std::shared_ptr<ThreadPool> thread_pool) {
+  return CreateControlFlowExecutor(
+      handler_set, GENC_TRY(CreateInlineExecutor(handler_set, thread_pool)));
 }
 
 absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultLocalExecutor() {

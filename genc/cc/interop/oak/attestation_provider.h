@@ -13,25 +13,26 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#ifndef GENC_CC_INTEROP_OAK_CLIENT_H_
-#define GENC_CC_INTEROP_OAK_CLIENT_H_
-
-#include <memory>
+#ifndef GENC_CC_INTEROP_OAK_ATTESTATION_PROVIDER_H_
+#define GENC_CC_INTEROP_OAK_ATTESTATION_PROVIDER_H_
 
 #include "absl/status/statusor.h"
-#include "genc/proto/v0/executor.grpc.pb.h"
-#include "include/grpcpp/channel.h"
+#include "proto/session/messages.pb.h"
 
 namespace genc {
 namespace interop {
 namespace oak {
 
-// Creates an Oak client that implements the GenC `Executor` stub interface.
-absl::StatusOr<std::unique_ptr<v0::Executor::StubInterface>> CreateClient(
-    std::shared_ptr<grpc::Channel> channel);
+class AttestationProvider {
+ public:
+  virtual absl::StatusOr<::oak::session::v1::EndorsedEvidence>
+      GetEndorsedEvidence() = 0;
+
+  virtual ~AttestationProvider() {}
+};
 
 }  // namespace oak
 }  // namespace interop
 }  // namespace genc
 
-#endif  // GENC_CC_INTEROP_OAK_CLIENT_H_
+#endif  // GENC_CC_INTEROP_OAK_ATTESTATION_PROVIDER_H_

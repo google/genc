@@ -13,9 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include <fstream>
 #include <iostream>
-#include <iterator>
 #include <memory>
 #include <string>
 
@@ -26,6 +24,8 @@ limitations under the License
 #include "absl/strings/str_cat.h"
 #include "genc/cc/base/read_file.h"
 #include "genc/cc/examples/executors/executor_stacks.h"
+#include "genc/cc/interop/confidential_computing/attestation.h"
+#include "genc/cc/interop/oak/server.h"
 #include "genc/cc/runtime/executor.h"
 #include "genc/cc/runtime/executor_service.h"
 #include "genc/cc/runtime/status_macros.h"
@@ -34,6 +34,7 @@ limitations under the License
 #include "include/grpcpp/security/server_credentials.h"
 #include "include/grpcpp/server.h"
 #include "include/grpcpp/server_builder.h"
+#include "proto/session/service_unary.grpc.pb.h"
 
 // An example worker binary that hosts a gRPC service endpoint.
 //
@@ -52,9 +53,10 @@ limitations under the License
 //   bazel run genc/cc/examples/worker:server -- \
 //     --port=10000 --cert=/tmp/cert.pem --key=/tmp/key.pem
 
-ABSL_FLAG(int, port, 0, "The port to listed on.");
+ABSL_FLAG(int, port, 0, "The port to listen on.");
 ABSL_FLAG(std::string, key, "", "Path to the private key for SSL/TLS.");
 ABSL_FLAG(std::string, cert, "", "Path to the certificate for SSL/TLS.");
+ABSL_FLAG(bool, oak, false, "Whether to use project Oak for communication.");
 
 namespace genc {
 
@@ -81,11 +83,20 @@ absl::StatusOr<std::shared_ptr<Executor>> CreateExecutor() {
 absl::Status RunServer() {
   std::string server_address = CreateServerAddress();
   std::shared_ptr<grpc::ServerCredentials> creds = CreateServerCredentials();
-  std::shared_ptr<v0::Executor::Service> service =
+  std::shared_ptr<v0::Executor::Service> executor_service =
       GENC_TRY(CreateExecutorService(GENC_TRY(CreateExecutor())));
   grpc::ServerBuilder builder;
   builder.AddListeningPort(server_address, creds);
-  builder.RegisterService(service.get());
+  std::shared_ptr<oak::session::v1::UnarySession::Service> oak_service;
+  if (absl::GetFlag(FLAGS_oak)) {
+    oak_service = GENC_TRY(interop::oak::CreateService(
+        executor_service,
+        GENC_TRY(
+            interop::confidential_computing::CreateAttestationProvider())));
+    builder.RegisterService(oak_service.get());
+  } else {
+    builder.RegisterService(executor_service.get());
+  }
   std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
   std::cout << "Server listening on: " << server_address << "\n";
   server->Wait();

@@ -13,25 +13,28 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#ifndef GENC_CC_INTEROP_OAK_CLIENT_H_
-#define GENC_CC_INTEROP_OAK_CLIENT_H_
+#ifndef GENC_CC_INTEROP_OAK_SERVER_H_
+#define GENC_CC_INTEROP_OAK_SERVER_H_
 
 #include <memory>
 
 #include "absl/status/statusor.h"
+#include "genc/cc/interop/oak/attestation_provider.h"
 #include "genc/proto/v0/executor.grpc.pb.h"
-#include "include/grpcpp/channel.h"
+#include "proto/session/service_unary.grpc.pb.h"
 
 namespace genc {
 namespace interop {
 namespace oak {
 
-// Creates an Oak client that implements the GenC `Executor` stub interface.
-absl::StatusOr<std::unique_ptr<v0::Executor::StubInterface>> CreateClient(
-    std::shared_ptr<grpc::Channel> channel);
+// Creates an Oak transport-compatible  service endpoint.
+absl::StatusOr<std::unique_ptr<::oak::session::v1::UnarySession::Service>>
+CreateService(
+    std::shared_ptr<v0::Executor::Service> executor_service,
+    std::shared_ptr<AttestationProvider> attestation_provider);
 
 }  // namespace oak
 }  // namespace interop
 }  // namespace genc
 
-#endif  // GENC_CC_INTEROP_OAK_CLIENT_H_
+#endif  // GENC_CC_INTEROP_OAK_SERVER_H_

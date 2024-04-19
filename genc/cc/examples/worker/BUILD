@@ -33,6 +33,8 @@ cc_binary(
     deps = [
         "//genc/cc/base:read_file",
         "//genc/cc/examples/executors:executor_stacks",
+        "//genc/cc/interop/confidential_computing:attestation",
+        "//genc/cc/interop/oak:server",
         "//genc/cc/runtime:executor",
         "//genc/cc/runtime:executor_service",
         "//genc/cc/runtime:status_macros",
@@ -46,5 +48,6 @@ cc_binary(
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
+        "@oak//proto/session:service_unary_cc_grpc",
     ],
 )

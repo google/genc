@@ -38,6 +38,8 @@ limitations under the License
 #include "proto/session/service_unary.grpc.pb.h"
 
 namespace genc {
+namespace interop {
+namespace oak {
 namespace {
 
 // Temporarily implemented here due to issues with InsecureAttestationVerifier's
@@ -45,15 +47,15 @@ namespace {
 // TODO(b/333410413): Replace this with Oak's InsecureAttestationVerifier, or
 // something else that isn't a noop.
 class NoopAttestationVerifier
-    : public oak::attestation::verification::AttestationVerifier {
+    : public ::oak::attestation::verification::AttestationVerifier {
  public:
-  absl::StatusOr<oak::attestation::v1::AttestationResults> Verify(
+  absl::StatusOr<::oak::attestation::v1::AttestationResults> Verify(
       std::chrono::time_point<std::chrono::system_clock> now,
       const ::oak::attestation::v1::Evidence& evidence,
       const ::oak::attestation::v1::Endorsements& endorsements) const override {
-    oak::attestation::v1::AttestationResults attestation_results;
+    ::oak::attestation::v1::AttestationResults attestation_results;
     attestation_results.set_status(
-        oak::attestation::v1::AttestationResults::STATUS_SUCCESS);
+        ::oak::attestation::v1::AttestationResults::STATUS_SUCCESS);
     return attestation_results;
   }
 };
@@ -62,14 +64,14 @@ class OakClient : public v0::Executor::StubInterface {
  public:
   static absl::StatusOr<std::unique_ptr<OakClient>> Create(
       std::shared_ptr<grpc::Channel> channel) {
-    std::unique_ptr<oak::session::v1::UnarySession::StubInterface> stub =
-      oak::session::v1::UnarySession::NewStub(channel);
-    std::unique_ptr<oak::transport::TransportWrapper> transport_wrapper =
-        std::make_unique<oak::transport::GrpcUnaryTransport<
-            oak::session::v1::UnarySession::StubInterface>>(stub.get());
+    std::unique_ptr<::oak::session::v1::UnarySession::StubInterface> stub =
+      ::oak::session::v1::UnarySession::NewStub(channel);
+    std::unique_ptr<::oak::transport::TransportWrapper> transport_wrapper =
+        std::make_unique<::oak::transport::GrpcUnaryTransport<
+            ::oak::session::v1::UnarySession::StubInterface>>(stub.get());
     std::unique_ptr<NoopAttestationVerifier> attestation_verifier;
-    std::unique_ptr<oak::client::OakClient> oak_client = GENC_TRY(
-        oak::client::OakClient::Create(
+    std::unique_ptr<::oak::client::OakClient> oak_client = GENC_TRY(
+        ::oak::client::OakClient::Create(
             std::move(transport_wrapper), *attestation_verifier));
     return absl::WrapUnique(
         new OakClient(std::move(attestation_verifier), std::move(oak_client)));
@@ -270,7 +272,7 @@ class OakClient : public v0::Executor::StubInterface {
  protected:
   OakClient(
       std::unique_ptr<NoopAttestationVerifier> attestation_verifier,
-      std::unique_ptr<oak::client::OakClient> oak_client)
+      std::unique_ptr<::oak::client::OakClient> oak_client)
       : attestation_verifier_(std::move(attestation_verifier)),
         oak_client_(std::move(oak_client)) {}
 
@@ -288,14 +290,16 @@ class OakClient : public v0::Executor::StubInterface {
   }
 
   const std::unique_ptr<NoopAttestationVerifier> attestation_verifier_;
-  const absl::StatusOr<std::unique_ptr<oak::client::OakClient>> oak_client_;
+  const absl::StatusOr<std::unique_ptr<::oak::client::OakClient>> oak_client_;
 };
 
 }  // namespace
 
-absl::StatusOr<std::unique_ptr<v0::Executor::StubInterface>> CreateOakClient(
+absl::StatusOr<std::unique_ptr<v0::Executor::StubInterface>> CreateClient(
     std::shared_ptr<grpc::Channel> channel) {
   return OakClient::Create(channel);
 }
 
+}  // namespace oak
+}  // namespace interop
 }  // namespace genc

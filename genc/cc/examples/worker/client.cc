@@ -115,7 +115,7 @@ absl::Status RunClient() {
   std::shared_ptr<grpc::Channel> channel = CreateChannel();
   std::unique_ptr<v0::Executor::StubInterface> executor_stub;
   if (absl::GetFlag(FLAGS_oak)) {
-    executor_stub = GENC_TRY(CreateOakClient(channel));
+    executor_stub = GENC_TRY(interop::oak::CreateClient(channel));
   } else {
     executor_stub = v0::Executor::NewStub(channel);
   }

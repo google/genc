@@ -131,9 +131,9 @@ tutorials and documentation to experience what GenC has to offer:
     like to grow it, with your help, to support your preferred domain and the
     kinds of services and capabilities you need. We welcome your contributions!
 
-At this stage, GenC should be considered **experimental**, and at the "beta"
-stage of development. You can expect the APIs and capabilities to evolve, in
-part based on demand and feedback from the community.
+**At this stage, GenC is intended for experimental and research use only**, and
+at the "beta" stage of development. You can expect the APIs and capabilities to
+evolve, in part based on demand and feedback from the community.
 
 Use [GitHub issues](https://github.com/google/genc/issues) for
 tracking requests and bugs.

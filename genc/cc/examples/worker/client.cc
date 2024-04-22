@@ -70,9 +70,8 @@ std::shared_ptr<grpc::ChannelCredentials> CreateChannelCredentials() {
       options.pem_root_certs = ReadFile(cert);
     }
     return grpc::SslCredentials(options);
-  } else {
-    return grpc::InsecureChannelCredentials();
   }
+  return grpc::InsecureChannelCredentials();
 }
 
 std::shared_ptr<grpc::Channel> CreateChannel() {

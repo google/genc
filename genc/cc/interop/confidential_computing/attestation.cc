@@ -46,7 +46,8 @@ class AttestationProviderImpl : public AttestationProvider {
       GetEndorsedEvidence() override {
     CURL* curl = curl_easy_init();
     if (curl == nullptr) {
-      return absl::InternalError("Unable to init CURL.");
+      return absl::InternalError(
+          "Attestation provider unable to init CURL.");
     }
     curl_easy_setopt(curl, CURLOPT_URL, kLocalhostTokenUrl);
     curl_easy_setopt(curl, CURLOPT_UNIX_SOCKET_PATH, kLauncherSocketPath);
@@ -66,7 +67,11 @@ class AttestationProviderImpl : public AttestationProvider {
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_json);
     CURLcode curl_code = curl_easy_perform(curl);
     if (curl_code != CURLE_OK) {
-      return absl::InternalError(curl_easy_strerror(curl_code));
+      return absl::InternalError(absl::StrCat(
+          "Attestation provider's GetEndorsedEvidence implementation has "
+          "received an error from the local launcher call: \"",
+          curl_easy_strerror(curl_code),
+          "\"."));
     }
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);

@@ -14,8 +14,11 @@ limitations under the License
 ==============================================================================*/
 
 #include <memory>
+#include <string>
 
+#include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
 #include "genc/cc/base/to_from_grpc_status.h"
 #include "genc/cc/interop/oak/attestation_provider.h"
 #include "genc/cc/interop/oak/server.h"
@@ -46,7 +49,11 @@ class OakService : public ::oak::session::v1::UnarySession::Service {
     absl::StatusOr<::oak::session::v1::EndorsedEvidence> endorsed_evidence =
         attestation_provider_->GetEndorsedEvidence();
     if (!endorsed_evidence.ok()) {
-      return AbslToGrpcStatus(endorsed_evidence.status());
+      return AbslToGrpcStatus(
+          absl::InternalError(absl::StrCat(
+              "Attestation provider returned an error status: \"",
+              endorsed_evidence.status().ToString(),
+              "\".")));
     } else {
       *response->mutable_endorsed_evidence() = endorsed_evidence.value();
       return grpc::Status::OK;

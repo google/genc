@@ -304,3 +304,18 @@ git_repository(
     remote = "https://github.com/project-oak/oak.git",
     branch = "main",
 )
+
+http_archive(
+  name = "emsdk",
+  strip_prefix = "emsdk-3.1.15/bazel",
+  url = "https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.15.zip",
+  sha256 = "bc06feb66e376f0184929e603d7c02dcd07646ed6f89281bf1478bb8947fbb0f",
+)
+
+load("@emsdk//:deps.bzl", emsdk_deps = "deps")
+
+emsdk_deps()
+
+load("@emsdk//:emscripten_deps.bzl", emsdk_emscripten_deps = "emscripten_deps")
+
+emsdk_emscripten_deps()

@@ -61,6 +61,7 @@ class AttestationProviderImpl : public AttestationProvider {
         "nonces": []
       }
     )pb";
+    curl_easy_setopt(curl, CURLOPT_POST, 1);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_request.c_str());
     std::string response_json;
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);

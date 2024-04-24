@@ -47,6 +47,7 @@ ABSL_FLAG(int, port, 0, "The port to listen on.");
 ABSL_FLAG(std::string, key, "", "Path to the private key for SSL/TLS.");
 ABSL_FLAG(std::string, cert, "", "Path to the certificate for SSL/TLS.");
 ABSL_FLAG(bool, oak, false, "Whether to use project Oak for communication.");
+ABSL_FLAG(bool, debug, false, "Whether to print debug output.");
 
 namespace genc {
 
@@ -61,6 +62,7 @@ absl::Status RunServer() {
     options.ssl_cert_path = absl::GetFlag(FLAGS_key);
   }
   options.use_oak = absl::GetFlag(FLAGS_oak);
+  options.debug = absl::GetFlag(FLAGS_debug);
   return modules::worker::RunServer(executor, options);
 }
 

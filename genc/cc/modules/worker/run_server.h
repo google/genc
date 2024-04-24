@@ -36,6 +36,7 @@ struct RunServerOptions {
   std::string ssl_cert_path;
   std::string ssl_key_path;
   bool use_oak = false;
+  bool debug = false;
 };
 
 absl::Status RunServer(

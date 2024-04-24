@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
+#include <iostream>
 #include <memory>
 #include <string>
 
@@ -36,9 +37,11 @@ class OakService : public ::oak::session::v1::UnarySession::Service {
  public:
   explicit OakService(
       std::shared_ptr<v0::Executor::Service> executor_service,
-      std::shared_ptr<AttestationProvider> attestation_provider)
+      std::shared_ptr<AttestationProvider> attestation_provider,
+      bool debug)
       : executor_service_(executor_service),
-        attestation_provider_(attestation_provider) {}
+        attestation_provider_(attestation_provider),
+        debug_(debug) {}
 
   ~OakService() override {}
 
@@ -46,6 +49,9 @@ class OakService : public ::oak::session::v1::UnarySession::Service {
       grpc::ServerContext* context,
       const ::oak::session::v1::GetEndorsedEvidenceRequest* request,
       ::oak::session::v1::GetEndorsedEvidenceResponse* response) override {
+    if (debug_) {
+      std::cout << "OakService received the GetEndorsedEvidence() call\n";
+    }
     absl::StatusOr<::oak::session::v1::EndorsedEvidence> endorsed_evidence =
         attestation_provider_->GetEndorsedEvidence();
     if (!endorsed_evidence.ok()) {
@@ -64,6 +70,9 @@ class OakService : public ::oak::session::v1::UnarySession::Service {
       grpc::ServerContext* context,
       const ::oak::session::v1::InvokeRequest* request,
       ::oak::session::v1::InvokeResponse* response) override {
+    if (debug_) {
+      std::cout << "OakService received the Invoke() call\n";
+    }
     return grpc::Status(
         grpc::StatusCode::UNIMPLEMENTED, "Invoke has not been implemented.");
   }
@@ -71,6 +80,7 @@ class OakService : public ::oak::session::v1::UnarySession::Service {
  private:
   const std::shared_ptr<v0::Executor::Service> executor_service_;
   const std::shared_ptr<AttestationProvider> attestation_provider_;
+  const bool debug_;
 };
 
 }  // namespace
@@ -78,8 +88,10 @@ class OakService : public ::oak::session::v1::UnarySession::Service {
 absl::StatusOr<std::unique_ptr<::oak::session::v1::UnarySession::Service>>
 CreateService(
     std::shared_ptr<v0::Executor::Service> executor_service,
-    std::shared_ptr<AttestationProvider> attestation_provider) {
-  return std::make_unique<OakService>(executor_service, attestation_provider);
+    std::shared_ptr<AttestationProvider> attestation_provider,
+    bool debug) {
+  return std::make_unique<OakService>(
+      executor_service, attestation_provider, debug);
 }
 
 }  // namespace oak

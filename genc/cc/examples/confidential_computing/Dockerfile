@@ -54,4 +54,4 @@ WORKDIR "/genc"
 
 RUN bazel build genc/cc/examples/worker:server
 
-CMD bazel-bin/genc/cc/examples/worker/server --port=80 --oak=true
+CMD bazel-bin/genc/cc/examples/worker/server --port=80 --oak=true --debug=true

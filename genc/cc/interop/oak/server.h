@@ -31,7 +31,8 @@ namespace oak {
 absl::StatusOr<std::unique_ptr<::oak::session::v1::UnarySession::Service>>
 CreateService(
     std::shared_ptr<v0::Executor::Service> executor_service,
-    std::shared_ptr<AttestationProvider> attestation_provider);
+    std::shared_ptr<AttestationProvider> attestation_provider,
+    bool debug = false);
 
 }  // namespace oak
 }  // namespace interop

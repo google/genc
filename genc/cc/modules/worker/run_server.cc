@@ -65,17 +65,29 @@ absl::Status RunServer(
   builder.AddListeningPort(options.server_address, creds);
   std::shared_ptr<oak::session::v1::UnarySession::Service> oak_service;
   if (options.use_oak) {
+    if (options.debug) {
+      std::cout << "Exposing Oak's UnarySession service.\n";
+    }
     oak_service = GENC_TRY(interop::oak::CreateService(
         executor_service,
         GENC_TRY(
-            interop::confidential_computing::CreateAttestationProvider())));
+            interop::confidential_computing::CreateAttestationProvider()),
+        options.debug));
     builder.RegisterService(oak_service.get());
   } else {
+    if (options.debug) {
+      std::cout << "Exposing the regular Executor service.\n";
+    }
     builder.RegisterService(executor_service.get());
   }
   std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
-  std::cout << "Server listening on: " << options.server_address << "\n";
+  if (options.debug) {
+    std::cout << "Server listening on: " << options.server_address << "\n";
+  }
   server->Wait();
+  if (options.debug) {
+    std::cout << "Server exiting.\n";
+  }
   return absl::OkStatus();
 }
 

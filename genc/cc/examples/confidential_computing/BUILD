@@ -19,3 +19,9 @@ cc_binary(
         "@oak//proto/session:service_unary_cc_grpc",
     ],
 )
+
+cc_binary(
+    name = "debug_attestation",
+    srcs = ["debug_attestation.cc"],
+    deps = ["//genc/cc/interop/confidential_computing:attestation"],
+)

@@ -15,6 +15,8 @@ FROM ubuntu:latest
 
 ENV LANG C.UTF-8
 
+LABEL "tee.launch_policy.log_redirect"="always"
+
 RUN apt update && apt install -y \
     apt-transport-https \
     bash \

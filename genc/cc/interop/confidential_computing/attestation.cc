@@ -51,18 +51,7 @@ class AttestationProviderImpl : public AttestationProvider {
     }
     curl_easy_setopt(curl, CURLOPT_URL, kLocalhostTokenUrl);
     curl_easy_setopt(curl, CURLOPT_UNIX_SOCKET_PATH, kLauncherSocketPath);
-    struct curl_slist* headers = nullptr;
-    headers = curl_slist_append(headers, "Content-Type: application/json");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-    std::string json_request = R"pb(
-      {
-        "audience": "some_audience",
-        "token_type": "OIDC",
-        "nonces": []
-      }
-    )pb";
-    curl_easy_setopt(curl, CURLOPT_POST, 1);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_request.c_str());
+    curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
     std::string response_json;
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_json);
@@ -74,7 +63,6 @@ class AttestationProviderImpl : public AttestationProvider {
           curl_easy_strerror(curl_code),
           "\"."));
     }
-    curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
 
     // TODO(b/333410413): Implement the rest of this, as per the below, and

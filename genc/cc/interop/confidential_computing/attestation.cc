@@ -49,9 +49,11 @@ class AttestationProviderImpl : public AttestationProvider {
       return absl::InternalError(
           "Attestation provider unable to init CURL.");
     }
-    curl_easy_setopt(curl, CURLOPT_URL, kLocalhostTokenUrl);
+    curl_easy_setopt(curl, CURLOPT_HEADER, 0);
     curl_easy_setopt(curl, CURLOPT_UNIX_SOCKET_PATH, kLauncherSocketPath);
-    curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
+    curl_easy_setopt(curl, CURLOPT_URL, kLocalhostTokenUrl);
+    curl_easy_setopt(curl, CURLOPT_HTTPGET, 1);
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
     std::string response_json;
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_json);
@@ -71,7 +73,7 @@ class AttestationProviderImpl : public AttestationProvider {
 
     return absl::UnimplementedError(absl::StrCat(
         "GetEndorsedEvidence has not been fully implemented yet, but here's "
-        "the JSON returned by the attestation service: ", response_json));
+        "the JSON returned by the attestation service:\n", response_json));
   }
 
   virtual ~AttestationProviderImpl() {};

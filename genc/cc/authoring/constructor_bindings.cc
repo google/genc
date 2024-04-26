@@ -109,6 +109,9 @@ PYBIND11_MODULE(constructor_bindings, m) {
   m.def("create_struct", &CreateStruct,
         "Constructs a struct from named values");
 
+  m.def("create_named_value", &CreateNamedValue,
+        "Adds a label (name) to a value.");
+
   m.def(
       "create_selection", &CreateSelection,
       "Constructs a selection to pick the i-th element from a source.struct_.");

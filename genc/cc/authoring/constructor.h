@@ -122,6 +122,10 @@ absl::StatusOr<v0::Value> CreateSerialChain(
 // Constructs a struct from named values
 absl::StatusOr<v0::Value> CreateStruct(std::vector<v0::Value> value_list);
 
+// Adds a label (name) to a value.
+absl::StatusOr<v0::Value> CreateNamedValue(
+    absl::string_view label, v0::Value unlabeled_value);
+
 // Creates a while loop with the given condition_fn, body_fn.
 absl::StatusOr<v0::Value> CreateWhile(v0::Value condition_fn,
                                       v0::Value body_fn);

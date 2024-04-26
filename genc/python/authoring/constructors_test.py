@@ -153,6 +153,14 @@ class ConstructorsTest(absltest.TestCase):
     expected_comp.label = 'model_config'
     self.assertEqual(str(comp), str(expected_comp))
 
+  def test_create_named_value(self):
+    v1 = constructors.create_struct([
+        constructors.create_named_value(
+            'foo', constructors.to_from_value_proto.to_value_proto(10)),
+        constructors.create_named_value(
+            'bar', constructors.to_from_value_proto.to_value_proto(20))])
+    v2 = to_from_value_proto.to_value_proto({'foo': 10, 'bar': 20})
+    self.assertEqual(str(v1), str(v2))
 
 if __name__ == '__main__':
   absltest.main()

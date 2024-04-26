@@ -280,6 +280,13 @@ absl::StatusOr<v0::Value> CreateStruct(std::vector<v0::Value> value_list) {
   return value_pb;
 }
 
+absl::StatusOr<v0::Value> CreateNamedValue(
+    absl::string_view label, v0::Value unlabeled_value) {
+  v0::Value value_pb = unlabeled_value;
+  value_pb.set_label(label);
+  return value_pb;
+}
+
 absl::StatusOr<v0::Value> CreateSelection(v0::Value source, int index) {
   v0::Value value_pb;
   v0::Selection* selection_pb = value_pb.mutable_selection();

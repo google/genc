@@ -188,6 +188,16 @@ class RunnerTest(absltest.TestCase):
     self.assertEqual(
         str(result), 'A template in which a foo is XXX and a bar is YYY.')
 
+  def test_more_fancy_multivariate_prompt_template(self):
+    comp_pb = authoring.create_prompt_template_with_parameters(
+        'First {foo} then {bar} then some more {bar} and {foo} and {foo}.',
+        ['foo', 'bar'])
+    comp = runner.Runner(comp_pb)
+    result = comp('XXX', 'YYY')
+    self.assertEqual(
+        str(result),
+        'First XXX then YYY then some more YYY and XXX and XXX.')
+
 
 if __name__ == '__main__':
   absltest.main()

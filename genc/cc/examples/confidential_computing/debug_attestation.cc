@@ -25,21 +25,43 @@ limitations under the License
 //    socket `/run/container_launcher/teeserver.sock`.
 
 #include <iostream>
+#include <string>
+
+#include "absl/flags/parse.h"
+
+#include "absl/flags/flag.h"
+#include "absl/status/status.h"
 #include "genc/cc/interop/confidential_computing/attestation.h"
+#include "genc/cc/runtime/status_macros.h"
+#include "tink/jwt/verified_jwt.h"
+
+ABSL_FLAG(std::string, token, "", "The optional attestation token.");
+
+namespace genc {
+namespace {
+
+absl::Status Run() {
+  std::string token = absl::GetFlag(FLAGS_token);
+  if (token.empty()) {
+    token = GENC_TRY(interop::confidential_computing::GetAttestationToken());
+    std::cout << "Token:\n" << token << "\n";
+  }
+  crypto::tink::VerifiedJwt verified_token =
+      GENC_TRY(interop::confidential_computing::DecodeAttestationToken(token));
+  std::cout << "Verified token:\n"
+          << GENC_TRY(verified_token.GetJsonPayload()) << "\n";
+  return absl::OkStatus();
+}
+
+}  // namespace
+}  // namespace genc
 
 int main(int argc, char* argv[]) {
-  auto provider = genc::interop::confidential_computing::
-      CreateAttestationProvider();
-  if (!provider.ok()) {
-    std::cout << "Error while creating an attestation provider.\n";
+  absl::ParseCommandLine(argc, argv);
+  absl::Status status = genc::Run();
+  if (!status.ok()) {
+    std::cout << "Error:\n" << status.ToString() << "\n";
     return -1;
   }
-  auto evidence = provider.value()->GetEndorsedEvidence();
-  if (!evidence.ok()) {
-    std::cout << "Error while calling the attestation provider:\n"
-              << evidence.status().ToString() << "\n";
-    return -1;
-  }
-  std::cout << "Endorsed evidence:\n" << evidence->DebugString() << "\n";
   return 0;
 }

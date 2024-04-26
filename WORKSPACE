@@ -80,6 +80,10 @@ git_repository(
     tag = "v26.1",
 )
 
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
+
 git_repository(
     name = "com_github_grpc_grpc",
     remote = "https://github.com/grpc/grpc.git",
@@ -319,3 +323,17 @@ emsdk_deps()
 load("@emsdk//:emscripten_deps.bzl", emsdk_emscripten_deps = "emscripten_deps")
 
 emsdk_emscripten_deps()
+
+git_repository(
+  name = "tink_cc",
+  remote = "https://github.com/tink-crypto/tink-cc.git",
+  branch = "main",
+)
+
+load("@tink_cc//:tink_cc_deps.bzl", "tink_cc_deps")
+
+tink_cc_deps()
+
+load("@tink_cc//:tink_cc_deps_init.bzl", "tink_cc_deps_init")
+
+tink_cc_deps_init()

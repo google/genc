@@ -23,5 +23,13 @@ cc_binary(
 cc_binary(
     name = "debug_attestation",
     srcs = ["debug_attestation.cc"],
-    deps = ["//genc/cc/interop/confidential_computing:attestation"],
+    deps = [
+        "//genc/cc/interop/confidential_computing:attestation",
+        "//genc/cc/runtime:status_macros",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@tink_cc//tink/jwt:verified_jwt",
+    ],
 )

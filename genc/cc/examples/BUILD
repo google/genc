@@ -137,3 +137,18 @@ cc_binary(
         "@com_google_absl//absl/status",
     ],
 )
+
+cc_test(
+    name = "multivariate_prompt_template_test",
+    srcs = ["multivariate_prompt_template_test.cc"],
+    deps = [
+        "//genc/cc/authoring:constructor",
+        "//genc/cc/runtime:executor_stacks",
+        "//genc/cc/runtime:runner",
+        "//genc/cc/runtime:status_macros",
+        "//genc/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

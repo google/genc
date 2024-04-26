@@ -59,6 +59,8 @@ PYBIND11_MODULE(intrinsic_bindings, m) {
   intrinsics.attr("LOGICAL_NOT") = py::str(intrinsics::kLogicalNot);
   intrinsics.attr("MODEL_INFERENCE") = py::str(intrinsics::kModelInference);
   intrinsics.attr("PROMPT_TEMPLATE") = py::str(intrinsics::kPromptTemplate);
+  intrinsics.attr("PROMPT_TEMPLATE_WITH_PARAMETERS") =
+      py::str(intrinsics::kPromptTemplateWithParameters);
   intrinsics.attr("PARALLEL_MAP") = py::str(intrinsics::kParallelMap);
   intrinsics.attr("REGEX_PARTIAL_MATCH") =
       py::str(intrinsics::kRegexPartialMatch);

@@ -56,12 +56,12 @@ absl::StatusOr<v0::Value> RunFuncOnArg(v0::Value func, v0::Value arg) {
 TEST(MultivariatePromptTemplateTest, Simple) {
   absl::StatusOr<v0::Value> func = CreatePromptTemplate(
       "A template in which a foo is {foo} and a bar is {bar}.");
-  ASSERT_OK(func);
+  ASSERT_TRUE(func.ok());
 
   absl::StatusOr<v0::Value> arg = MakeTestArg();
-  ASSERT_OK(arg);
+  ASSERT_TRUE(arg.ok());
   absl::StatusOr<v0::Value> result = RunFuncOnArg(func.value(), arg.value());
-  EXPECT_OK(result);
+  EXPECT_TRUE(result.ok());
   EXPECT_EQ(result.value().str(),
             "A template in which a foo is XXX and a bar is YYY.");
 }
@@ -81,14 +81,14 @@ absl::StatusOr<v0::Value> WrapInLambda(v0::Value func) {
 TEST(MultivariatePromptTemplateTest, WrappedInLambda) {
   absl::StatusOr<v0::Value> func = CreatePromptTemplate(
       "A template in which a foo is {foo} and a bar is {bar}.");
-  ASSERT_OK(func);
+  ASSERT_TRUE(func.ok());
   func = WrapInLambda(func.value());
-  ASSERT_OK(func);
+  ASSERT_TRUE(func.ok());
 
   absl::StatusOr<v0::Value> arg = MakeTestArg();
-  ASSERT_OK(arg);
+  ASSERT_TRUE(arg.ok());
   absl::StatusOr<v0::Value> result = RunFuncOnArg(func.value(), arg.value());
-  EXPECT_OK(result);
+  EXPECT_TRUE(result.ok());
   EXPECT_EQ(result.value().str(),
             "A template in which a foo is XXX and a bar is YYY.");
 }
@@ -97,14 +97,14 @@ TEST(MultivariatePromptTemplateTest, WithParameters) {
   absl::StatusOr<v0::Value> func = CreatePromptTemplateWithParameters(
       "A template in which a foo is {foo} and a bar is {bar}.",
       {"foo", "bar"});
-  ASSERT_OK(func);
+  ASSERT_TRUE(func.ok());
   func = WrapInLambda(func.value());
-  ASSERT_OK(func);
+  ASSERT_TRUE(func.ok());
 
   absl::StatusOr<v0::Value> arg = MakeTestArgWithoutLabels();
-  ASSERT_OK(arg);
+  ASSERT_TRUE(arg.ok());
   absl::StatusOr<v0::Value> result = RunFuncOnArg(func.value(), arg.value());
-  EXPECT_OK(result);
+  EXPECT_TRUE(result.ok());
   EXPECT_EQ(result.value().str(),
             "A template in which a foo is XXX and a bar is YYY.");
 }
@@ -113,14 +113,14 @@ TEST(MultivariatePromptTemplateTest, WithParametersInOppositeOrder) {
   absl::StatusOr<v0::Value> func = CreatePromptTemplateWithParameters(
       "A template in which a foo is {foo} and a bar is {bar}.",
       {"bar", "foo"});
-  ASSERT_OK(func);
+  ASSERT_TRUE(func.ok());
   func = WrapInLambda(func.value());
-  ASSERT_OK(func);
+  ASSERT_TRUE(func.ok());
 
   absl::StatusOr<v0::Value> arg = MakeTestArgWithoutLabels();
-  ASSERT_OK(arg);
+  ASSERT_TRUE(arg.ok());
   absl::StatusOr<v0::Value> result = RunFuncOnArg(func.value(), arg.value());
-  EXPECT_OK(result);
+  EXPECT_TRUE(result.ok());
   EXPECT_EQ(result.value().str(),
             "A template in which a foo is YYY and a bar is XXX.");
 }

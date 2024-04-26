@@ -15,6 +15,7 @@
 
 from absl.testing import absltest
 from genc.python import authoring
+from genc.python import runtime
 from genc.python.runtime import runner
 
 
@@ -197,6 +198,50 @@ class RunnerTest(absltest.TestCase):
     self.assertEqual(
         str(result),
         'First XXX then YYY then some more YYY and XXX and XXX.')
+
+  def test_multivariate_prompt_template_with_tracing_version_1(self):
+    @authoring.traced_computation
+    def comp(arg):
+      return authoring.prompt_template_with_parameters[
+          'First {foo} then {bar} then some more {bar} and {foo} and {foo}.',
+          ['foo', 'bar']](arg)
+
+    runtime.set_default_executor()
+    result = comp('XXX', 'YYY')
+    self.assertEqual(
+        str(result),
+        'First XXX then YYY then some more YYY and XXX and XXX.')
+
+  def test_multivariate_prompt_template_with_tracing_version_2(self):
+    @authoring.traced_computation
+    def comp(arg):
+      prompt_template = authoring.create_prompt_template_with_parameters(
+          'First {foo} then {bar} then some more {bar} and {foo} and {foo}.',
+          ['foo', 'bar'])
+      return authoring.create_call(prompt_template, arg)
+
+    runtime.set_default_executor()
+    result = comp('XXX', 'YYY')
+    self.assertEqual(
+        str(result),
+        'First XXX then YYY then some more YYY and XXX and XXX.')
+
+  def test_chained_multivariate_prompt_templates(self):
+    @authoring.traced_computation
+    def comp(aspect, verb, noun):
+      template_1 = authoring.prompt_template_with_parameters[
+          'Tell me more about the {aspect} aspect of {activity}.',
+          ['aspect', 'activity']]
+      template_2 = authoring.prompt_template_with_parameters[
+          '{noun} {verb}',
+          ['noun', 'verb']]
+      return template_1(aspect, template_2(noun, verb))
+
+    runtime.set_default_executor()
+    result = comp('financial', 'diving', 'scuba')
+    self.assertEqual(
+        str(result),
+        'Tell me more about the financial aspect of scuba diving.')
 
 
 if __name__ == '__main__':

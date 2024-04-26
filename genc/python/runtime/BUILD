@@ -32,6 +32,7 @@ py_test(
     deps = [
         ":runner",
         "//genc/python/authoring",
+        "//genc/python/runtime",
     ],
 )
 

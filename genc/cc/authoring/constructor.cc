@@ -18,7 +18,9 @@ limitations under the License
 #include <string>
 #include <vector>
 
+#include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 #include "genc/cc/intrinsics/intrinsic_uris.h"
@@ -179,6 +181,30 @@ absl::StatusOr<v0::Value> CreatePromptTemplate(absl::string_view template_str) {
   v0::Intrinsic* const intrinsic_pb = value_pb.mutable_intrinsic();
   intrinsic_pb->set_uri(std::string(intrinsics::kPromptTemplate));
   intrinsic_pb->mutable_static_parameter()->set_str(std::string(template_str));
+  return value_pb;
+}
+
+absl::StatusOr<v0::Value> CreatePromptTemplateWithParameters(
+    absl::string_view template_str,
+    std::vector<absl::string_view> parameter_list) {
+  if (parameter_list.size() < 2) {
+    return absl::InvalidArgumentError(absl::StrCat(
+        "There must be at least 2 parameters, got: ", parameter_list.size()));
+  }
+  v0::Value value_pb;
+  v0::Intrinsic* const intrinsic_pb = value_pb.mutable_intrinsic();
+  intrinsic_pb->set_uri(std::string(intrinsics::kPromptTemplateWithParameters));
+  v0::Value template_element;
+  template_element.set_str(std::string(template_str));
+  v0::Value params_element;
+  for (const absl::string_view& param_name : parameter_list) {
+    params_element.mutable_struct_()->mutable_element()->Add()->set_str(
+        param_name);
+  }
+  std::vector<v0::Value> elements;
+  elements.push_back(template_element);
+  elements.push_back(params_element);
+  *intrinsic_pb->mutable_static_parameter() = GENC_TRY(CreateStruct(elements));
   return value_pb;
 }
 

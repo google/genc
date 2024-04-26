@@ -62,6 +62,7 @@ std::shared_ptr<IntrinsicHandlerSet> CreateCompleteHandlerSet(
   handlers->AddHandler(new intrinsics::ParallelMap());
   handlers->AddHandler(new intrinsics::LogicalNot());
   handlers->AddHandler(new intrinsics::PromptTemplate());
+  handlers->AddHandler(new intrinsics::PromptTemplateWithParameters());
   handlers->AddHandler(new intrinsics::RegexPartialMatch());
   handlers->AddHandler(new intrinsics::Repeat());
   handlers->AddHandler(new intrinsics::RestCall());

@@ -82,6 +82,15 @@ inline constexpr absl::string_view kCustomFunction = "custom_function";
 // parameter for the template).
 inline constexpr absl::string_view kPromptTemplate = "prompt_template";
 
+// Constructs a prompt wiht a given list of parameters.
+// Takes a struct as a static parameter with two elements, the first being the
+// "template_string" of a string type, and the second being another struct that
+// enumerates parameters in the order in which they will be supplied in the
+// calls at runtime. The dynamic parameter is a struct without labels in which
+// the order of elements must match the order of the parameters specified here.
+inline constexpr absl::string_view kPromptTemplateWithParameters =
+        "prompt_template_with_parameters";
+
 // Represents regex partial match function.
 // Takes one static parameter named "regex_pattern" of a string type,
 // representing the pattern to match.

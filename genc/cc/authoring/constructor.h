@@ -90,7 +90,15 @@ absl::StatusOr<v0::Value> CreateModelInferenceWithConfig(
 absl::StatusOr<v0::Value> CreateParallelMap(v0::Value map_fn);
 
 // Creates a prompt template computation with the given template string.
+// NOTE: Please use `CreatePromptTemplateWithParameters` instead for building
+/// multivariate prompt templates. The use of this function with multivariate
+// prompt templates is deprecated, and will soon be removed.
 absl::StatusOr<v0::Value> CreatePromptTemplate(absl::string_view template_str);
+
+// Creates a prompt template computation with the given template string.
+absl::StatusOr<v0::Value> CreatePromptTemplateWithParameters(
+    absl::string_view template_str,
+    std::vector<absl::string_view> parameter_list);
 
 // Given arg_name returns a Reference argument. Useful for parameterizing the
 // computation.

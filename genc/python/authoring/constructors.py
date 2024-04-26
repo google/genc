@@ -66,6 +66,12 @@ def create_rest_model_config(endpoint, api_key="", json_request_template=""):
 def create_prompt_template(template_str):
   """Creates a prompt template computation with the given template string.
 
+  Note that for multivariate templates, you should use
+  `create_prompt_template_with_parameters` instead where you can specify
+  the parameters and the order in which they are to be provided on the
+  argument list. The use of `create_prompt_template` for multivariate
+  templates id deprecated.
+
   Args:
     template_str: The (Python-style) template string.
 
@@ -73,6 +79,21 @@ def create_prompt_template(template_str):
     A computation that represents the prompt template.
   """
   return constructor_bindings.create_prompt_template(template_str)
+
+
+def create_prompt_template_with_parameters(template_str, parameter_names):
+  """Creates a prompt template with the given template string and parameter.
+
+  Args:
+    template_str: The (Python-style) template string.
+    parameter_names: A list of strings wiht the names of the parameters in the
+      order in which they will appear in the argument.
+
+  Returns:
+    A computation that represents the prompt template.
+  """
+  return constructor_bindings.create_prompt_template_with_parameters(
+      template_str, parameter_names)
 
 
 def create_regex_partial_match(pattern_string):

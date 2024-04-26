@@ -38,6 +38,16 @@ absl::StatusOr<v0::Value> MakeTestArg() {
   return CreateStruct(elements);
 }
 
+absl::StatusOr<v0::Value> MakeTestArgWithoutLabels() {
+  v0::Value foo_val, bar_val;
+  foo_val.set_str("XXX");
+  bar_val.set_str("YYY");
+  std::vector<v0::Value> elements;
+  elements.push_back(foo_val);
+  elements.push_back(bar_val);
+  return CreateStruct(elements);
+}
+
 absl::StatusOr<v0::Value> RunFuncOnArg(v0::Value func, v0::Value arg) {
   return GENC_TRY(Runner::Create(
       func, GENC_TRY(CreateDefaultLocalExecutor()))).Run(arg);
@@ -81,6 +91,38 @@ TEST(MultivariatePromptTemplateTest, WrappedInLambda) {
   EXPECT_OK(result);
   EXPECT_EQ(result.value().str(),
             "A template in which a foo is XXX and a bar is YYY.");
+}
+
+TEST(MultivariatePromptTemplateTest, WithParameters) {
+  absl::StatusOr<v0::Value> func = CreatePromptTemplateWithParameters(
+      "A template in which a foo is {foo} and a bar is {bar}.",
+      {"foo", "bar"});
+  ASSERT_OK(func);
+  func = WrapInLambda(func.value());
+  ASSERT_OK(func);
+
+  absl::StatusOr<v0::Value> arg = MakeTestArgWithoutLabels();
+  ASSERT_OK(arg);
+  absl::StatusOr<v0::Value> result = RunFuncOnArg(func.value(), arg.value());
+  EXPECT_OK(result);
+  EXPECT_EQ(result.value().str(),
+            "A template in which a foo is XXX and a bar is YYY.");
+}
+
+TEST(MultivariatePromptTemplateTest, WithParametersInOppositeOrder) {
+  absl::StatusOr<v0::Value> func = CreatePromptTemplateWithParameters(
+      "A template in which a foo is {foo} and a bar is {bar}.",
+      {"bar", "foo"});
+  ASSERT_OK(func);
+  func = WrapInLambda(func.value());
+  ASSERT_OK(func);
+
+  absl::StatusOr<v0::Value> arg = MakeTestArgWithoutLabels();
+  ASSERT_OK(arg);
+  absl::StatusOr<v0::Value> result = RunFuncOnArg(func.value(), arg.value());
+  EXPECT_OK(result);
+  EXPECT_EQ(result.value().str(),
+            "A template in which a foo is YYY and a bar is XXX.");
 }
 
 }  // namespace

@@ -179,6 +179,15 @@ class RunnerTest(absltest.TestCase):
         result2, 'This is an output from a test model in response to "bubba".'
     )
 
+  def test_multivariate_prompt_template(self):
+    comp_pb = authoring.create_prompt_template_with_parameters(
+        'A template in which a foo is {foo} and a bar is {bar}.',
+        ['foo', 'bar'])
+    comp = runner.Runner(comp_pb)
+    result = comp('XXX', 'YYY')
+    self.assertEqual(
+        str(result), 'A template in which a foo is XXX and a bar is YYY.')
+
 
 if __name__ == '__main__':
   absltest.main()

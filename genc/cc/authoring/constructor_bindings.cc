@@ -60,6 +60,12 @@ PYBIND11_MODULE(constructor_bindings, m) {
       "create_prompt_template", &CreatePromptTemplate,
       "Creates a prompt template computation with the given template string.");
 
+  m.def(
+      "create_prompt_template_with_parameters",
+      &CreatePromptTemplateWithParameters,
+      "Creates a prompt template computation with the given template string "
+      "and parameters.");
+
   m.def("create_regex_partial_match", &CreateRegexPartialMatch,
         "Creates a regular expression partial match with the given pattern.");
 

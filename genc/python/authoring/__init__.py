@@ -29,6 +29,7 @@ from genc.python.authoring.constructors import create_model_with_config
 from genc.python.authoring.constructors import create_named_value
 from genc.python.authoring.constructors import create_parallel_map
 from genc.python.authoring.constructors import create_prompt_template
+from genc.python.authoring.constructors import create_prompt_template_with_parameters
 from genc.python.authoring.constructors import create_reference
 from genc.python.authoring.constructors import create_regex_partial_match
 from genc.python.authoring.constructors import create_repeat

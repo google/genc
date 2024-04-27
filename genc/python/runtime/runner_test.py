@@ -243,6 +243,30 @@ class RunnerTest(absltest.TestCase):
         str(result),
         'Tell me more about the financial aspect of scuba diving.')
 
+  def test_two_multivariate_templates_interleaved_with_model_calls(self):
+    @authoring.traced_computation
+    def comp(aspect, activity, additional_aspect):
+      template_1 = authoring.prompt_template_with_parameters[
+          'Tell me about the {aspect} aspect of {activity}.',
+          ['aspect', 'activity']]
+      model_1 = authoring.model_inference['test_model']
+      first_result = model_1(template_1(aspect, activity))
+      template_2 = authoring.prompt_template_with_parameters[
+          'Expand on the following passage by focusing on the '  # pylint: disable=implicit-str-concat
+          'additional aspect {additional_aspect}: "{passage}.',
+          ['passage', 'additional_aspect']]
+      second_result = model_1(template_2(first_result, additional_aspect))
+      return second_result
+
+    runtime.set_default_executor()
+    result = comp('financial', 'scuba diving', 'fun')
+    self.assertEqual(
+        str(result),
+        'This is an output from a test model in response to "Expand on the '
+        'following passage by focusing on the additional aspect fun: '
+        '"This is an output from a test model in response to "Tell me about '
+        'the financial aspect of scuba diving."..".')
+
 
 if __name__ == '__main__':
   absltest.main()

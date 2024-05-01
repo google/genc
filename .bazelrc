@@ -152,3 +152,5 @@ build:linux --cxxopt=-DCMAKE_CXX_STANDARD=17
 build:linux --cxxopt=-DABSL_PROPAGATE_CXX_STD=OFF
 
 build --noincompatible_remove_rule_name_parameter
+
+build --@rules_rust//rust/toolchain/channel=nightly

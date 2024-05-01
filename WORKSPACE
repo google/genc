@@ -337,3 +337,15 @@ tink_cc_deps()
 load("@tink_cc//:tink_cc_deps_init.bzl", "tink_cc_deps_init")
 
 tink_cc_deps_init()
+
+load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
+
+rules_rust_dependencies()
+
+rust_register_toolchains(
+    edition = "2021",
+    versions = [
+        "1.76.0",
+        "nightly/2024-02-01",
+    ],
+)

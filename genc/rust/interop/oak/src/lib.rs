@@ -14,10 +14,6 @@ limitations under the License
 ==============================================================================*/
 
 #![crate_type = "staticlib"]
-#![no_builtins]
-#![feature(alloc_error_handler)]
-#![feature(lang_items)]
-#![feature(libc)]
 
 #[derive(Debug)]
 #[repr(C)]

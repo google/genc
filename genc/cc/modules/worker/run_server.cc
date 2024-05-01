@@ -71,7 +71,8 @@ absl::Status RunServer(
     oak_service = GENC_TRY(interop::oak::CreateService(
         executor_service,
         GENC_TRY(
-            interop::confidential_computing::CreateAttestationProvider()),
+            interop::confidential_computing::CreateAttestationProvider(
+                options.debug)),
         options.debug));
     builder.RegisterService(oak_service.get());
   } else {

@@ -13,7 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
+#include <chrono>  // NOLINT
 #include <cstddef>
+#include <iostream>
 #include <memory>
 #include <string>
 
@@ -21,11 +23,13 @@ limitations under the License
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/substitute.h"
 #include <curl/curl.h>
 #include <curl/easy.h>
 #include "genc/cc/interop/confidential_computing/attestation.h"
 #include "genc/cc/runtime/status_macros.h"
 #include <nlohmann/json.hpp>
+#include "proto/attestation/evidence.pb.h"
 #include "proto/session/messages.pb.h"
 #include "tink/config/global_registry.h"
 #include "tink/jwt/jwk_set_converter.h"
@@ -45,6 +49,15 @@ constexpr char kLauncherSocketPath[] = "/run/container_launcher/teeserver.sock";
 constexpr char kWellKnownFileURI[] =
     "https://confidentialcomputing.googleapis.com/.well-known/openid-configuration";
 constexpr char kJwksUriFieldName[] = "jwks_uri";
+constexpr char kAttestationJsonRequestTemplate[] = R"json(
+{
+  "audience": "$0",
+  "token_type": "OIDC",
+  "nonces": [
+    "$1"
+  ]
+})json";
+constexpr char kAudience[] = "GenC";
 
 size_t WriteCallback(
     void* contents, size_t size, size_t nmemb, std::string* output) {
@@ -70,10 +83,31 @@ struct CurlClient {
     return CallInternal(url);
   }
 
+  absl::StatusOr<std::string> PostJsonToUrl(
+      const std::string& url,
+      const std::string& json_request) {
+    struct curl_slist* headers = nullptr;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    curl_easy_setopt(curl_, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl_, CURLOPT_POSTFIELDS, json_request.c_str());
+    absl::StatusOr<std::string> result = CallInternal(url);
+    curl_slist_free_all(headers);
+    return result;
+  }
+
   absl::StatusOr<std::string> GetFromUrlAndSocket(
-      const std::string& url, const std::string& socket_path) {
+      const std::string& url,
+      const std::string& socket_path) {
     curl_easy_setopt(curl_, CURLOPT_UNIX_SOCKET_PATH, socket_path.c_str());
     return GetFromUrl(url);
+  }
+
+  absl::StatusOr<std::string> PostJsonToUrlAndSocket(
+      const std::string& url,
+      const std::string& socket_path,
+      const std::string& json_request) {
+    curl_easy_setopt(curl_, CURLOPT_UNIX_SOCKET_PATH, socket_path.c_str());
+    return PostJsonToUrl(url, json_request);
   }
 
   ~CurlClient() { curl_easy_cleanup(curl_); }
@@ -104,6 +138,14 @@ struct CurlClient {
 absl::StatusOr<std::string> GetAttestationToken() {
   return GENC_TRY(CurlClient::Create())->GetFromUrlAndSocket(
       kLocalhostTokenUrl, kLauncherSocketPath);
+}
+
+absl::StatusOr<std::string> GetAttestationToken(
+    const std::string& audience, const std::string& nonce) {
+  std::string json_request = absl::Substitute(
+      kAttestationJsonRequestTemplate, audience, nonce);
+  return GENC_TRY(CurlClient::Create())->PostJsonToUrlAndSocket(
+      kLocalhostTokenUrl, kLauncherSocketPath, json_request);
 }
 
 absl::StatusOr<crypto::tink::VerifiedJwt> DecodeAttestationToken(
@@ -140,30 +182,79 @@ namespace {
 
 class AttestationProviderImpl : public AttestationProvider {
  public:
+  explicit AttestationProviderImpl(bool debug) : debug_(debug) {}
+
   absl::StatusOr<::oak::session::v1::EndorsedEvidence>
-      GetEndorsedEvidence() override {
-    std::string token = GENC_TRY(GetAttestationToken());
+      GetEndorsedEvidence(const std::string& serialized_public_key) override {
+    std::string token =
+        GENC_TRY(GetAttestationToken(kAudience, serialized_public_key));
     crypto::tink::VerifiedJwt verified_token =
         GENC_TRY(DecodeAttestationToken(token));
-
-    // TODO(b/333410413): Implement the rest of this, as per the below, and
-    // package it in Oak's attestation data structure.
-    // https://cloud.google.com/confidential-computing/confidential-space/docs/connect-external-resources#unencrypted
-
-    return absl::UnimplementedError(absl::StrCat(
-        "GetEndorsedEvidence has not been fully implemented yet, but here's "
-        "the raw token:\n", token, "\nand here's its JSON payload:\n",
-        GENC_TRY(verified_token.GetJsonPayload())));
+    if (debug_) {
+      std::cout << "Attestation token payload:\n"
+                << verified_token.GetJsonPayload() << "\n";
+    }
+    ::oak::session::v1::EndorsedEvidence evidence;
+    auto root_layer = evidence.mutable_evidence()->mutable_root_layer();
+    // TODO(b/333410413): Potentially extract correct info from the JWT token
+    // and plug it into the root layer instead of the JWT token.
+    root_layer->set_platform(::oak::attestation::v1::TEE_PLATFORM_UNSPECIFIED);
+    root_layer->set_remote_attestation_report(token);
+    auto app_keys = evidence.mutable_evidence()->mutable_application_keys();
+    // The client-side verifier expects the JWT token, and will unpack it the
+    // same way as we do above.
+    app_keys->set_encryption_public_key_certificate(token);
+    return evidence;
   }
 
   virtual ~AttestationProviderImpl() {};
+
+ private:
+  const bool debug_;
+};
+
+class AttestationVerifierImpl : public AttestationVerifier {
+ public:
+  explicit AttestationVerifierImpl(bool debug) : debug_(debug) {}
+
+  absl::StatusOr<::oak::attestation::v1::AttestationResults> Verify(
+      std::chrono::time_point<std::chrono::system_clock> now,
+      const ::oak::attestation::v1::Evidence& evidence,
+      const ::oak::attestation::v1::Endorsements& endorsements) const override {
+    // The server-side inserts JWT token here, to be unpacked on the client.
+    const std::string& token =
+        evidence.application_keys().encryption_public_key_certificate();
+    crypto::tink::VerifiedJwt verified_token =
+        GENC_TRY(DecodeAttestationToken(token));
+    if (debug_) {
+      std::cout << "Attestation token payload:\n"
+                << verified_token.GetJsonPayload() << "\n";
+    }
+
+    // TODO
+
+    ::oak::attestation::v1::AttestationResults attestation_results;
+    attestation_results.set_status(
+        ::oak::attestation::v1::AttestationResults::STATUS_SUCCESS);
+    return attestation_results;
+  }
+
+  virtual ~AttestationVerifierImpl() {};
+
+ private:
+  const bool debug_;
 };
 
 }  // namespace
 
 absl::StatusOr<std::shared_ptr<AttestationProvider>>
-CreateAttestationProvider() {
-  return std::make_shared<AttestationProviderImpl>();
+CreateAttestationProvider(bool debug) {
+  return std::make_shared<AttestationProviderImpl>(debug);
+}
+
+absl::StatusOr<std::shared_ptr<AttestationVerifier>>
+    CreateAttestationVerifier(bool debug) {
+  return std::make_shared<AttestationVerifierImpl>(debug);
 }
 
 }  // namespace confidential_computing

@@ -21,6 +21,7 @@ limitations under the License
 
 #include "absl/status/statusor.h"
 #include "genc/cc/interop/oak/attestation_provider.h"
+#include "cc/attestation/verification/attestation_verifier.h"
 #include "tink/jwt/verified_jwt.h"
 
 namespace genc {
@@ -29,13 +30,22 @@ namespace confidential_computing {
 
 absl::StatusOr<std::string> GetAttestationToken();
 
+absl::StatusOr<std::string> GetAttestationToken(
+    const std::string& audience, const std::string& nonce);
+
 absl::StatusOr<crypto::tink::VerifiedJwt> DecodeAttestationToken(
     const std::string& token);
 
 class AttestationProvider : public oak::AttestationProvider {};
 
+class AttestationVerifier
+    : public ::oak::attestation::verification::AttestationVerifier {};
+
 absl::StatusOr<std::shared_ptr<AttestationProvider>>
-    CreateAttestationProvider();
+    CreateAttestationProvider(bool debug);
+
+absl::StatusOr<std::shared_ptr<AttestationVerifier>>
+    CreateAttestationVerifier(bool debug);
 
 }  // namespace confidential_computing
 }  // namespace interop

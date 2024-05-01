@@ -21,6 +21,7 @@ limitations under the License
 #include "absl/status/statusor.h"
 #include "genc/proto/v0/executor.grpc.pb.h"
 #include "include/grpcpp/channel.h"
+#include "cc/attestation/verification/attestation_verifier.h"
 
 namespace genc {
 namespace interop {
@@ -28,7 +29,10 @@ namespace oak {
 
 // Creates an Oak client that implements the GenC `Executor` stub interface.
 absl::StatusOr<std::unique_ptr<v0::Executor::StubInterface>> CreateClient(
-    std::shared_ptr<grpc::Channel> channel);
+    std::shared_ptr<grpc::Channel> channel,
+    std::shared_ptr<::oak::attestation::verification::AttestationVerifier>
+        attestation_verifier,
+    bool debug);
 
 }  // namespace oak
 }  // namespace interop

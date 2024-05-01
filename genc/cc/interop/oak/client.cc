@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include <chrono>  // NOLINT
+#include <iostream>
 #include <memory>
 #include <string>
 #include <utility>
@@ -42,39 +42,24 @@ namespace interop {
 namespace oak {
 namespace {
 
-// Temporarily implemented here due to issues with InsecureAttestationVerifier's
-// problematic dependency on libcppbor that trips the OSS build.
-// TODO(b/333410413): Replace this with Oak's InsecureAttestationVerifier, or
-// something else that isn't a noop.
-class NoopAttestationVerifier
-    : public ::oak::attestation::verification::AttestationVerifier {
- public:
-  absl::StatusOr<::oak::attestation::v1::AttestationResults> Verify(
-      std::chrono::time_point<std::chrono::system_clock> now,
-      const ::oak::attestation::v1::Evidence& evidence,
-      const ::oak::attestation::v1::Endorsements& endorsements) const override {
-    ::oak::attestation::v1::AttestationResults attestation_results;
-    attestation_results.set_status(
-        ::oak::attestation::v1::AttestationResults::STATUS_SUCCESS);
-    return attestation_results;
-  }
-};
-
 class OakClient : public v0::Executor::StubInterface {
  public:
   static absl::StatusOr<std::unique_ptr<OakClient>> Create(
-      std::shared_ptr<grpc::Channel> channel) {
+      std::shared_ptr<grpc::Channel> channel,
+      std::shared_ptr<::oak::attestation::verification::AttestationVerifier>
+        attestation_verifier,
+      bool debug) {
     std::unique_ptr<::oak::session::v1::UnarySession::StubInterface> stub =
       ::oak::session::v1::UnarySession::NewStub(channel);
     std::unique_ptr<::oak::transport::TransportWrapper> transport_wrapper =
         std::make_unique<::oak::transport::GrpcUnaryTransport<
             ::oak::session::v1::UnarySession::StubInterface>>(stub.get());
-    std::unique_ptr<NoopAttestationVerifier> attestation_verifier;
     std::unique_ptr<::oak::client::OakClient> oak_client = GENC_TRY(
         ::oak::client::OakClient::Create(
             std::move(transport_wrapper), *attestation_verifier));
     return absl::WrapUnique(
-        new OakClient(std::move(attestation_verifier), std::move(oak_client)));
+        new OakClient(
+            std::move(attestation_verifier), std::move(oak_client), debug));
   }
 
   grpc::Status CreateValue(
@@ -271,10 +256,13 @@ class OakClient : public v0::Executor::StubInterface {
 
  protected:
   OakClient(
-      std::unique_ptr<NoopAttestationVerifier> attestation_verifier,
-      std::unique_ptr<::oak::client::OakClient> oak_client)
+      std::shared_ptr<::oak::attestation::verification::AttestationVerifier>
+          attestation_verifier,
+      std::unique_ptr<::oak::client::OakClient> oak_client,
+      bool debug)
       : attestation_verifier_(std::move(attestation_verifier)),
-        oak_client_(std::move(oak_client)) {}
+        oak_client_(std::move(oak_client)),
+        debug_(debug) {}
 
  private:
   absl::Status Call(
@@ -283,21 +271,32 @@ class OakClient : public v0::Executor::StubInterface {
     std::string serialized_request = request.SerializeAsString();
     absl::StatusOr<std::string> serialized_response =
         GENC_TRY(oak_client_.value()->Invoke(serialized_request));
+    if (debug_) {
+      std::cout << "Request:\n" << request.DebugString() << "\n";
+    }
     if (!response->ParseFromString(serialized_response.value())) {
       return absl::InternalError("Failed to parse the serialized response.");
+    }
+    if (debug_) {
+      std::cout << "Response:\n" << response->DebugString() << "\n";
     }
     return absl::OkStatus();
   }
 
-  const std::unique_ptr<NoopAttestationVerifier> attestation_verifier_;
+  const std::shared_ptr<::oak::attestation::verification::AttestationVerifier>
+      attestation_verifier_;
   const absl::StatusOr<std::unique_ptr<::oak::client::OakClient>> oak_client_;
+  const bool debug_;
 };
 
 }  // namespace
 
 absl::StatusOr<std::unique_ptr<v0::Executor::StubInterface>> CreateClient(
-    std::shared_ptr<grpc::Channel> channel) {
-  return OakClient::Create(channel);
+    std::shared_ptr<grpc::Channel> channel,
+    std::shared_ptr<::oak::attestation::verification::AttestationVerifier>
+        attestation_verifier,
+    bool debug) {
+  return OakClient::Create(channel, std::move(attestation_verifier), debug);
 }
 
 }  // namespace oak

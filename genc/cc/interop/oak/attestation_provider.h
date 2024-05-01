@@ -16,6 +16,8 @@ limitations under the License
 #ifndef GENC_CC_INTEROP_OAK_ATTESTATION_PROVIDER_H_
 #define GENC_CC_INTEROP_OAK_ATTESTATION_PROVIDER_H_
 
+#include <string>
+
 #include "absl/status/statusor.h"
 #include "proto/session/messages.pb.h"
 
@@ -26,7 +28,7 @@ namespace oak {
 class AttestationProvider {
  public:
   virtual absl::StatusOr<::oak::session::v1::EndorsedEvidence>
-      GetEndorsedEvidence() = 0;
+      GetEndorsedEvidence(const std::string& serialized_public_key) = 0;
 
   virtual ~AttestationProvider() {}
 };

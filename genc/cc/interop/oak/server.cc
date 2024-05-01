@@ -16,6 +16,7 @@ limitations under the License
 #include <iostream>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -23,9 +24,14 @@ limitations under the License
 #include "genc/cc/base/to_from_grpc_status.h"
 #include "genc/cc/interop/oak/attestation_provider.h"
 #include "genc/cc/interop/oak/server.h"
+#include "genc/cc/runtime/status_macros.h"
 #include "genc/proto/v0/executor.grpc.pb.h"
+#include "genc/proto/v0/executor.pb.h"
 #include "include/grpcpp/server_context.h"
 #include "include/grpcpp/support/status.h"
+#include "cc/crypto/common.h"
+#include "cc/crypto/encryption_key.h"
+#include "cc/crypto/server_encryptor.h"
 #include "proto/session/service_unary.grpc.pb.h"
 
 namespace genc {
@@ -33,15 +39,38 @@ namespace interop {
 namespace oak {
 namespace {
 
+constexpr char kEmptyAssociatedData[] = "";
+
 class OakService : public ::oak::session::v1::UnarySession::Service {
  public:
+  static absl::StatusOr<std::unique_ptr<OakService>> Create(
+      std::shared_ptr<v0::Executor::Service> executor_service,
+      std::shared_ptr<AttestationProvider> attestation_provider,
+      bool debug) {
+    ::oak::crypto::EncryptionKeyProvider encryption_provider =
+        GENC_TRY(::oak::crypto::EncryptionKeyProvider::Create());
+    return std::make_unique<OakService>(
+        executor_service,
+        encryption_provider,
+        std::move(attestation_provider),
+        debug);
+  }
+
   explicit OakService(
       std::shared_ptr<v0::Executor::Service> executor_service,
+      const ::oak::crypto::EncryptionKeyProvider& encryption_provider,
       std::shared_ptr<AttestationProvider> attestation_provider,
       bool debug)
       : executor_service_(executor_service),
+        encryption_provider_(encryption_provider),
+        serialized_public_key_(encryption_provider_.GetSerializedPublicKey()),
+        server_encryptor_(encryption_provider_),
         attestation_provider_(attestation_provider),
-        debug_(debug) {}
+        debug_(debug) {
+    if (debug_) {
+      std::cout << "OakService public key:\n" << serialized_public_key_ << "\n";
+    }
+  }
 
   ~OakService() override {}
 
@@ -53,7 +82,7 @@ class OakService : public ::oak::session::v1::UnarySession::Service {
       std::cout << "OakService received the GetEndorsedEvidence() call\n";
     }
     absl::StatusOr<::oak::session::v1::EndorsedEvidence> endorsed_evidence =
-        attestation_provider_->GetEndorsedEvidence();
+        attestation_provider_->GetEndorsedEvidence(serialized_public_key_);
     if (!endorsed_evidence.ok()) {
       return AbslToGrpcStatus(
           absl::InternalError(absl::StrCat(
@@ -73,12 +102,65 @@ class OakService : public ::oak::session::v1::UnarySession::Service {
     if (debug_) {
       std::cout << "OakService received the Invoke() call\n";
     }
-    return grpc::Status(
-        grpc::StatusCode::UNIMPLEMENTED, "Invoke has not been implemented.");
+    absl::StatusOr<::oak::crypto::DecryptionResult> decryption_result =
+        server_encryptor_.Decrypt(request->encrypted_request());
+    if (!decryption_result.ok()) {
+      return AbslToGrpcStatus(
+          absl::InternalError(absl::StrCat(
+              "Request decryption failed with an error status: \"",
+              decryption_result.status().ToString(),
+              "\".")));
+    }
+    const std::string& serialized_request = decryption_result->plaintext;
+    v0::ExecutorRequest executor_request;
+    if (!executor_request.ParseFromString(serialized_request)) {
+      return AbslToGrpcStatus(
+          absl::InternalError(absl::StrCat(
+              "Failed to parse the serialized request: \"",
+              serialized_request,
+              "\".")));
+    }
+    if (debug_) {
+      std::cout << "OakService invoked with request:"
+                << executor_request.DebugString() << "\n";
+    }
+    absl::StatusOr<v0::ExecutorResponse> executor_response =
+        GetExecutorResponse(executor_request);
+    if (!executor_response.ok()) {
+      return AbslToGrpcStatus(
+          absl::InternalError(absl::StrCat(
+              "Failed to get the executor response: \"",
+              executor_response.status().ToString(),
+              "\".")));
+    }
+    if (debug_) {
+      std::cout << "OakService returning response:"
+                << executor_response->DebugString() << "\n";
+    }
+    absl::StatusOr<::oak::crypto::v1::EncryptedResponse> encrypted_response =
+        server_encryptor_.Encrypt(
+            executor_response->SerializeAsString(), kEmptyAssociatedData);
+    if (!encrypted_response.ok()) {
+      return AbslToGrpcStatus(
+          absl::InternalError(absl::StrCat(
+              "Response encryption failed with an error status: \"",
+              encrypted_response.status().ToString(),
+              "\".")));
+    }
+    *response->mutable_encrypted_response() = encrypted_response.value();
+    return grpc::Status::OK;
   }
 
  private:
+  absl::StatusOr<v0::ExecutorResponse> GetExecutorResponse(
+      const v0::ExecutorRequest& executor_request) {
+    return absl::UnimplementedError("GetExecutorResponse not implemented.");
+  }
+
   const std::shared_ptr<v0::Executor::Service> executor_service_;
+  ::oak::crypto::EncryptionKeyProvider encryption_provider_;
+  const std::string serialized_public_key_;
+  ::oak::crypto::ServerEncryptor server_encryptor_;
   const std::shared_ptr<AttestationProvider> attestation_provider_;
   const bool debug_;
 };
@@ -90,8 +172,7 @@ CreateService(
     std::shared_ptr<v0::Executor::Service> executor_service,
     std::shared_ptr<AttestationProvider> attestation_provider,
     bool debug) {
-  return std::make_unique<OakService>(
-      executor_service, attestation_provider, debug);
+  return OakService::Create(executor_service, attestation_provider, debug);
 }
 
 }  // namespace oak

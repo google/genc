@@ -23,6 +23,7 @@ limitations under the License
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "genc/cc/base/read_file.h"
+#include "genc/cc/interop/confidential_computing/attestation.h"
 #include "genc/cc/interop/oak/client.h"
 #include "genc/cc/runtime/executor.h"
 #include "genc/cc/runtime/remote_executor.h"
@@ -34,6 +35,7 @@ limitations under the License
 #include "include/grpcpp/client_context.h"
 #include "include/grpcpp/create_channel.h"
 #include "include/grpcpp/security/credentials.h"
+#include "include/grpcpp/support/channel_arguments.h"
 #include "include/grpcpp/support/status.h"
 #include "google/protobuf/text_format.h"
 
@@ -55,6 +57,7 @@ ABSL_FLAG(bool, oak, false, "Whether to use project Oak for communication.");
 ABSL_FLAG(bool, ssl, false, "Whether to use SSL for communication.");
 ABSL_FLAG(std::string, cert, "", "The path to the root cert.");
 ABSL_FLAG(std::string, target_override, "", "The expected target name.");
+ABSL_FLAG(bool, debug, false, "Whether to print debug output.");
 
 namespace genc {
 
@@ -114,7 +117,11 @@ absl::Status RunClient() {
   std::shared_ptr<grpc::Channel> channel = CreateChannel();
   std::unique_ptr<v0::Executor::StubInterface> executor_stub;
   if (absl::GetFlag(FLAGS_oak)) {
-    executor_stub = GENC_TRY(interop::oak::CreateClient(channel));
+    const bool debug = absl::GetFlag(FLAGS_debug);
+    auto verifier = GENC_TRY(
+        interop::confidential_computing::CreateAttestationVerifier(debug));
+    executor_stub = GENC_TRY(
+        interop::oak::CreateClient(channel, verifier, debug));
   } else {
     executor_stub = v0::Executor::NewStub(channel);
   }

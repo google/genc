@@ -36,6 +36,8 @@ limitations under the License
 #include "tink/jwt/verified_jwt.h"
 
 ABSL_FLAG(std::string, token, "", "The optional attestation token.");
+ABSL_FLAG(std::string, audience, "", "The optional audience.");
+ABSL_FLAG(std::string, nonce, "", "The optional nonce.");
 
 namespace genc {
 namespace {
@@ -43,7 +45,14 @@ namespace {
 absl::Status Run() {
   std::string token = absl::GetFlag(FLAGS_token);
   if (token.empty()) {
-    token = GENC_TRY(interop::confidential_computing::GetAttestationToken());
+    std::string nonce = absl::GetFlag(FLAGS_nonce);
+    std::string audience = absl::GetFlag(FLAGS_audience);
+    if (nonce.empty() && audience.empty()) {
+      token = GENC_TRY(interop::confidential_computing::GetAttestationToken());
+    } else {
+      token = GENC_TRY(interop::confidential_computing::GetAttestationToken(
+          audience, nonce));
+    }
     std::cout << "Token:\n" << token << "\n";
   }
   crypto::tink::VerifiedJwt verified_token =

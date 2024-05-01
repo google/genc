@@ -17,6 +17,8 @@ cc_library(
         "@com_google_absl//absl/strings",
         "@curl",
         "@nlohmann_json//:json",
+        "@oak//cc/attestation/verification:attestation_verifier",
+        "@oak//proto/attestation:evidence_cc_proto",
         "@oak//proto/session:messages_cc_proto",
         "@tink_cc//tink:keyset_handle",
         "@tink_cc//tink/config:global_registry",

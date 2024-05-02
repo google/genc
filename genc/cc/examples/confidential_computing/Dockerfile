@@ -48,7 +48,7 @@ WORKDIR "/"
 
 RUN git clone https://github.com/google/genc
 
-RUN wget https://huggingface.co/lmstudio-ai/gemma-2b-it-GGUF/blob/main/gemma-2b-it-q4_k_m.gguf --directory-prefix=/
+RUN wget --directory-prefix=/ https://huggingface.co/lmstudio-ai/gemma-2b-it-GGUF/resolve/main/gemma-2b-it-q4_k_m.gguf
 
 EXPOSE 80/tcp
 

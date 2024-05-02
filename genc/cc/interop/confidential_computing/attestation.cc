@@ -18,12 +18,14 @@ limitations under the License
 #include <iostream>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "absl/memory/memory.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/escaping.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/string_view.h"
 #include "absl/strings/substitute.h"
 #include <curl/curl.h>
 #include <curl/easy.h>
@@ -61,10 +63,11 @@ constexpr char kAttestationJsonRequestTemplate[] = R"json(
 constexpr char kAudience[] = "GenC";
 constexpr char kIssuer[] = "https://confidentialcomputing.googleapis.com";
 constexpr char kJwtNonceAttributeName[] = "eat_nonce";
+constexpr char kSubmodsAttributeName[] = "submods";
 constexpr char kContainerAttributeName[] = "container";
 constexpr char kContainerImageReferenceAttributeName[] = "image_reference";
 constexpr char kContainerImageDigestAttributeName[] = "image_digest";
-constexpr char kOsAttributeName[] = "sw_name";
+constexpr char kOsAttributeName[] = "swname";
 constexpr char kOsAttributeValue[] = "CONFIDENTIAL_SPACE";
 
 size_t WriteCallback(
@@ -75,13 +78,16 @@ size_t WriteCallback(
 }
 
 struct CurlClient {
-  static absl::StatusOr<std::unique_ptr<CurlClient>> Create() {
+  static absl::StatusOr<std::unique_ptr<CurlClient>> Create(
+      bool debug = false) {
     CURL* curl = curl_easy_init();
     if (curl == nullptr) {
       return absl::InternalError(
           "Unable to init CURL.");
     }
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+    if (debug) {
+      curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+    }
     return absl::WrapUnique<CurlClient>(new CurlClient(curl));
   }
 
@@ -140,6 +146,27 @@ struct CurlClient {
  private:
   CURL* const curl_;
 };
+
+absl::StatusOr<std::string> GetStringAttributeFromJson(
+    const nlohmann::json& json, const std::vector<absl::string_view>& path) {
+  if (path.empty()) {
+    return absl::InvalidArgumentError("Empty path.");
+  }
+  int i = 0;
+  auto it = json.find(path[i]);
+  while (true) {
+    if (it == json.end()) {
+      return absl::InternalError(absl::StrCat(
+          "Missing attribute \"", path[i], "\"."));
+    }
+    if (i >= (path.size() - 1)) {
+      break;
+    }
+    ++i;
+    it = json.find(path[i]);
+  }
+  return it->get<std::string>();
+}
 
 }  // namespace
 
@@ -280,19 +307,24 @@ class AttestationVerifierImpl : public AttestationVerifier {
     if (debug_) {
       std::cout << "Attestation token payload:\n" << token_json_string << "\n";
     }
-    auto token_json = nlohmann::json::parse(token_json_string, nullptr, false);
+    nlohmann::json token_json =
+        nlohmann::json::parse(token_json_string, nullptr, false);
     if (token_json.is_discarded()) {
       return absl::InternalError(absl::StrCat(
         "Couldn't parse the token JSON string: ", token_json_string));
     }
-    const std::string os_name = token_json[kOsAttributeName];
+    const std::string os_name = GENC_TRY(GetStringAttributeFromJson(
+        token_json, {kOsAttributeName}));
     if (os_name != kOsAttributeValue) {
       return absl::InternalError(absl::StrCat(
           "OS name mismatch: ", os_name, " vs. ", kOsAttributeValue));
     }
     if (!workload_provenance_.container_image_reference.empty()) {
-      const std::string& image_reference = token_json[
-          kContainerAttributeName][kContainerImageReferenceAttributeName];
+      const std::string& image_reference = GENC_TRY(GetStringAttributeFromJson(
+        token_json, {
+          kSubmodsAttributeName,
+          kContainerAttributeName,
+          kContainerImageReferenceAttributeName}));
       if (image_reference != workload_provenance_.container_image_reference) {
         return absl::InternalError(absl::StrCat(
             "Container image digest mismatch: ", image_reference,
@@ -300,15 +332,19 @@ class AttestationVerifierImpl : public AttestationVerifier {
       }
     }
     if (!workload_provenance_.container_image_digest.empty()) {
-      const std::string& image_digest = token_json[
-          kContainerAttributeName][kContainerImageDigestAttributeName];
+      const std::string& image_digest = GENC_TRY(GetStringAttributeFromJson(
+        token_json, {
+          kSubmodsAttributeName,
+          kContainerAttributeName,
+          kContainerImageDigestAttributeName}));
       if (image_digest != workload_provenance_.container_image_digest) {
         return absl::InternalError(absl::StrCat(
             "Container image digest mismatch: ", image_digest,
             " vs. ", workload_provenance_.container_image_digest));
       }
     }
-    const std::string& eat_nonce = token_json[kJwtNonceAttributeName];
+    const std::string& eat_nonce = GENC_TRY(GetStringAttributeFromJson(
+        token_json, {kJwtNonceAttributeName}));
     ::oak::attestation::v1::AttestationResults attestation_results;
     attestation_results.set_status(
         ::oak::attestation::v1::AttestationResults::STATUS_SUCCESS);

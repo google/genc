@@ -75,7 +75,10 @@ absl::Status LlamaCpp::InitModel(absl::string_view model_path,
   model_ =
       llama_load_model_from_file(std::string(model_path).c_str(), model_params);
   if (!model_) {
-    return absl::InvalidArgumentError("Unable to create model.");
+    return absl::InvalidArgumentError(absl::StrCat(
+        "LlamaCpp unable to load a model from file \"",
+        std::string(model_path),
+        "\" with the default params."));
   }
   llama_context_params ctx_params = llama_context_default_params();
   ctx_params.seed = 1234;

@@ -232,6 +232,10 @@ class AttestationProviderImpl : public AttestationProvider {
     // The client-side verifier expects the JWT token, and will unpack it the
     // same way as we do above.
     app_keys->set_encryption_public_key_certificate(token.value());
+    if (debug_) {
+        std::cout << "AttestationProvider returning endorsed evidence:\n"
+                  << evidence.DebugString() << "\n";
+    }
     return evidence;
   }
 

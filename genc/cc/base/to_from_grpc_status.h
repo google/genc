@@ -22,6 +22,7 @@ limitations under the License
 namespace genc {
 
 grpc::Status AbslToGrpcStatus(absl::Status status);
+absl::Status GrpcToAbslStatus(grpc::Status status);
 
 }  // namespace genc
 

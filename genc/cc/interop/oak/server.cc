@@ -154,7 +154,49 @@ class OakService : public ::oak::session::v1::UnarySession::Service {
  private:
   absl::StatusOr<v0::ExecutorResponse> GetExecutorResponse(
       const v0::ExecutorRequest& executor_request) {
-    return absl::UnimplementedError("GetExecutorResponse not implemented.");
+    v0::ExecutorResponse executor_response;
+    grpc::Status grpc_status;
+    if (executor_request.has_create_value()) {
+      grpc_status = executor_service_->CreateValue(
+          nullptr,
+          &executor_request.create_value(),
+          executor_response.mutable_create_value());
+    } else if (executor_request.has_create_call()) {
+      grpc_status = executor_service_->CreateCall(
+          nullptr,
+          &executor_request.create_call(),
+          executor_response.mutable_create_call());
+    } else if (executor_request.has_create_struct()) {
+      grpc_status = executor_service_->CreateStruct(
+          nullptr,
+          &executor_request.create_struct(),
+          executor_response.mutable_create_struct());
+    } else if (executor_request.has_create_selection()) {
+      grpc_status = executor_service_->CreateSelection(
+          nullptr,
+          &executor_request.create_selection(),
+          executor_response.mutable_create_selection());
+    } else if (executor_request.has_materialize()) {
+      grpc_status = executor_service_->Materialize(
+          nullptr,
+          &executor_request.materialize(),
+          executor_response.mutable_materialize());
+    } else if (executor_request.has_dispose()) {
+      grpc_status = executor_service_->Dispose(
+          nullptr,
+          &executor_request.dispose(),
+          executor_response.mutable_dispose());
+    } else {
+      return absl::InternalError(absl::StrCat(
+          "Unsupported type of executor request: \"",
+          executor_request.DebugString(),
+          "\"."));
+    }
+    if (!grpc_status.ok()) {
+      return GrpcToAbslStatus(grpc_status);
+    } else {
+      return executor_response;
+    }
   }
 
   const std::shared_ptr<v0::Executor::Service> executor_service_;

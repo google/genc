@@ -188,6 +188,7 @@ cc_library(
         ":executor",
         ":status_macros",
         ":threading",
+        "//genc/cc/base:to_from_grpc_status",
         "//genc/proto/v0:computation_cc_proto",
         "//genc/proto/v0:executor_cc_grpc_proto",
         "//genc/proto/v0:executor_cc_proto",

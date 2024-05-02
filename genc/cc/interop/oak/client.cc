@@ -53,7 +53,7 @@ class OakClient : public v0::Executor::StubInterface {
       ::oak::session::v1::UnarySession::NewStub(channel);
     std::unique_ptr<::oak::transport::TransportWrapper> transport_wrapper =
         std::make_unique<::oak::transport::GrpcUnaryTransport<
-            ::oak::session::v1::UnarySession::StubInterface>>(stub.get());
+            ::oak::session::v1::UnarySession::StubInterface>>(stub.release());
     std::unique_ptr<::oak::client::OakClient> oak_client = GENC_TRY(
         ::oak::client::OakClient::Create(
             std::move(transport_wrapper), *attestation_verifier));
@@ -268,12 +268,12 @@ class OakClient : public v0::Executor::StubInterface {
   absl::Status Call(
       const v0::ExecutorRequest& request,
       v0::ExecutorResponse* response) {
-    std::string serialized_request = request.SerializeAsString();
-    absl::StatusOr<std::string> serialized_response =
-        GENC_TRY(oak_client_.value()->Invoke(serialized_request));
     if (debug_) {
       std::cout << "Request:\n" << request.DebugString() << "\n";
     }
+    std::string serialized_request = request.SerializeAsString();
+    absl::StatusOr<std::string> serialized_response =
+        GENC_TRY(oak_client_.value()->Invoke(serialized_request));
     if (!response->ParseFromString(serialized_response.value())) {
       return absl::InternalError("Failed to parse the serialized response.");
     }

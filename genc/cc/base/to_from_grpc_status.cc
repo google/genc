@@ -30,4 +30,13 @@ grpc::Status AbslToGrpcStatus(absl::Status status) {
   }
 }
 
+absl::Status GrpcToAbslStatus(grpc::Status status) {
+  if (status.ok()) {
+    return absl::OkStatus();
+  } else {
+    return absl::Status(static_cast<absl::StatusCode>(status.error_code()),
+                        status.error_message());
+  }
+}
+
 }  // namespace genc

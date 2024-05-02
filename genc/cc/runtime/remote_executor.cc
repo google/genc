@@ -24,6 +24,7 @@ limitations under the License
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "genc/cc/base/to_from_grpc_status.h"
 #include "genc/cc/runtime/executor.h"
 #include "genc/cc/runtime/remote_executor.h"
 #include "genc/cc/runtime/status_macros.h"
@@ -67,15 +68,6 @@ class ExecutorValue {
   const std::shared_ptr<ExecutorStub> executor_stub_;
   const v0::ValueRef value_ref_;
 };
-
-absl::Status GrpcToAbslStatus(grpc::Status status) {
-  if (status.ok()) {
-    return absl::OkStatus();
-  } else {
-    return absl::Status(static_cast<absl::StatusCode>(status.error_code()),
-                        status.error_message());
-  }
-}
 
 using ValueFuture =
     std::shared_future<absl::StatusOr<std::shared_ptr<ExecutorValue>>>;

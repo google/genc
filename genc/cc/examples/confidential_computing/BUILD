@@ -25,11 +25,15 @@ cc_binary(
     srcs = ["debug_attestation.cc"],
     deps = [
         "//genc/cc/interop/confidential_computing:attestation",
+        "//genc/cc/interop/oak:attestation_provider",
         "//genc/cc/runtime:status_macros",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
+        "@oak//cc/crypto:common",
+        "@oak//cc/crypto:encryption_key",
+        "@oak//cc/crypto:server_encryptor",
         "@tink_cc//tink/jwt:verified_jwt",
     ],
 )

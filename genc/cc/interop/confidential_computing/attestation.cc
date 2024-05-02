@@ -22,6 +22,7 @@ limitations under the License
 #include "absl/memory/memory.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/escaping.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/substitute.h"
 #include <curl/curl.h>
@@ -58,6 +59,7 @@ constexpr char kAttestationJsonRequestTemplate[] = R"json(
   ]
 })json";
 constexpr char kAudience[] = "GenC";
+constexpr char kJwtNonceAttributeName[] = "eat_nonce";
 
 size_t WriteCallback(
     void* contents, size_t size, size_t nmemb, std::string* output) {
@@ -161,8 +163,15 @@ absl::StatusOr<crypto::tink::VerifiedJwt> DecodeAttestationToken(
   const std::string jwks_uri = well_known_json[kJwksUriFieldName];
   const std::string jwks_payload =
       GENC_TRY(GENC_TRY(CurlClient::Create())->GetFromUrl(jwks_uri));
-  std::unique_ptr<crypto::tink::KeysetHandle> keyset_handle =
-      GENC_TRY(crypto::tink::JwkSetToPublicKeysetHandle(jwks_payload));
+  absl::StatusOr<std::unique_ptr<crypto::tink::KeysetHandle>> keyset_handle =
+      crypto::tink::JwkSetToPublicKeysetHandle(jwks_payload);
+  if (!keyset_handle.ok()) {
+    return absl::InternalError(absl::StrCat(
+        "JwkSetToPublicKeysetHandle failed with errpr:\n",
+        keyset_handle.status().ToString(),
+        "\non payload:\n",
+        jwks_payload, "\n"));
+  }
   crypto::tink::JwtValidator validator =
       GENC_TRY(crypto::tink::JwtValidatorBuilder()
                    .IgnoreAudiences()
@@ -170,11 +179,18 @@ absl::StatusOr<crypto::tink::VerifiedJwt> DecodeAttestationToken(
                    .IgnoreTypeHeader()
                    .Build());
   GENC_TRY(crypto::tink::JwtSignatureRegister());
-  std::unique_ptr<crypto::tink::JwtPublicKeyVerify> jwt_verifier =
-      GENC_TRY(keyset_handle->GetPrimitive<crypto::tink::JwtPublicKeyVerify>(
+  std::unique_ptr<crypto::tink::JwtPublicKeyVerify> jwt_verifier = GENC_TRY(
+      keyset_handle.value()->GetPrimitive<crypto::tink::JwtPublicKeyVerify>(
           crypto::tink::ConfigGlobalRegistry()));
-  crypto::tink::VerifiedJwt verified_token =
-      GENC_TRY(jwt_verifier->VerifyAndDecode(token, validator));
+  absl::StatusOr<crypto::tink::VerifiedJwt> verified_token =
+      jwt_verifier->VerifyAndDecode(token, validator);
+  if (!verified_token.ok()) {
+    return absl::InternalError(absl::StrCat(
+        "VerifyAndDecode failed with error:\n",
+        verified_token.status().ToString(),
+        "\non token:\n",
+        token, "\n"));
+  }
   return verified_token;
 }
 
@@ -186,24 +202,36 @@ class AttestationProviderImpl : public AttestationProvider {
 
   absl::StatusOr<::oak::session::v1::EndorsedEvidence>
       GetEndorsedEvidence(const std::string& serialized_public_key) override {
-    std::string token =
-        GENC_TRY(GetAttestationToken(kAudience, serialized_public_key));
-    crypto::tink::VerifiedJwt verified_token =
-        GENC_TRY(DecodeAttestationToken(token));
+    // Supply the key as a nonce.
+    const std::string nonce = absl::Base64Escape(serialized_public_key);
+    absl::StatusOr<std::string> token = GetAttestationToken(kAudience, nonce);
+    if (!token.ok()) {
+      return absl::InternalError(absl::StrCat(
+          "AttestationProvider couldn't get attestation token for audience \"",
+          kAudience, "\" and nonce \"", nonce, "\": ",
+          token.status().ToString()));
+    }
     if (debug_) {
-      std::cout << "Attestation token payload:\n"
-                << verified_token.GetJsonPayload() << "\n";
+      absl::StatusOr<crypto::tink::VerifiedJwt> verified_token =
+          DecodeAttestationToken(token.value());
+      if (verified_token.ok()) {
+        std::cout << "Attestation token payload:\n"
+                  << verified_token->GetJsonPayload() << "\n";
+      } else {
+        std::cout << "Attestation token seems invalid:\n"
+                  << verified_token.status().ToString() << "\n";
+      }
     }
     ::oak::session::v1::EndorsedEvidence evidence;
     auto root_layer = evidence.mutable_evidence()->mutable_root_layer();
     // TODO(b/333410413): Potentially extract correct info from the JWT token
     // and plug it into the root layer instead of the JWT token.
     root_layer->set_platform(::oak::attestation::v1::TEE_PLATFORM_UNSPECIFIED);
-    root_layer->set_remote_attestation_report(token);
+    root_layer->set_remote_attestation_report(token.value());
     auto app_keys = evidence.mutable_evidence()->mutable_application_keys();
     // The client-side verifier expects the JWT token, and will unpack it the
     // same way as we do above.
-    app_keys->set_encryption_public_key_certificate(token);
+    app_keys->set_encryption_public_key_certificate(token.value());
     return evidence;
   }
 
@@ -226,16 +254,28 @@ class AttestationVerifierImpl : public AttestationVerifier {
         evidence.application_keys().encryption_public_key_certificate();
     crypto::tink::VerifiedJwt verified_token =
         GENC_TRY(DecodeAttestationToken(token));
+    const std::string token_json_string =
+        GENC_TRY(verified_token.GetJsonPayload());
     if (debug_) {
-      std::cout << "Attestation token payload:\n"
-                << verified_token.GetJsonPayload() << "\n";
+      std::cout << "Attestation token payload:\n" << token_json_string << "\n";
     }
-
-    // TODO
-
+    auto token_json = nlohmann::json::parse(token_json_string, nullptr, false);
+    if (token_json.is_discarded()) {
+      return absl::InternalError(absl::StrCat(
+        "Couldn't parse the token JSON string: ", token_json_string));
+    }
+    const std::string& eat_nonce = token_json[kJwtNonceAttributeName];
     ::oak::attestation::v1::AttestationResults attestation_results;
     attestation_results.set_status(
         ::oak::attestation::v1::AttestationResults::STATUS_SUCCESS);
+    // The nonce was the key.
+    std::string serialized_public_key;
+    if (!absl::Base64Unescape(eat_nonce, &serialized_public_key)) {
+      return absl::InternalError(absl::StrCat(
+          "Couldn't convert the nonce to a serialized public key: ",
+          eat_nonce));
+    }
+    attestation_results.set_encryption_public_key(serialized_public_key);  // NOLINT
     return attestation_results;
   }
 

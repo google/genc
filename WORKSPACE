@@ -169,8 +169,24 @@ load("@rules_jvm_external//:defs.bzl", "maven_install")
 maven_install(
     artifacts = [
         # Implementation dependencies
+        "androidx.activity:activity:1.2.2",
+        "androidx.annotation:annotation:1.5.0",
+        "androidx.appcompat:appcompat:aar:1.1.0-rc01",
+        "androidx.concurrent:concurrent-futures:1.0.0-alpha03",
+        "androidx.core:core:1.6.0",
+        "androidx.fragment:fragment:1.3.4",
+        "androidx.legacy:legacy-support-v4:aar:1.0.0",
+        "androidx.lifecycle:lifecycle-common:2.3.1",
+        "androidx.test:core:1.5.0",
+        "androidx.test:runner:1.4.0",
+        "androidx.test.ext:junit:1.1.4",
+        "androidx.test:monitor:1.6.0",
+        "androidx.test.espresso:espresso-core:3.5.0",
+        "androidx.test.espresso:espresso-intents:3.5.0",
+        "com.android.support:appcompat-v7:28.0.0",
         "com.google.code.findbugs:jsr305:3.0.2",
         "com.google.code.gson:gson:2.10.1",
+        "com.google.guava:guava:31.1-android",
         "com.google.guava:listenablefuture:1.0",
         "com.google.flogger:flogger-system-backend:0.6",
         "com.google.flogger:flogger:0.6",
@@ -191,6 +207,13 @@ maven_install(
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
+)
+
+http_archive(
+    name = "build_bazel_rules_android",
+    sha256 = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806",
+    strip_prefix = "rules_android-0.1.1",
+    urls = ["https://github.com/bazelbuild/rules_android/archive/v0.1.1.zip"],
 )
 
 # Edge TPU

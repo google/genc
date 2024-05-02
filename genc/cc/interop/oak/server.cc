@@ -64,7 +64,6 @@ class OakService : public ::oak::session::v1::UnarySession::Service {
       : executor_service_(executor_service),
         encryption_provider_(encryption_provider),
         serialized_public_key_(encryption_provider_.GetSerializedPublicKey()),
-        server_encryptor_(encryption_provider_),
         attestation_provider_(attestation_provider),
         debug_(debug) {
     if (debug_) {
@@ -102,8 +101,9 @@ class OakService : public ::oak::session::v1::UnarySession::Service {
     if (debug_) {
       std::cout << "OakService received the Invoke() call\n";
     }
+    ::oak::crypto::ServerEncryptor server_encryptor(encryption_provider_);
     absl::StatusOr<::oak::crypto::DecryptionResult> decryption_result =
-        server_encryptor_.Decrypt(request->encrypted_request());
+        server_encryptor.Decrypt(request->encrypted_request());
     if (!decryption_result.ok()) {
       return AbslToGrpcStatus(
           absl::InternalError(absl::StrCat(
@@ -138,7 +138,7 @@ class OakService : public ::oak::session::v1::UnarySession::Service {
                 << executor_response->DebugString() << "\n";
     }
     absl::StatusOr<::oak::crypto::v1::EncryptedResponse> encrypted_response =
-        server_encryptor_.Encrypt(
+        server_encryptor.Encrypt(
             executor_response->SerializeAsString(), kEmptyAssociatedData);
     if (!encrypted_response.ok()) {
       return AbslToGrpcStatus(
@@ -202,7 +202,6 @@ class OakService : public ::oak::session::v1::UnarySession::Service {
   const std::shared_ptr<v0::Executor::Service> executor_service_;
   ::oak::crypto::EncryptionKeyProvider encryption_provider_;
   const std::string serialized_public_key_;
-  ::oak::crypto::ServerEncryptor server_encryptor_;
   const std::shared_ptr<AttestationProvider> attestation_provider_;
   const bool debug_;
 };

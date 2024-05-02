@@ -34,7 +34,9 @@ absl::StatusOr<std::string> GetAttestationToken(
     const std::string& audience, const std::string& nonce);
 
 absl::StatusOr<crypto::tink::VerifiedJwt> DecodeAttestationToken(
-    const std::string& token);
+    const std::string& token,
+    const std::string& audience,
+    const std::string& issuer);
 
 class AttestationProvider : public oak::AttestationProvider {};
 
@@ -44,8 +46,13 @@ class AttestationVerifier
 absl::StatusOr<std::shared_ptr<AttestationProvider>>
     CreateAttestationProvider(bool debug);
 
-absl::StatusOr<std::shared_ptr<AttestationVerifier>>
-    CreateAttestationVerifier(bool debug);
+struct WorkloadProvenance {
+  std::string container_image_reference;
+  std::string container_image_digest;
+};
+
+absl::StatusOr<std::shared_ptr<AttestationVerifier>> CreateAttestationVerifier(
+    WorkloadProvenance workload_provenance, bool debug);
 
 }  // namespace confidential_computing
 }  // namespace interop

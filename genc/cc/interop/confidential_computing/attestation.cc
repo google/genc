@@ -59,7 +59,13 @@ constexpr char kAttestationJsonRequestTemplate[] = R"json(
   ]
 })json";
 constexpr char kAudience[] = "GenC";
+constexpr char kIssuer[] = "https://confidentialcomputing.googleapis.com";
 constexpr char kJwtNonceAttributeName[] = "eat_nonce";
+constexpr char kContainerAttributeName[] = "container";
+constexpr char kContainerImageReferenceAttributeName[] = "image_reference";
+constexpr char kContainerImageDigestAttributeName[] = "image_digest";
+constexpr char kOsAttributeName[] = "sw_name";
+constexpr char kOsAttributeValue[] = "CONFIDENTIAL_SPACE";
 
 size_t WriteCallback(
     void* contents, size_t size, size_t nmemb, std::string* output) {
@@ -151,7 +157,9 @@ absl::StatusOr<std::string> GetAttestationToken(
 }
 
 absl::StatusOr<crypto::tink::VerifiedJwt> DecodeAttestationToken(
-    const std::string& token) {
+    const std::string& token,
+    const std::string& audience,
+    const std::string& issuer) {
   const std::string well_known_payload =
       GENC_TRY(GENC_TRY(CurlClient::Create())->GetFromUrl(kWellKnownFileURI));
   auto well_known_json =
@@ -172,12 +180,19 @@ absl::StatusOr<crypto::tink::VerifiedJwt> DecodeAttestationToken(
         "\non payload:\n",
         jwks_payload, "\n"));
   }
-  crypto::tink::JwtValidator validator =
-      GENC_TRY(crypto::tink::JwtValidatorBuilder()
-                   .IgnoreAudiences()
-                   .IgnoreIssuer()
-                   .IgnoreTypeHeader()
-                   .Build());
+  crypto::tink::JwtValidatorBuilder builder;
+  if (!audience.empty()) {
+    builder.ExpectAudience(audience);
+  } else {
+    builder.IgnoreAudiences();
+  }
+  if (!issuer.empty()) {
+    builder.ExpectIssuer(issuer);
+  } else {
+    builder.IgnoreIssuer();
+  }
+  builder.IgnoreTypeHeader();
+  crypto::tink::JwtValidator validator = GENC_TRY(builder.Build());
   GENC_TRY(crypto::tink::JwtSignatureRegister());
   std::unique_ptr<crypto::tink::JwtPublicKeyVerify> jwt_verifier = GENC_TRY(
       keyset_handle.value()->GetPrimitive<crypto::tink::JwtPublicKeyVerify>(
@@ -213,7 +228,7 @@ class AttestationProviderImpl : public AttestationProvider {
     }
     if (debug_) {
       absl::StatusOr<crypto::tink::VerifiedJwt> verified_token =
-          DecodeAttestationToken(token.value());
+          DecodeAttestationToken(token.value(), kAudience, kIssuer);
       if (verified_token.ok()) {
         std::cout << "Attestation token payload:\n"
                   << verified_token->GetJsonPayload() << "\n";
@@ -247,7 +262,9 @@ class AttestationProviderImpl : public AttestationProvider {
 
 class AttestationVerifierImpl : public AttestationVerifier {
  public:
-  explicit AttestationVerifierImpl(bool debug) : debug_(debug) {}
+  explicit AttestationVerifierImpl(
+      WorkloadProvenance workload_provenance, bool debug)
+      : workload_provenance_(workload_provenance), debug_(debug) {}
 
   absl::StatusOr<::oak::attestation::v1::AttestationResults> Verify(
       std::chrono::time_point<std::chrono::system_clock> now,
@@ -257,7 +274,7 @@ class AttestationVerifierImpl : public AttestationVerifier {
     const std::string& token =
         evidence.application_keys().encryption_public_key_certificate();
     crypto::tink::VerifiedJwt verified_token =
-        GENC_TRY(DecodeAttestationToken(token));
+        GENC_TRY(DecodeAttestationToken(token, kAudience, kIssuer));
     const std::string token_json_string =
         GENC_TRY(verified_token.GetJsonPayload());
     if (debug_) {
@@ -267,6 +284,29 @@ class AttestationVerifierImpl : public AttestationVerifier {
     if (token_json.is_discarded()) {
       return absl::InternalError(absl::StrCat(
         "Couldn't parse the token JSON string: ", token_json_string));
+    }
+    const std::string os_name = token_json[kOsAttributeName];
+    if (os_name != kOsAttributeValue) {
+      return absl::InternalError(absl::StrCat(
+          "OS name mismatch: ", os_name, " vs. ", kOsAttributeValue));
+    }
+    if (!workload_provenance_.container_image_reference.empty()) {
+      const std::string& image_reference = token_json[
+          kContainerAttributeName][kContainerImageReferenceAttributeName];
+      if (image_reference != workload_provenance_.container_image_reference) {
+        return absl::InternalError(absl::StrCat(
+            "Container image digest mismatch: ", image_reference,
+            " vs. ", workload_provenance_.container_image_reference));
+      }
+    }
+    if (!workload_provenance_.container_image_digest.empty()) {
+      const std::string& image_digest = token_json[
+          kContainerAttributeName][kContainerImageDigestAttributeName];
+      if (image_digest != workload_provenance_.container_image_digest) {
+        return absl::InternalError(absl::StrCat(
+            "Container image digest mismatch: ", image_digest,
+            " vs. ", workload_provenance_.container_image_digest));
+      }
     }
     const std::string& eat_nonce = token_json[kJwtNonceAttributeName];
     ::oak::attestation::v1::AttestationResults attestation_results;
@@ -286,6 +326,7 @@ class AttestationVerifierImpl : public AttestationVerifier {
   virtual ~AttestationVerifierImpl() {};
 
  private:
+  const WorkloadProvenance workload_provenance_;
   const bool debug_;
 };
 
@@ -296,9 +337,9 @@ CreateAttestationProvider(bool debug) {
   return std::make_shared<AttestationProviderImpl>(debug);
 }
 
-absl::StatusOr<std::shared_ptr<AttestationVerifier>>
-    CreateAttestationVerifier(bool debug) {
-  return std::make_shared<AttestationVerifierImpl>(debug);
+absl::StatusOr<std::shared_ptr<AttestationVerifier>> CreateAttestationVerifier(
+    WorkloadProvenance workload_provenance, bool debug) {
+  return std::make_shared<AttestationVerifierImpl>(workload_provenance, debug);
 }
 
 }  // namespace confidential_computing

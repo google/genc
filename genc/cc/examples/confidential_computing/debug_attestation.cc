@@ -49,9 +49,11 @@ absl::Status Run() {
           interop::confidential_computing::CreateAttestationProvider(true));
   oak::session::v1::EndorsedEvidence endorsed_evidence = GENC_TRY(
       attestation_provider->GetEndorsedEvidence(serialized_public_key));
+  interop::confidential_computing::WorkloadProvenance provenance;
   std::shared_ptr<interop::confidential_computing::AttestationVerifier>
       attestation_verifier = GENC_TRY(
-          interop::confidential_computing::CreateAttestationVerifier(true));
+          interop::confidential_computing::CreateAttestationVerifier(
+              provenance, true));
   oak::attestation::v1::AttestationResults verification_results =
       GENC_TRY(attestation_verifier->Verify(
           std::chrono::system_clock::now(),

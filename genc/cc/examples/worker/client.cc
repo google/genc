@@ -58,6 +58,8 @@ ABSL_FLAG(bool, ssl, false, "Whether to use SSL for communication.");
 ABSL_FLAG(std::string, cert, "", "The path to the root cert.");
 ABSL_FLAG(std::string, target_override, "", "The expected target name.");
 ABSL_FLAG(bool, debug, false, "Whether to print debug output.");
+ABSL_FLAG(std::string, image_reference, "", "The container image reference.");
+ABSL_FLAG(std::string, image_digest, "", "The container image digest.");
 
 namespace genc {
 
@@ -118,8 +120,12 @@ absl::Status RunClient() {
   std::unique_ptr<v0::Executor::StubInterface> executor_stub;
   if (absl::GetFlag(FLAGS_oak)) {
     const bool debug = absl::GetFlag(FLAGS_debug);
+    interop::confidential_computing::WorkloadProvenance provenance;
+    provenance.container_image_reference = absl::GetFlag(FLAGS_image_reference);
+    provenance.container_image_digest = absl::GetFlag(FLAGS_image_digest);
     auto verifier = GENC_TRY(
-        interop::confidential_computing::CreateAttestationVerifier(debug));
+        interop::confidential_computing::CreateAttestationVerifier(
+            provenance, debug));
     executor_stub = GENC_TRY(
         interop::oak::CreateClient(channel, verifier, debug));
   } else {

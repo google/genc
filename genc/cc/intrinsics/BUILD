@@ -89,6 +89,7 @@ cc_library(
     deps = [
         ":breakable_chain",
         ":conditional",
+        ":confidential_computation",
         ":custom_function",
         ":delegate",
         ":fallback",
@@ -333,5 +334,25 @@ cc_library(
         "//genc/proto/v0:computation_cc_proto",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings:str_format",
+    ],
+)
+
+cc_library(
+    name = "confidential_computation",
+    srcs = ["confidential_computation.cc"],
+    hdrs = ["confidential_computation.h"],
+    deps = [
+        ":intrinsic_uris",
+        "//genc/cc/interop/confidential_computing:attestation",
+        "//genc/cc/interop/oak:client",
+        "//genc/cc/runtime:executor",
+        "//genc/cc/runtime:intrinsic_handler",
+        "//genc/cc/runtime:remote_executor",
+        "//genc/cc/runtime:status_macros",
+        "//genc/proto/v0:computation_cc_proto",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
     ],
 )

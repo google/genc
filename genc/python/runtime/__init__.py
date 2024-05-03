@@ -15,3 +15,4 @@
 
 from genc.python.runtime.runner import Runner
 from genc.python.runtime.synchronous_context import set_default_executor
+from genc.python.runtime.synchronous_context import SynchronousContext

@@ -151,6 +151,15 @@ inline constexpr absl::string_view kRestCall = "rest_call";
 // Represents a WolframAlpha Call.
 inline constexpr absl::string_view kWolframAlpha = "wolfram_alpha";
 
+// Represents a call to a Confidential Computing backend. The static parameter
+// is a struct that includes the computation as the first element, and backend
+// config struct with labeled values as the second element. The backend config,
+// at minimum, contains the server address, labeled "server_address", and the
+// image digest, labeled "image_digest", both strings. The dynamic parameter is
+// the parameter to feed to the confidential computation to be executed.
+inline constexpr absl::string_view kConfidentialComputation =
+    "confidential_computation";
+
 }  // namespace intrinsics
 }  // namespace genc
 

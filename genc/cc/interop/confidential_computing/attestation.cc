@@ -153,9 +153,10 @@ absl::StatusOr<std::string> GetStringAttributeFromJson(
     return absl::InvalidArgumentError("Empty path.");
   }
   int i = 0;
+  auto end = json.end();
   auto it = json.find(path[i]);
   while (true) {
-    if (it == json.end()) {
+    if (it == end) {
       return absl::InternalError(absl::StrCat(
           "Missing attribute \"", path[i], "\"."));
     }
@@ -163,7 +164,8 @@ absl::StatusOr<std::string> GetStringAttributeFromJson(
       break;
     }
     ++i;
-    it = json.find(path[i]);
+    end = it->end();
+    it = it->find(path[i]);
   }
   return it->get<std::string>();
 }

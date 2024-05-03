@@ -58,6 +58,8 @@ PYBIND11_MODULE(intrinsic_bindings, m) {
   intrinsics.attr("LOGGER") = py::str(intrinsics::kLogger);
   intrinsics.attr("LOGICAL_NOT") = py::str(intrinsics::kLogicalNot);
   intrinsics.attr("MODEL_INFERENCE") = py::str(intrinsics::kModelInference);
+  intrinsics.attr("MODEL_INFERENCE_WITH_CONFIG") =
+      py::str(intrinsics::kModelInferenceWithConfig);
   intrinsics.attr("PROMPT_TEMPLATE") = py::str(intrinsics::kPromptTemplate);
   intrinsics.attr("PROMPT_TEMPLATE_WITH_PARAMETERS") =
       py::str(intrinsics::kPromptTemplateWithParameters);
@@ -69,6 +71,8 @@ PYBIND11_MODULE(intrinsic_bindings, m) {
       py::str(intrinsics::kRepeatedConditionalChain);
   intrinsics.attr("SERIAL_CHAIN") = py::str(intrinsics::kSerialChain);
   intrinsics.attr("WHILE") = py::str(intrinsics::kWhile);
+  intrinsics.attr("CONFIDENTIAL_COMPUTATION") =
+      py::str(intrinsics::kConfidentialComputation);
 }
 
 }  // namespace

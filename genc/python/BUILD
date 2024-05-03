@@ -13,6 +13,7 @@ py_library(
     visibility = ["//visibility:private"],
     deps = [
         "//genc/python/authoring",
+        "//genc/python/base",
         "//genc/python/examples",
         "//genc/python/interop",
         "//genc/python/runtime",

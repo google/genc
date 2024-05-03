@@ -15,6 +15,7 @@
 
 # pylint: disable=g-importing-member
 from genc.python import authoring
+from genc.python import base
 from genc.python import examples
 from genc.python import interop
 from genc.python import runtime

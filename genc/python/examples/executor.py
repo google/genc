@@ -14,6 +14,8 @@
 """Library for getting demo executor."""
 
 from genc.cc.examples.executors import executor_bindings
+from genc.python import base
+from genc.python import runtime
 
 
 def create_default_executor():
@@ -23,3 +25,8 @@ def create_default_executor():
     An executor that contains handlers for GenC demos.
   """
   return executor_bindings.create_default_executor()
+
+
+def set_default_executor():
+  base.context_stack.set_default_context(
+      runtime.SynchronousContext(create_default_executor()))

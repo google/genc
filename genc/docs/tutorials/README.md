@@ -34,6 +34,14 @@
     blocks, you can build agent-based applications that combine LangChain API
     for authoring with a robust C++ runtime for deployment.
 
+*   [**Tutorial 6.** Confidential Computing](tutorial_6_confidential_computing.ipynb).
+    This tutorial describes how you can set up a GenC-based service to run in
+    a Trusted Execution Environment (TEE) using the
+    [Confidential Computing](https://cloud.google.com/security/products/confidential-computing)
+    capabilities on GCP to offload your GenAI workloads from
+    a remote client to securely run in the Cloud, with formal cryptographic
+    assurances that your data and results will remain confidential.
+
 ## Running Tutorials in a Jupyter Notebook
 ### Using the GenC Docker Container
 If you are using the GenC Docker container, then the prerequesites for running

@@ -10,6 +10,7 @@ py_binary(
         "//genc/docs/tutorials:tutorial_3_custom_runtime.ipynb",
         "//genc/docs/tutorials:tutorial_4_math_tool_agent.ipynb",
         "//genc/docs/tutorials:tutorial_5_langchain_agent.ipynb",
+        "//genc/docs/tutorials:tutorial_6_confidential_computing.ipynb",
     ],
     tags = [
         "nobuilder",

@@ -29,7 +29,7 @@ limitations under the License
 
 namespace genc {
 ABSL_CONST_INIT absl::Mutex client_mutex(absl::kConstInit);
-ABSL_CONST_INIT LlamaCpp* shared_client ABSL_GUARDED_BY(mutex) = nullptr;
+ABSL_CONST_INIT LlamaCpp* shared_client ABSL_GUARDED_BY(client_mutex) = nullptr;
 }  // namespace genc
 
 namespace {

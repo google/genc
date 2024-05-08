@@ -24,6 +24,7 @@ limitations under the License
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/string_view.h"
 #include "genc/cc/base/to_from_grpc_status.h"
 #include "genc/cc/runtime/executor.h"
 #include "genc/cc/runtime/remote_executor.h"
@@ -82,8 +83,8 @@ class RemoteExecutor : public ExecutorBase<ValueFuture> {
 
   ~RemoteExecutor() override = default;
 
-  std::string_view ExecutorName() final {
-    static constexpr std::string_view kExecutorName = "RemoteExecutor";
+  absl::string_view ExecutorName() final {
+    static constexpr absl::string_view kExecutorName = "RemoteExecutor";
     return kExecutorName;
   }
 

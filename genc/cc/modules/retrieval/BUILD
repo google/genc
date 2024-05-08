@@ -27,6 +27,7 @@ cc_test(
         "//genc/cc/runtime:executor",
         "//genc/cc/runtime:inline_executor",
         "//genc/cc/runtime:runner",
+        "//genc/cc/runtime:threading",
         "//genc/proto/v0:computation_cc_proto",
         "@com_google_googletest//:gtest_main",
     ],

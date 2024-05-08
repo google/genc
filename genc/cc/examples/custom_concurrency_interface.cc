@@ -20,41 +20,45 @@ limitations under the License
 #include <utility>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "genc/cc/authoring/constructor.h"
 #include "genc/cc/examples/executors/executor_stacks.h"
+#include "genc/cc/runtime/concurrency.h"
 #include "genc/cc/runtime/executor.h"
 #include "genc/cc/runtime/runner.h"
 #include "genc/cc/runtime/status_macros.h"
-#include "genc/cc/runtime/threading.h"
 #include "genc/proto/v0/computation.pb.h"
 
 namespace genc {
 namespace {
 
-class MyCustomThreadPool : public ThreadPool {
+class MyCustomConcurrencyInterface : public ConcurrencyInterface {
  public:
-  MyCustomThreadPool() {}
+  ~MyCustomConcurrencyInterface() override {}
 
-  virtual absl::Status Schedule(std::function<void()> task) override {
-    // This is the part you would replace with your custom thread scheduling
-    // functionality. For demonstration purposes, we just pass control back to
-    // an ordinary thread pool.
-    std::cout << "---> Scheduling a task.\n";
-    std::thread th(std::move(task));
-    th.detach();
-    return absl::OkStatus();
+ protected:
+  absl::StatusOr<std::shared_ptr<WaitableInterface>> Schedule(
+      std::function<void()> callback) override {
+    std::cout << "---> Schedule was called, executing the callback inline.\n";
+    callback();
+    return std::make_shared<Waitable>();
   }
 
-  virtual ~MyCustomThreadPool() {}
+ private:
+  class Waitable : public WaitableInterface {
+   public:
+    Waitable() {}
+    absl::Status Wait() override { return absl::OkStatus(); }
+  };
 };
 
 }  // namespace
 
 absl::Status Run() {
-  std::shared_ptr<MyCustomThreadPool> thread_pool =
-      std::make_shared<MyCustomThreadPool>();
-  std::shared_ptr<Executor> executor =
-      GENC_TRY(CreateDefaultExecutorWithThreadPool(thread_pool));
+  std::shared_ptr<ConcurrencyInterface> concurrency_interface =
+      std::make_shared<MyCustomConcurrencyInterface>();
+  std::shared_ptr<Executor> executor = GENC_TRY(
+      CreateDefaultExecutorWithConcurrencyInterface(concurrency_interface));
   Runner runner = GENC_TRY(Runner::Create(
       GENC_TRY(CreateModelInference("test_model")), executor));
   v0::Value arg;

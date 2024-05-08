@@ -16,57 +16,13 @@ limitations under the License
 #ifndef GENC_CC_RUNTIME_THREADING_H_
 #define GENC_CC_RUNTIME_THREADING_H_
 
-#include <functional>
-#include <future> // NOLINT
 #include <memory>
-#include <thread> // NOLINT
-#include <type_traits>
-#include <utility>
 
-#include "absl/status/status.h"
+#include "genc/cc/runtime/concurrency.h"
 
 namespace genc {
 
-// Placeholder for a thread pool implementation, to be pulled in when necessary.
-class ThreadPool {
- public:
-  virtual absl::Status Schedule(std::function<void()> task) = 0;
-  virtual ~ThreadPool() {}
-};
-
-// Runs the provided provided no-arg function on another thread, returning a
-// future to the result. Each task will be scheduled on a newly created thread.
-// TODO(b/295015950): Bring in the thread pool support here if truly necessary.
-template <typename Func,
-          typename ReturnValue = typename std::result_of_t<Func()>>
-std::shared_future<ReturnValue> ThreadRun(
-    Func lambda, std::shared_ptr<ThreadPool> thread_pool = nullptr) {
-  using TaskT = std::packaged_task<ReturnValue()>;
-  TaskT task(std::move(lambda));
-  auto future_ptr = std::shared_future<ReturnValue>(task.get_future());
-  if (thread_pool != nullptr) {
-    thread_pool->Schedule(
-        [t = std::make_shared<TaskT>(std::move(task))]() { (*t)(); });
-  } else {
-    std::thread th(std::move(task));
-    th.detach();
-  }
-  return future_ptr;
-}
-
-// Awaits the result of a ValueFuture, usually a future returning a
-// StatusOr<ExecutorValue>. Returns the resulting status or value wrapped again
-// as a StatusOr.
-template <typename ValueFuture>
-auto Wait(const ValueFuture& future) {
-  future.wait();
-  const auto& result = future.get();
-  using StatusOrValue = typename std::remove_reference<decltype(result)>::type;
-  if (!result.ok()) {
-    return StatusOrValue(result.status());
-  }
-  return StatusOrValue(result.value());
-}
+std::shared_ptr<ConcurrencyInterface> CreateThreadBasedConcurrencyManager();
 
 }  // namespace genc
 

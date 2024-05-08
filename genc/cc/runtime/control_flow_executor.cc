@@ -32,6 +32,7 @@ limitations under the License
 #include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
+#include "genc/cc/runtime/concurrency.h"
 #include "genc/cc/runtime/executor.h"
 #include "genc/cc/runtime/intrinsic_handler.h"
 #include "genc/cc/runtime/status_macros.h"
@@ -190,12 +191,19 @@ class ExecutorValue {
 class ControlFlowExecutor
     : public ExecutorBase<std::shared_ptr<ExecutorValue>> {
  public:
-  explicit ControlFlowExecutor(std::shared_ptr<IntrinsicHandlerSet> handler_set,
-                               std::shared_ptr<Executor> child_executor)
+  explicit ControlFlowExecutor(
+      std::shared_ptr<IntrinsicHandlerSet> handler_set,
+      std::shared_ptr<Executor> child_executor,
+      std::shared_ptr<ConcurrencyInterface> concurrency_interface)
       : intrinsic_handlers_(handler_set),
-        child_executor_(std::move(child_executor)) {}
+        child_executor_(std::move(child_executor)),
+        concurrency_interface_(std::move(concurrency_interface)) {}
 
   ~ControlFlowExecutor() override { ClearTracked(); }
+
+  std::shared_ptr<ConcurrencyInterface> concurrency_interface() const {
+    return concurrency_interface_;
+  }
 
   // Evaluates a value in the current scope.
   absl::StatusOr<std::shared_ptr<ExecutorValue>> Evaluate(
@@ -245,6 +253,7 @@ class ControlFlowExecutor
  private:
   const std::shared_ptr<IntrinsicHandlerSet> intrinsic_handlers_;
   const std::shared_ptr<Executor> child_executor_;
+  const std::shared_ptr<ConcurrencyInterface> concurrency_interface_;
 
   // Converts an `ExecutorValue` into a child executor value.
   absl::StatusOr<ValueId> Embed(const ExecutorValue& value,
@@ -649,9 +658,16 @@ class ControlFlowIntrinsicCallContextImpl
     return val_impl_ptr->executor_value();
   }
 
-  ControlFlowIntrinsicCallContextImpl(const ControlFlowExecutor* executor,
-                                      const std::shared_ptr<Scope>& scope)
-      : executor_(executor), scope_(scope) {}
+  ControlFlowIntrinsicCallContextImpl(
+      const ControlFlowExecutor* executor, const std::shared_ptr<Scope>& scope,
+      std::shared_ptr<ConcurrencyInterface> concurrency_interface)
+      : executor_(executor),
+        scope_(scope),
+        concurrency_interface_(concurrency_interface) {}
+
+  std::shared_ptr<ConcurrencyInterface> concurrency_interface() const override {
+    return concurrency_interface_;
+  }
 
   absl::StatusOr<std::shared_ptr<Value>> CreateValue(
       const v0::Value& val_pb) final {
@@ -725,6 +741,7 @@ class ControlFlowIntrinsicCallContextImpl
  private:
   const ControlFlowExecutor* const executor_;
   const std::shared_ptr<Scope> scope_;
+  const std::shared_ptr<ConcurrencyInterface> concurrency_interface_;
 };
 
 absl::StatusOr<std::shared_ptr<ExecutorValue>> ScopedIntrinsic::Call(
@@ -732,7 +749,8 @@ absl::StatusOr<std::shared_ptr<ExecutorValue>> ScopedIntrinsic::Call(
     std::optional<std::shared_ptr<ExecutorValue>> arg) const {
   const ControlFlowIntrinsicHandlerInterface* const interface =
       GENC_TRY(IntrinsicHandler::GetControlFlowInterface(intrinsic_handler_));
-  ControlFlowIntrinsicCallContextImpl context(&executor, scope_);
+  ControlFlowIntrinsicCallContextImpl context(&executor, scope_,
+                                              executor.concurrency_interface());
   std::optional<std::shared_ptr<ControlFlowIntrinsicHandlerInterface::Value>>
       arg_val;
   if (arg.has_value()) {
@@ -751,8 +769,10 @@ absl::StatusOr<std::shared_ptr<ExecutorValue>> ScopedIntrinsic::Call(
 
 absl::StatusOr<std::shared_ptr<Executor>> CreateControlFlowExecutor(
     std::shared_ptr<IntrinsicHandlerSet> handler_set,
-    std::shared_ptr<Executor> child_executor) {
-  return std::make_shared<ControlFlowExecutor>(handler_set, child_executor);
+    std::shared_ptr<Executor> child_executor,
+    std::shared_ptr<ConcurrencyInterface> concurrency_interface) {
+  return std::make_shared<ControlFlowExecutor>(handler_set, child_executor,
+                                               concurrency_interface);
 }
 
 }  // namespace genc

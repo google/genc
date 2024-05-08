@@ -36,6 +36,7 @@ limitations under the License
 #include "genc/cc/runtime/intrinsic_handler.h"
 #include "genc/cc/runtime/runner.h"
 #include "genc/cc/runtime/status_macros.h"
+#include "genc/cc/runtime/threading.h"
 #include "genc/proto/v0/computation.pb.h"
 
 namespace genc {
@@ -62,9 +63,11 @@ absl::StatusOr<std::shared_ptr<Executor>> CreateTestControlFlowExecutor(
     config.model_inference_map = *inference_map;
   }
   handler_set = intrinsics::CreateCompleteHandlerSet(config);
-
-  return CreateControlFlowExecutor(handler_set,
-                                   CreateInlineExecutor(handler_set).value());
+  auto concurrency_interface = CreateThreadBasedConcurrencyManager();
+  return CreateControlFlowExecutor(
+      handler_set,
+      GENC_TRY(CreateInlineExecutor(handler_set, concurrency_interface)),
+      concurrency_interface);
 }
 
 TEST_F(ControlFlowExecutorTest, ReturnsExecutorOnCreation) {
@@ -384,9 +387,12 @@ TEST_F(ControlFlowExecutorTest, CreateStructInIntrinsicHandler) {
   std::shared_ptr<IntrinsicHandlerSet> handler_set =
       intrinsics::CreateCompleteHandlerSet(intrinsics::HandlerSetConfig());
   handler_set->AddHandler(new TestIntrinsic());
-  absl::StatusOr<std::shared_ptr<Executor>> executor =
-      CreateControlFlowExecutor(handler_set,
-                                CreateInlineExecutor(handler_set).value());
+  auto concurrency_interface = CreateThreadBasedConcurrencyManager();
+  auto executor = CreateControlFlowExecutor(
+      handler_set,
+      CreateInlineExecutor(handler_set, concurrency_interface).value(),
+      concurrency_interface);
+
   EXPECT_TRUE(executor.ok());
 
   v0::Value x, y;
@@ -467,9 +473,11 @@ TEST_F(ControlFlowExecutorTest, CreateSelectionInIntrinsicHandler) {
   std::shared_ptr<IntrinsicHandlerSet> handler_set =
       intrinsics::CreateCompleteHandlerSet(intrinsics::HandlerSetConfig());
   handler_set->AddHandler(new TestIntrinsic());
-  absl::StatusOr<std::shared_ptr<Executor>> executor =
-      CreateControlFlowExecutor(handler_set,
-                                CreateInlineExecutor(handler_set).value());
+  auto concurrency_interface = CreateThreadBasedConcurrencyManager();
+  auto executor = CreateControlFlowExecutor(
+      handler_set,
+      CreateInlineExecutor(handler_set, concurrency_interface).value(),
+      concurrency_interface);
   EXPECT_TRUE(executor.ok());
 
   v0::Value x, y;

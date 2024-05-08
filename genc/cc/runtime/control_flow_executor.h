@@ -29,7 +29,8 @@ namespace genc {
 // inline intrinsics such as model calls, to the specified child executor.
 absl::StatusOr<std::shared_ptr<Executor>> CreateControlFlowExecutor(
     std::shared_ptr<IntrinsicHandlerSet> handler_set,
-    std::shared_ptr<Executor> child_executor);
+    std::shared_ptr<Executor> child_executor,
+    std::shared_ptr<ConcurrencyInterface> concurrency_interface);
 
 }  // namespace genc
 

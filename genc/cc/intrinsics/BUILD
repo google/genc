@@ -76,6 +76,7 @@ cc_test(
         "//genc/cc/runtime:executor",
         "//genc/cc/runtime:inline_executor",
         "//genc/cc/runtime:runner",
+        "//genc/cc/runtime:threading",
         "//genc/proto/v0:computation_cc_proto",
         "@com_google_absl//absl/status:statusor",
         "@com_google_googletest//:gtest_main",
@@ -168,7 +169,6 @@ cc_library(
     deps = [
         ":intrinsic_uris",
         "//genc/cc/runtime:intrinsic_handler",
-        "//genc/cc/runtime:status_macros",
         "//genc/proto/v0:computation_cc_proto",
         "@com_google_absl//absl/status",
     ],
@@ -352,7 +352,6 @@ cc_library(
         "//genc/proto/v0:computation_cc_proto",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
     ],
 )

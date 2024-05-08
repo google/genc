@@ -11,6 +11,7 @@ cc_library(
     srcs = ["control_flow_executor.cc"],
     hdrs = ["control_flow_executor.h"],
     deps = [
+        ":concurrency",
         ":executor",
         ":intrinsic_handler",
         ":status_macros",
@@ -34,6 +35,7 @@ cc_test(
         ":intrinsic_handler",
         ":runner",
         ":status_macros",
+        ":threading",
         "//genc/cc/authoring:constructor",
         "//genc/cc/intrinsics:custom_function",
         "//genc/cc/intrinsics:handler_sets",
@@ -104,15 +106,14 @@ cc_library(
     srcs = ["executor_stacks.cc"],
     hdrs = ["executor_stacks.h"],
     deps = [
+        ":concurrency",
         ":control_flow_executor",
         ":executor",
         ":inline_executor",
         ":intrinsic_handler",
         ":status_macros",
         ":threading",
-        "//genc/cc/interop/backends:google_ai",
         "//genc/cc/intrinsics:handler_sets",
-        "@com_google_absl//absl/base",
         "@com_google_absl//absl/status:statusor",
     ],
 )
@@ -134,10 +135,10 @@ cc_library(
     srcs = ["inline_executor.cc"],
     hdrs = ["inline_executor.h"],
     deps = [
+        ":concurrency",
         ":executor",
         ":intrinsic_handler",
         ":status_macros",
-        ":threading",
         "//genc/proto/v0:computation_cc_proto",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
@@ -153,6 +154,7 @@ cc_test(
         ":executor",
         ":inline_executor",
         ":runner",
+        ":threading",
         "//genc/cc/authoring:constructor",
         "//genc/cc/intrinsics:handler_sets",
         "//genc/proto/v0:computation_cc_proto",
@@ -168,6 +170,7 @@ cc_library(
     srcs = ["intrinsic_handler.cc"],
     hdrs = ["intrinsic_handler.h"],
     deps = [
+        ":concurrency",
         ":executor",
         ":status_macros",
         "//genc/proto/v0:computation_cc_proto",
@@ -185,9 +188,9 @@ cc_library(
     srcs = ["remote_executor.cc"],
     hdrs = ["remote_executor.h"],
     deps = [
+        ":concurrency",
         ":executor",
         ":status_macros",
-        ":threading",
         "//genc/cc/base:to_from_grpc_status",
         "//genc/proto/v0:computation_cc_proto",
         "//genc/proto/v0:executor_cc_grpc_proto",
@@ -210,17 +213,34 @@ cc_library(
 )
 
 cc_library(
+    name = "concurrency",
+    srcs = [],
+    hdrs = ["concurrency.h"],
+    deps = [
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+    ],
+)
+
+cc_library(
     name = "threading",
     srcs = ["threading.cc"],
     hdrs = ["threading.h"],
     deps = [
-        ":status_macros",
-        "@com_google_absl//absl/base:core_headers",
-        "@com_google_absl//absl/log",
+        ":concurrency",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/synchronization",
-        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "threading_test",
+    srcs = ["threading_test.cc"],
+    deps = [
+        ":status_macros",
+        ":threading",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -230,7 +250,6 @@ cc_library(
     hdrs = ["runner.h"],
     deps = [
         ":executor",
-        ":executor_stacks",
         ":status_macros",
         "//genc/proto/v0:computation_cc_proto",
         "@com_google_absl//absl/status",

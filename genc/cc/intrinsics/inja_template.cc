@@ -36,8 +36,8 @@ absl::Status InjaTemplate::CheckWellFormed(
 }
 
 absl::Status InjaTemplate::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
-                                       const v0::Value& arg,
-                                       v0::Value* result) const {
+                                       const v0::Value& arg, v0::Value* result,
+                                       Context* context) const {
   const std::string template_str(intrinsic_pb.static_parameter().str());
   auto parsed_json = nlohmann::json::parse(arg.str(), /*cb=*/nullptr,
                                            /*allow_exceptions=*/false);

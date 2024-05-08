@@ -79,9 +79,8 @@ absl::Status ConfidentialComputation::CheckWellFormed(
 }
 
 absl::Status ConfidentialComputation::ExecuteCall(
-    const v0::Intrinsic& intrinsic_pb,
-    const v0::Value& arg,
-    v0::Value* result) const {
+    const v0::Intrinsic& intrinsic_pb, const v0::Value& arg, v0::Value* result,
+    Context* context) const {
   const v0::Value& comp = intrinsic_pb.static_parameter().struct_().element(0);
   auto config = intrinsic_pb.static_parameter().struct_().element(1).struct_();
   std::string server_address;
@@ -109,8 +108,8 @@ absl::Status ConfidentialComputation::ExecuteCall(
   auto executor_stub =
       GENC_TRY(interop::oak::CreateClient(
           channel, verifier, /* debug */ false));
-  std::shared_ptr<Executor> executor =
-      GENC_TRY(CreateRemoteExecutor(std::move(executor_stub)));
+  std::shared_ptr<Executor> executor = GENC_TRY(CreateRemoteExecutor(
+      std::move(executor_stub), context->concurrency_interface()));
   OwnedValueId embedded_comp = GENC_TRY(executor->CreateValue(comp));
   OwnedValueId embedded_arg = GENC_TRY(executor->CreateValue(arg));
   OwnedValueId embedded_result = GENC_TRY(

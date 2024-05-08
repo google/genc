@@ -60,7 +60,8 @@ absl::Status WolframAlphaHandler::CheckWellFormed(
 
 absl::Status WolframAlphaHandler::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
                                               const v0::Value& arg,
-                                              v0::Value* result) const {
+                                              v0::Value* result,
+                                              Context* context) const {
   v0::Value value_pb;
   (*value_pb.mutable_intrinsic()) = intrinsic_pb;
   v0::Value response = GENC_TRY(call(value_pb, arg));

@@ -16,7 +16,6 @@ limitations under the License
 #include "genc/cc/runtime/inline_executor.h"
 
 #include <cstdint>
-#include <future>  // NOLINT
 #include <memory>
 #include <optional>
 #include <utility>
@@ -26,10 +25,10 @@ limitations under the License
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
+#include "genc/cc/runtime/concurrency.h"
 #include "genc/cc/runtime/executor.h"
 #include "genc/cc/runtime/intrinsic_handler.h"
 #include "genc/cc/runtime/status_macros.h"
-#include "genc/cc/runtime/threading.h"
 #include "genc/proto/v0/computation.pb.h"
 
 namespace genc {
@@ -55,18 +54,28 @@ class ExecutorValue {
   std::shared_ptr<v0::Value> value_;
 };
 
-using ValueFuture = std::shared_future<absl::StatusOr<ExecutorValue>>;
+using ValueFuture =
+    std::shared_ptr<FutureInterface<absl::StatusOr<ExecutorValue>>>;
+
+absl::StatusOr<ExecutorValue> Wait(ValueFuture value_future) {
+  return GENC_TRY(value_future->Get());
+}
 
 // Executor that specializes in handling inline intrinsics.
-class InlineExecutor : public ExecutorBase<ValueFuture> {
+class InlineExecutor : public ExecutorBase<ValueFuture>,
+                       public InlineIntrinsicHandlerInterface::Context {
  public:
   explicit InlineExecutor(
       std::shared_ptr<IntrinsicHandlerSet> handler_set,
-      std::shared_ptr<ThreadPool> thread_pool = nullptr)
-      : thread_pool_(std::move(thread_pool)),
+      std::shared_ptr<ConcurrencyInterface> concurrency_interface)
+      : concurrency_interface_(std::move(concurrency_interface)),
         intrinsic_handlers_(std::move(handler_set)) {}
 
   ~InlineExecutor() override { ClearTracked(); }
+
+  std::shared_ptr<ConcurrencyInterface> concurrency_interface() const override {
+    return concurrency_interface_;
+  }
 
   absl::string_view ExecutorName() final {
     static constexpr absl::string_view kExecutorName = "InlineExecutor";
@@ -75,15 +84,14 @@ class InlineExecutor : public ExecutorBase<ValueFuture> {
 
   absl::StatusOr<ValueFuture> CreateExecutorValue(
       const v0::Value& val_pb) final {
-    return ThreadRun(
+    return concurrency_interface_->RunAsync(
         [val_pb]() -> absl::StatusOr<ExecutorValue> {
           return ExecutorValue(std::make_shared<v0::Value>(val_pb));
-        },
-        thread_pool_);
+        });
   }
 
   absl::Status Materialize(ValueFuture value_future, v0::Value* val_pb) final {
-    ExecutorValue value = GENC_TRY(Wait(std::move(value_future)));
+    ExecutorValue value = GENC_TRY(Wait(value_future));
     if (val_pb != nullptr) {
       val_pb->CopyFrom(value.value());
     }
@@ -95,7 +103,7 @@ class InlineExecutor : public ExecutorBase<ValueFuture> {
     if (!arg_future.has_value()) {
       return absl::InvalidArgumentError("An argument is always required.");
     }
-    return ThreadRun(
+    return concurrency_interface_->RunAsync(
         [function = std::move(func_future), argument = std::move(arg_future),
          this]() -> absl::StatusOr<ExecutorValue> {
           ExecutorValue fn = GENC_TRY(Wait(function));
@@ -112,15 +120,15 @@ class InlineExecutor : public ExecutorBase<ValueFuture> {
           const InlineIntrinsicHandlerInterface* const interface =
               GENC_TRY(IntrinsicHandler::GetInlineInterface(handler));
           std::shared_ptr<v0::Value> result = std::make_shared<v0::Value>();
-          GENC_TRY(interface->ExecuteCall(intr_pb, arg.value(), result.get()));
+          GENC_TRY(
+              interface->ExecuteCall(intr_pb, arg.value(), result.get(), this));
           return ExecutorValue(result);
-        },
-        thread_pool_);
+        });
   }
 
   absl::StatusOr<ValueFuture> CreateStruct(
       std::vector<ValueFuture> member_futures) final {
-    return ThreadRun(
+    return concurrency_interface_->RunAsync(
         [member_futures]() -> absl::StatusOr<ExecutorValue> {
           std::shared_ptr<v0::Value> result_pb = std::make_shared<v0::Value>();
           auto elements = result_pb->mutable_struct_()->mutable_element();
@@ -129,13 +137,12 @@ class InlineExecutor : public ExecutorBase<ValueFuture> {
             elements->Add()->CopyFrom(val.value());
           }
           return ExecutorValue(result_pb);
-        },
-        thread_pool_);
+        });
   }
 
   absl::StatusOr<ValueFuture> CreateSelection(ValueFuture value_future,
                                               const uint32_t index) final {
-    return ThreadRun(
+    return concurrency_interface_->RunAsync(
         [value_future, index]() -> absl::StatusOr<ExecutorValue> {
           ExecutorValue val = GENC_TRY(Wait(value_future));
           if (!val.value().has_struct_()) {
@@ -147,12 +154,11 @@ class InlineExecutor : public ExecutorBase<ValueFuture> {
           }
           return ExecutorValue(std::make_shared<v0::Value>(
               val.value().struct_().element(index)));
-        },
-        thread_pool_);
+        });
   }
 
  private:
-  const std::shared_ptr<ThreadPool> thread_pool_;
+  const std::shared_ptr<ConcurrencyInterface> concurrency_interface_;
   const std::shared_ptr<IntrinsicHandlerSet> intrinsic_handlers_;
 };
 
@@ -160,9 +166,9 @@ class InlineExecutor : public ExecutorBase<ValueFuture> {
 
 absl::StatusOr<std::shared_ptr<Executor>> CreateInlineExecutor(
     std::shared_ptr<IntrinsicHandlerSet> handler_set,
-    std::shared_ptr<ThreadPool> thread_pool) {
-  return std::make_shared<InlineExecutor>(
-      std::move(handler_set), std::move(thread_pool));
+    std::shared_ptr<ConcurrencyInterface> concurrency_interface) {
+  return std::make_shared<InlineExecutor>(std::move(handler_set),
+                                          std::move(concurrency_interface));
 }
 
 }  // namespace genc

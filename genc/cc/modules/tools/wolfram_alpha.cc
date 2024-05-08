@@ -79,8 +79,8 @@ absl::Status WolframAlpha::CheckWellFormed(
 }
 
 absl::Status WolframAlpha::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
-                                       const v0::Value& arg,
-                                       v0::Value* result) const {
+                                       const v0::Value& arg, v0::Value* result,
+                                       Context* context) const {
   const std::string& appid = intrinsic_pb.static_parameter().str();
   std::string result_str = GENC_TRY(CallShortAnswersAPI(appid, arg.str()));
   result->set_str(result_str);

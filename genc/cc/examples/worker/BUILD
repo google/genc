@@ -15,7 +15,7 @@ cc_binary(
         "//genc/cc/runtime:remote_executor",
         "//genc/cc/runtime:runner",
         "//genc/cc/runtime:status_macros",
-        "//genc/proto/v0:computation_cc_proto",
+        "//genc/cc/runtime:threading",
         "//genc/proto/v0:executor_cc_grpc_proto",
         "//genc/proto/v0:executor_cc_proto",
         "@com_github_grpc_grpc//:grpc++",
@@ -23,7 +23,6 @@ cc_binary(
         "@com_google_absl//absl/flags:parse",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
         "@com_google_protobuf//:protobuf",
     ],
 )

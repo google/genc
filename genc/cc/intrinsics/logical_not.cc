@@ -27,8 +27,8 @@ absl::Status LogicalNot::CheckWellFormed(
 }
 
 absl::Status LogicalNot::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
-                                     const v0::Value& arg,
-                                     v0::Value* result) const {
+                                     const v0::Value& arg, v0::Value* result,
+                                     Context* context) const {
   if (!arg.has_boolean()) {
     return absl::InvalidArgumentError("Argument does not contain boolean.");
   }

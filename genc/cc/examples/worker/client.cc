@@ -29,6 +29,7 @@ limitations under the License
 #include "genc/cc/runtime/remote_executor.h"
 #include "genc/cc/runtime/runner.h"
 #include "genc/cc/runtime/status_macros.h"
+#include "genc/cc/runtime/threading.h"
 #include "genc/proto/v0/executor.grpc.pb.h"
 #include "genc/proto/v0/executor.pb.h"
 #include "include/grpcpp/channel.h"
@@ -131,8 +132,8 @@ absl::Status RunClient() {
   } else {
     executor_stub = v0::Executor::NewStub(channel);
   }
-  std::shared_ptr<Executor> executor =
-      GENC_TRY(CreateRemoteExecutor(std::move(executor_stub)));
+  std::shared_ptr<Executor> executor = GENC_TRY(CreateRemoteExecutor(
+      std::move(executor_stub), CreateThreadBasedConcurrencyManager()));
   Runner runner = GENC_TRY(Runner::Create(func, executor));
   v0::Value result = GENC_TRY(runner.Run(arg));
   std::cout << "\n" << result.DebugString() << "\n\n";

@@ -19,6 +19,7 @@ limitations under the License
 
 #include "absl/status/statusor.h"
 #include "genc/cc/intrinsics/handler_sets.h"
+#include "genc/cc/runtime/concurrency.h"
 #include "genc/cc/runtime/control_flow_executor.h"
 #include "genc/cc/runtime/executor.h"
 #include "genc/cc/runtime/inline_executor.h"
@@ -30,9 +31,14 @@ namespace genc {
 
 absl::StatusOr<std::shared_ptr<Executor>> CreateLocalExecutor(
     std::shared_ptr<IntrinsicHandlerSet> handler_set,
-    std::shared_ptr<ThreadPool> thread_pool) {
+    std::shared_ptr<ConcurrencyInterface> concurrency_interface) {
+  if (concurrency_interface == nullptr) {
+    concurrency_interface = CreateThreadBasedConcurrencyManager();
+  }
   return CreateControlFlowExecutor(
-      handler_set, GENC_TRY(CreateInlineExecutor(handler_set, thread_pool)));
+      handler_set,
+      GENC_TRY(CreateInlineExecutor(handler_set, concurrency_interface)),
+      concurrency_interface);
 }
 
 absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultLocalExecutor() {

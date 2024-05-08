@@ -32,6 +32,7 @@ cc_library(
         "//genc/cc/modules/parsers:gemini_parser",
         "//genc/cc/modules/retrieval:local_cache",
         "//genc/cc/modules/tools:wolfram_alpha",
+        "//genc/cc/runtime:concurrency",
         "//genc/cc/runtime:executor",
         "//genc/cc/runtime:executor_stacks",
         "//genc/cc/runtime:status_macros",

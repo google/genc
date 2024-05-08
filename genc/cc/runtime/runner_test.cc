@@ -28,7 +28,7 @@ namespace genc {
 
 TEST(RunnerTest, ModelRunReturnsValue) {
   v0::Value comp_pb = CreateModelInference("test_model").value();
-  Runner runner = Runner::CreateDefault().value();
+  Runner runner = Runner::Create(CreateDefaultLocalExecutor().value()).value();
 
   v0::Value arg;
   arg.set_str("Boo!");
@@ -40,7 +40,8 @@ TEST(RunnerTest, ModelRunReturnsValue) {
 
 TEST(RunnerTest, ModelRunReturnsValueCompInConstructor) {
   v0::Value comp_pb = CreateModelInference("test_model").value();
-  Runner runner = Runner::Create(comp_pb).value();
+  Runner runner =
+      Runner::Create(comp_pb, CreateDefaultLocalExecutor().value()).value();
 
   v0::Value arg;
   arg.set_str("Boo!");

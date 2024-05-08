@@ -43,7 +43,8 @@ absl::Status PromptTemplate::CheckWellFormed(
 
 absl::Status PromptTemplate::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
                                          const v0::Value& arg,
-                                         v0::Value* result) const {
+                                         v0::Value* result,
+                                         Context* context) const {
   const absl::string_view template_string(
       intrinsic_pb.static_parameter().str());
   absl::string_view input(template_string);
@@ -107,9 +108,8 @@ absl::Status PromptTemplateWithParameters::CheckWellFormed(
 }
 
 absl::Status PromptTemplateWithParameters::ExecuteCall(
-    const v0::Intrinsic& intrinsic_pb,
-    const v0::Value& arg,
-    v0::Value* result) const {
+    const v0::Intrinsic& intrinsic_pb, const v0::Value& arg, v0::Value* result,
+    Context* context) const {
   const absl::string_view template_string(
       intrinsic_pb.static_parameter().struct_().element(0).str());
   if (template_string.empty()) {

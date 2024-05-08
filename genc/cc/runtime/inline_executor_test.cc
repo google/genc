@@ -30,6 +30,7 @@ limitations under the License
 #include "genc/cc/intrinsics/handler_sets.h"
 #include "genc/cc/runtime/executor.h"
 #include "genc/cc/runtime/runner.h"
+#include "genc/cc/runtime/threading.h"
 #include "genc/proto/v0/computation.pb.h"
 
 namespace genc {
@@ -48,7 +49,8 @@ class InlineExecutorTest : public ::testing::Test {
 
 TEST_F(InlineExecutorTest, TestModel) {
   absl::StatusOr<std::shared_ptr<Executor>> executor =
-      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({}));
+      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({}),
+                           CreateThreadBasedConcurrencyManager());
   EXPECT_TRUE(executor.ok());
 
   v0::Value fn_pb = CreateModelInference("test_model").value();
@@ -80,7 +82,8 @@ TEST_F(InlineExecutorTest, TestModelWithInferenceFn) {
     return result;
   };
   absl::StatusOr<std::shared_ptr<Executor>> executor =
-      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet(config));
+      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet(config),
+                           CreateThreadBasedConcurrencyManager());
   EXPECT_TRUE(executor.ok());
 
   v0::Value fn_pb = CreateModelInference("test_inference_fn").value();
@@ -110,12 +113,13 @@ TEST_F(InlineExecutorTest, CustomFunctionInvokesUserDefinedFn) {
     result.set_str(absl::StrCat(arg.str(), "foo"));
     return result;
   };
-  std::shared_ptr<Executor> executor =
-      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet(config))
-          .value();
+  absl::StatusOr<std::shared_ptr<Executor>> executor =
+      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet(config),
+                           CreateThreadBasedConcurrencyManager());
+  EXPECT_TRUE(executor.ok());
 
   v0::Value fn_pb = CreateCustomFunction("append_foo").value();
-  Runner runner = Runner::Create(executor).value();
+  Runner runner = Runner::Create(executor.value()).value();
 
   v0::Value arg_pb;
   arg_pb.set_str("bar");
@@ -124,15 +128,17 @@ TEST_F(InlineExecutorTest, CustomFunctionInvokesUserDefinedFn) {
 }
 
 TEST_F(InlineExecutorTest, ProcessUnivariatePromptTemplate) {
-  std::shared_ptr<Executor> executor =
-      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({})).value();
+  absl::StatusOr<std::shared_ptr<Executor>> executor =
+      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({}),
+                           CreateThreadBasedConcurrencyManager());
+  EXPECT_TRUE(executor.ok());
 
   v0::Value template_pb =
       CreatePromptTemplate(
           "Q: What should I pack for a trip to {location}? A: ")
           .value();
 
-  Runner runner = Runner::Create(executor).value();
+  Runner runner = Runner::Create(executor.value()).value();
 
   v0::Value arg_pb;
   arg_pb.set_str("a grocery store");
@@ -142,15 +148,17 @@ TEST_F(InlineExecutorTest, ProcessUnivariatePromptTemplate) {
 }
 
 TEST_F(InlineExecutorTest, ProcessUnivariatePromptTemplateFailsWithEmptyStr) {
-  std::shared_ptr<Executor> executor =
-      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({})).value();
+  absl::StatusOr<std::shared_ptr<Executor>> executor =
+      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({}),
+                           CreateThreadBasedConcurrencyManager());
+  EXPECT_TRUE(executor.ok());
 
   v0::Value template_pb =
       CreatePromptTemplate(
           "Q: What should I pack for a trip to {location}? A: ")
           .value();
 
-  Runner runner = Runner::Create(executor).value();
+  Runner runner = Runner::Create(executor.value()).value();
 
   v0::Value arg_pb;
   absl::StatusOr<v0::Value> result = runner.Run(template_pb, arg_pb);
@@ -158,8 +166,10 @@ TEST_F(InlineExecutorTest, ProcessUnivariatePromptTemplateFailsWithEmptyStr) {
 }
 
 TEST_F(InlineExecutorTest, ProcessMultivariatePromptTemplate) {
-  std::shared_ptr<Executor> executor =
-      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({})).value();
+  absl::StatusOr<std::shared_ptr<Executor>> executor =
+      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({}),
+                           CreateThreadBasedConcurrencyManager());
+  EXPECT_TRUE(executor.ok());
 
   v0::Value template_pb =
       CreatePromptTemplate(
@@ -167,7 +177,7 @@ TEST_F(InlineExecutorTest, ProcessMultivariatePromptTemplate) {
           "cheapest transportation to {location}. A: ")
           .value();
 
-  Runner runner = Runner::Create(executor).value();
+  Runner runner = Runner::Create(executor.value()).value();
 
   v0::Value arg_pb;
   // Variables in template can functions like keyword argument, therefore order
@@ -188,8 +198,9 @@ TEST_F(InlineExecutorTest, ProcessMultivariatePromptTemplate) {
 }
 
 TEST_F(InlineExecutorTest, CreateStructAndSelection) {
-  absl::StatusOr<std::shared_ptr<Executor>> executor = CreateInlineExecutor(
-      intrinsics::CreateCompleteHandlerSet(intrinsics::HandlerSetConfig()));
+  absl::StatusOr<std::shared_ptr<Executor>> executor =
+      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({}),
+                           CreateThreadBasedConcurrencyManager());
   EXPECT_TRUE(executor.ok());
 
   v0::Value x, y;
@@ -233,11 +244,13 @@ TEST_F(InlineExecutorTest, CreateStructAndSelection) {
 }
 
 TEST_F(InlineExecutorTest, LoggerLogsAndLeavesValueUnchanged) {
-  std::shared_ptr<Executor> executor =
-      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({})).value();
+  absl::StatusOr<std::shared_ptr<Executor>> executor =
+      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({}),
+                           CreateThreadBasedConcurrencyManager());
+  EXPECT_TRUE(executor.ok());
 
   v0::Value logger_pb = CreateLogger().value();
-  Runner runner = Runner::Create(executor).value();
+  Runner runner = Runner::Create(executor.value()).value();
 
   std::streambuf* cout_streambuf = std::cout.rdbuf();
   std::ostringstream captured_output;

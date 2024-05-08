@@ -30,6 +30,7 @@ limitations under the License
 #include "genc/cc/runtime/executor.h"
 #include "genc/cc/runtime/inline_executor.h"
 #include "genc/cc/runtime/runner.h"
+#include "genc/cc/runtime/threading.h"
 #include "genc/proto/v0/computation.pb.h"
 
 namespace genc {
@@ -108,7 +109,8 @@ TEST(SetCustomFunctionsForLocalValueCache, CacheReadWriteWorksWithExecutor) {
       SetCustomFunctionsForLocalValueCache(config.custom_function_map,
       cache), absl::OkStatus());
   std::shared_ptr<Executor> executor =
-      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet(config))
+      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet(config),
+                           CreateThreadBasedConcurrencyManager())
           .value();
 
   v0::Value read_pb = CreateCustomFunction(kLocalCacheReadUri).value();

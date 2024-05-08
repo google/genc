@@ -21,31 +21,22 @@ limitations under the License
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "genc/cc/runtime/executor.h"
-#include "genc/cc/runtime/executor_stacks.h"
 #include "genc/cc/runtime/status_macros.h"
 #include "genc/proto/v0/computation.pb.h"
 
 namespace genc {
 
-absl::StatusOr<Runner> Runner::CreateDefault() {
-  return Runner::Create(/*executor=*/nullptr);
-}
-
 absl::StatusOr<Runner> Runner::Create(std::shared_ptr<Executor> executor) {
   if (executor == nullptr) {
-    executor = GENC_TRY(CreateDefaultLocalExecutor());
+    return absl::InvalidArgumentError("Executor must not be null.");
   }
   return Runner(nullptr, executor);
-}
-
-absl::StatusOr<Runner> Runner::Create(v0::Value computation) {
-  return Create(computation, /*executor=*/nullptr);
 }
 
 absl::StatusOr<Runner> Runner::Create(v0::Value computation,
                                      std::shared_ptr<Executor> executor) {
   if (executor == nullptr) {
-    executor = GENC_TRY(CreateDefaultLocalExecutor());
+    return absl::InvalidArgumentError("Executor must not be null.");
   }
   return Runner(std::make_unique<v0::Value>(computation), executor);
 }

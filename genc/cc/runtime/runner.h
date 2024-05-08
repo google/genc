@@ -28,17 +28,9 @@ namespace genc {
 // Runner that runs arbitrary computation proto.
 class Runner final {
  public:
-  // Creates a Runner with a default local executor and no computation.
-  // The computation will have to be provided in the `Run` call.
-  static absl::StatusOr<Runner> CreateDefault();
-
   // Creates a Runner with a custom executor and no computation.
   // The computation will have to be provided in the `Run` call.
   static absl::StatusOr<Runner> Create(std::shared_ptr<Executor> executor);
-
-  // Creates a Runner with a default executor and a computation.
-  // The subsequent `Run` calls will all use the computation provided here.
-  static absl::StatusOr<Runner> Create(v0::Value computation);
 
   // Creates a Runner with a custom executor and a computation.
   // The subsequent `Run` calls will all use the computation provided here.

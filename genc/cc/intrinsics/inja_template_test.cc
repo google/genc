@@ -21,6 +21,7 @@ limitations under the License
 #include "genc/cc/runtime/executor.h"
 #include "genc/cc/runtime/inline_executor.h"
 #include "genc/cc/runtime/runner.h"
+#include "genc/cc/runtime/threading.h"
 #include "genc/proto/v0/computation.pb.h"
 
 namespace genc {
@@ -28,7 +29,9 @@ namespace {
 
 TEST(InjaTemplateTest, ProcessesInputTemplateSuccessfully) {
   std::shared_ptr<Executor> executor =
-      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({})).value();
+      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({}),
+                           CreateThreadBasedConcurrencyManager())
+          .value();
   Runner runner = Runner::Create(executor).value();
 
   v0::Value template_pb = CreateInjaTemplate(

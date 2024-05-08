@@ -124,17 +124,18 @@ cc_binary(
 )
 
 cc_binary(
-    name = "custom_thread_pool",
-    srcs = ["custom_thread_pool.cc"],
+    name = "custom_concurrency_interface",
+    srcs = ["custom_concurrency_interface.cc"],
     deps = [
         "//genc/cc/authoring:constructor",
         "//genc/cc/examples/executors:executor_stacks",
+        "//genc/cc/runtime:concurrency",
         "//genc/cc/runtime:executor",
         "//genc/cc/runtime:runner",
         "//genc/cc/runtime:status_macros",
-        "//genc/cc/runtime:threading",
         "//genc/proto/v0:computation_cc_proto",
         "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
     ],
 )
 

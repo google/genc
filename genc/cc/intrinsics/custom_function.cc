@@ -34,7 +34,8 @@ absl::Status CustomFunction::CheckWellFormed(
 
 absl::Status CustomFunction::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
                                          const v0::Value& arg,
-                                         v0::Value* result) const {
+                                         v0::Value* result,
+                                         Context* context) const {
   const std::string& fn_uri = intrinsic_pb.static_parameter().str();
   auto fn_it = function_map_.find(fn_uri);
   if (fn_it != function_map_.end()) {

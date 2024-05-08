@@ -26,12 +26,13 @@ limitations under the License
 #include "genc/cc/modules/parsers/gemini_parser.h"
 #include "genc/cc/modules/retrieval/local_cache.h"
 #include "genc/cc/modules/tools/wolfram_alpha.h"
+#include "genc/cc/runtime/concurrency.h"
 #include "genc/cc/runtime/executor.h"
 #include "genc/cc/runtime/executor_stacks.h"
 #include "genc/cc/runtime/status_macros.h"
-#include "genc/cc/runtime/threading.h"
 
 #include "genc/cc/interop/backends/llamacpp.h"
+#include "genc/cc/runtime/threading.h"
 
 namespace genc {
 
@@ -47,7 +48,7 @@ namespace {
 constexpr absl::string_view kLlamaCppModelUri = "/device/gemma";
 
 static absl::once_flag context_init_flag;
-static ExecutorStacksContext* exectuor_stacks_context = nullptr;
+static ExecutorStacksContext* executor_stacks_context = nullptr;
 LlamaCpp* llama_cpp_client = nullptr;
 constexpr int MAX_CACHE_SIZE_PER_KEY = 200;
 
@@ -56,7 +57,7 @@ static void InitExecutorStacksContext() {
   // Allocate memory for local_cache.
   auto local_cache = std::make_unique<LocalValueCache>(MAX_CACHE_SIZE_PER_KEY);
   // Transfer its ownership to a global context.
-  exectuor_stacks_context = new ExecutorStacksContext(std::move(local_cache));
+  executor_stacks_context = new ExecutorStacksContext(std::move(local_cache));
 }
 
 void SetLlamaCppModelInferenceHandler(intrinsics::HandlerSetConfig* config,
@@ -84,11 +85,13 @@ void SetLlamaCppModelInferenceHandler(intrinsics::HandlerSetConfig* config,
 }  // namespace
 
 absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultExecutor() {
-  return CreateDefaultExecutorWithThreadPool(nullptr);
+  return CreateDefaultExecutorWithConcurrencyInterface(
+      CreateThreadBasedConcurrencyManager());
 }
 
-absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultExecutorWithThreadPool(
-    std::shared_ptr<ThreadPool> thread_pool) {
+absl::StatusOr<std::shared_ptr<Executor>>
+CreateDefaultExecutorWithConcurrencyInterface(
+    std::shared_ptr<ConcurrencyInterface> concurrency_interface) {
   // Init the context only once.
   absl::call_once(context_init_flag, InitExecutorStacksContext);
 
@@ -109,10 +112,10 @@ absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultExecutorWithThreadPool(
 
   // Set access to local cache or other types of memory.
   GENC_TRY(SetCustomFunctionsForLocalValueCache(
-      config.custom_function_map, *exectuor_stacks_context->local_cache_));
+      config.custom_function_map, *executor_stacks_context->local_cache_));
 
-  return CreateLocalExecutor(
-      intrinsics::CreateCompleteHandlerSet(config), thread_pool);
+  return CreateLocalExecutor(intrinsics::CreateCompleteHandlerSet(config),
+                             concurrency_interface);
 }
 
 }  // namespace genc

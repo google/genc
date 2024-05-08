@@ -27,8 +27,8 @@ absl::Status Logger::CheckWellFormed(const v0::Intrinsic& intrinsic_pb) const {
 }
 
 absl::Status Logger::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
-                                 const v0::Value& arg,
-                                 v0::Value* result) const {
+                                 const v0::Value& arg, v0::Value* result,
+                                 Context* context) const {
   if (arg.has_str()) {
     // Pretty print of string
     std::cout << arg.str() << "\n";

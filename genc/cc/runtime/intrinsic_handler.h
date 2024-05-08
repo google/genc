@@ -26,6 +26,7 @@ limitations under the License
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
+#include "genc/cc/runtime/concurrency.h"
 #include "genc/cc/runtime/executor.h"
 #include "genc/proto/v0/computation.pb.h"
 
@@ -34,9 +35,16 @@ namespace genc {
 // An interface implemented by handlers of the `INLINE` interface type.
 class InlineIntrinsicHandlerInterface {
  public:
+  class Context {
+   public:
+    virtual std::shared_ptr<ConcurrencyInterface> concurrency_interface()
+        const = 0;
+    virtual ~Context() {}
+  };
+
   virtual absl::Status ExecuteCall(const v0::Intrinsic& intrinsic_pb,
-                                   const v0::Value& arg,
-                                   v0::Value* result) const = 0;
+                                   const v0::Value& arg, v0::Value* result,
+                                   Context* context) const = 0;
 
   virtual ~InlineIntrinsicHandlerInterface() {}
 };
@@ -50,7 +58,13 @@ class ControlFlowIntrinsicHandlerInterface {
   };
 
   typedef std::shared_ptr<Value> ValueRef;
-  typedef ExecutorInterface<ValueRef, ValueRef> Context;
+
+  class Context : public ExecutorInterface<ValueRef, ValueRef> {
+   public:
+    virtual std::shared_ptr<ConcurrencyInterface> concurrency_interface()
+        const = 0;
+    virtual ~Context() {};
+  };
 
   virtual absl::StatusOr<ValueRef> ExecuteCall(
       const v0::Intrinsic& intrinsic_pb, std::optional<ValueRef> arg,

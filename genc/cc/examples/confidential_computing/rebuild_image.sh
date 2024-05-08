@@ -20,5 +20,6 @@
 source config_environment.sh
 
 docker build \
+  --no-cache \
   -t us-docker.pkg.dev/${WORKER_PROJECT}/${WORKER_REPO}/${WORKER_IMAGE}:latest \
   .

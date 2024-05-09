@@ -73,6 +73,6 @@ public final class DefaultAndroidExecutor {
   private native long cleanupAndroidExecutorState();
 
   static {
-    System.loadLibrary("app");
+    System.loadLibrary("android_executor_jni");
   }
 }

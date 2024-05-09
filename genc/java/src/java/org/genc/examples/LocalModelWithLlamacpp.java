@@ -31,7 +31,7 @@ import org.genc.runtime.Runner;
  * running this demo. Please take a note of the local path where you placed this model, as you will
  * be supplying it when running the demo.
  *
- * <p>USAGE: bazel run genc/java/src/java/org/genc/examples:local_model_with_llama_cpp --
+ * <p>USAGE: bazel run genc/java/src/java/org/genc/examples:local_model_with_llamacpp --
  * <model_path> <prompt>
  */
 final class LocalModelWithLlamacpp {

@@ -21,8 +21,18 @@ cc_library(
 
 cc_binary(
     name = "libexecutor_jni.so",
+    linkopts = [
+        "-Wl,--no-undefined",
+    ],
     linkshared = True,
+    linkstatic = True,
     deps = [":executor_jni_lib"],
+)
+
+cc_library(
+    name = "libexecutor_jni_lib",
+    srcs = [":libexecutor_jni.so"],
+    alwayslink = 1,
 )
 
 cc_library(
@@ -41,6 +51,16 @@ cc_library(
 
 cc_binary(
     name = "libowned_value_id_jni.so",
+    linkopts = [
+        "-Wl,--no-undefined",
+    ],
     linkshared = True,
+    linkstatic = True,
     deps = [":owned_value_id_jni_lib"],
+)
+
+cc_library(
+    name = "libowned_value_id_jni_lib",
+    srcs = [":libowned_value_id_jni.so"],
+    alwayslink = 1,
 )

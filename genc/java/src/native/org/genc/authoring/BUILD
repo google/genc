@@ -24,6 +24,18 @@ cc_library(
 
 cc_binary(
     name = "libconstructor_jni.so",
-    linkshared = True,
-    deps = [":constructor_jni_lib"],
+    linkopts = [
+        "-Wl,--no-undefined",
+    ],
+    linkshared = 1,
+    linkstatic = 1,
+    deps = [
+        ":constructor_jni_lib",
+    ],
+)
+
+cc_library(
+    name = "libconstructor_jni_lib",
+    srcs = [":libconstructor_jni.so"],
+    alwayslink = 1,
 )

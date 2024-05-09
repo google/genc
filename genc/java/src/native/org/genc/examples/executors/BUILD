@@ -26,6 +26,17 @@ cc_library(
 
 cc_binary(
     name = "libdefault_executor_jni.so",
-    linkshared = True,
+    linkopts = [
+        "-Wl,--no-undefined",
+    ],
+    linkshared = 1,
+    linkstatic = 1,
     deps = [":default_executor_jni_lib"],
+)
+
+cc_library(
+    name = "libdefault_executor_jni_lib",
+    srcs = [":libdefault_executor_jni.so"],
+    visibility = ["//visibility:public"],
+    alwayslink = 1,
 )

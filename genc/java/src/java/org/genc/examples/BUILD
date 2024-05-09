@@ -7,12 +7,6 @@ licenses(["notice"])
 java_binary(
     name = "genc_demo",
     srcs = ["GencDemo.java"],
-    jvm_flags = [
-        "-Djava.library.path=" +
-        "genc/java/src/native/org/genc/authoring:" +
-        "genc/java/src/native/org/genc/examples/executors:" +
-        "genc/java/src/native/org/genc/runtime",
-    ],
     main_class = "org.genc.examples.GencDemo",
     deps = [
         "//genc/java/src/java/org/genc/authoring:constructor",
@@ -26,12 +20,6 @@ java_binary(
     name = "open_ai_demo",
     srcs = [
         "OpenAiDemo.java",
-    ],
-    jvm_flags = [
-        "-Djava.library.path=" +
-        "genc/java/src/native/org/genc/authoring:" +
-        "genc/java/src/native/org/genc/examples/executors:" +
-        "genc/java/src/native/org/genc/runtime",
     ],
     main_class = "org.genc.examples.OpenAiDemo",
     deps = [
@@ -49,13 +37,6 @@ java_binary(
     srcs = [
         "GeminiOnAiStudioDemo.java",
     ],
-    jvm_flags = [
-        "-Djava.library.path=" +
-        "genc/java/src/native/org/genc/authoring:" +
-        "genc/java/src/native/org/genc/examples/executors:" +
-        "genc/java/src/native/org/genc/runtime",
-    ],
-    # Enable/disable following jvm flags to view logs at FINE level
     main_class = "org.genc.examples.GeminiOnAiStudioDemo",
     deps = [
         "//genc/java/src/java/org/genc/authoring:constructor",
@@ -71,12 +52,6 @@ java_binary(
     name = "gemini_on_vertex_ai",
     srcs = [
         "GeminiOnVertexAiDemo.java",
-    ],
-    jvm_flags = [
-        "-Djava.library.path=" +
-        "genc/java/src/native/org/genc/authoring:" +
-        "genc/java/src/native/org/genc/examples/executors:" +
-        "genc/java/src/native/org/genc/runtime",
     ],
     main_class = "org.genc.examples.GeminiOnVertexAiDemo",
     deps = [
@@ -94,12 +69,6 @@ java_binary(
     srcs = [
         "WolframAlphaDemo.java",
     ],
-    jvm_flags = [
-        "-Djava.library.path=" +
-        "genc/java/src/native/org/genc/authoring:" +
-        "genc/java/src/native/org/genc/examples/executors:" +
-        "genc/java/src/native/org/genc/runtime",
-    ],
     main_class = "org.genc.examples.WolframAlphaDemo",
     deps = [
         "//genc/java/src/java/org/genc/authoring:constructor",
@@ -115,12 +84,6 @@ java_binary(
     name = "local_model_with_llamacpp",
     srcs = [
         "LocalModelWithLlamacpp.java",
-    ],
-    jvm_flags = [
-        "-Djava.library.path=" +
-        "genc/java/src/native/org/genc/authoring:" +
-        "genc/java/src/native/org/genc/examples/executors:" +
-        "genc/java/src/native/org/genc/runtime",
     ],
     main_class = "org.genc.examples.LocalModelWithLlamacpp",
     deps = [

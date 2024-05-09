@@ -1,0 +1,3 @@
+# Use full protos. Add this file's path in your ~/.blazerc. See b/339557508 for
+# instructions.
+build --config=force_full_protos

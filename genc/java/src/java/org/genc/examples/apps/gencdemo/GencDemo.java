@@ -23,8 +23,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import com.google.common.flogger.FluentLogger;
-import org.genc.Runner;
 import org.genc.Value;
+import org.genc.runtime.Runner;
 
 /** Main activity for the GencDemo app. */
 public class GencDemo extends Activity {

@@ -76,7 +76,7 @@ GC_Executor* GC_create_android_executor(JavaVM* jvm, JNIEnv* env,
   return e;
 }
 
-extern "C" jlong
+extern "C" JNIEXPORT jlong JNICALL
 Java_org_genc_examples_apps_gencdemo_DefaultAndroidExecutor_createAndroidExecutor(  // NOLINT
     JNIEnv* env, jobject obj, jobject open_ai_client, jobject google_ai_client,
     jobject llm_inference_client, jobject wolfram_alpha_client) {
@@ -87,7 +87,7 @@ Java_org_genc_examples_apps_gencdemo_DefaultAndroidExecutor_createAndroidExecuto
       wolfram_alpha_client));
 }
 
-extern "C" void
+extern "C" JNIEXPORT void JNICALL
 Java_org_genc_examples_apps_gencdemo_DefaultAndroidExecutor_cleanupAndroidExecutorState(  // NOLINT
     JNIEnv* env, jobject obj) {
   if (open_ai_client_global_ref != nullptr) {

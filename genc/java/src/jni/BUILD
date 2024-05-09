@@ -26,6 +26,7 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        "//genc/java/src/jni:copy_jni_hdr_lib",
         "@bazel_tools//tools/jdk:jni",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/status",

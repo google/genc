@@ -111,7 +111,7 @@ final class Computations {
   public static final String COMPUTATION_FILE_PATH = "/data/local/tmp/genc_demo.pb";
 
   // Whether to read the computation from a local file.
-  public static final Boolean IS_READ_COMPUTATION_FROM_FILE = false;
+  public static final Boolean IS_READ_COMPUTATION_FROM_FILE = true;
 
   public static Value createGeminiModelConfigForGoogleAiStudio(String apiKey) {
     return Constructor.createGeminiModelConfigForGoogleAiStudio(

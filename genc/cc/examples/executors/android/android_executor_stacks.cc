@@ -138,7 +138,7 @@ void SetWolframAlphaIntrinsicHandler(intrinsics::HandlerSetConfig* config,
 
 absl::StatusOr<std::shared_ptr<Executor>> CreateAndroidExecutor(
     JavaVM* jvm, jobject open_ai_client, jobject google_ai_client,
-    jobject llm_inference_client, jobject wolfram_alpha_client) {
+    jobject mediapipe_text_generator_client, jobject wolfram_alpha_client) {
   // Initialize only once.
   absl::call_once(context_init_flag, InitExecutorStacksContext);
 
@@ -146,7 +146,8 @@ absl::StatusOr<std::shared_ptr<Executor>> CreateAndroidExecutor(
   SetOpenAiModelInferenceHandler(&config, jvm, open_ai_client, kOpenAIModelUri);
   SetGoogleAiModelInferenceHandler(&config, jvm, google_ai_client,
                                    kGeminiModelUri);
-  SetMediapipeModelInferenceHandler(&config, jvm, llm_inference_client,
+  SetMediapipeModelInferenceHandler(&config, jvm,
+                                    mediapipe_text_generator_client,
                                     kMediapipeModelUri);
 
   SetLlamaCppModelInferenceHandler(&config, kLlamaCppModelUri);

@@ -36,8 +36,14 @@ public class GencDemo extends Activity {
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
+
+    // Error output
+    TextView verbose = findViewById(R.id.verbose);
+
     try {
       Value computation = Computations.getComputation();
+      String verboseString = "Loaded computation: \"" + computation.toString() + "\"";
+      verbose.setText(verboseString);
       executor = new DefaultAndroidExecutor(getApplicationContext());
       runner = Runner.create(computation, executor.getExecutorHandle());
     } catch (RuntimeException e) {
@@ -50,7 +56,6 @@ public class GencDemo extends Activity {
 
     // Response
     TextView response = findViewById(R.id.response);
-    TextView verbose = findViewById(R.id.verbose);
 
     // Inference Handler
     Handler infHandler = new Handler();
@@ -70,16 +75,21 @@ public class GencDemo extends Activity {
             infHandler.post(
                 () -> {
                   String responseString = "";
+                  String errorString = "";
                   try {
                     responseString = runner.call(text);
                   } catch (RuntimeException e) {
+                    errorString = e.getMessage();
                     logger.atSevere().withCause(e).log(
-                        "Error occured in running the computation: %s", e.getMessage());
+                        "Error occured in running the computation: %s", errorString);
                   }
                   response.setText(responseString);
                   String verboseString;
-                  if (responseString.isEmpty()) {
-                    verboseString = "Failed to get response. See error logs for more details.";
+                  if (responseString.isEmpty() || !errorString.isEmpty()) {
+                    verboseString = "Failed to get response.";
+                    if (!errorString.isEmpty()) {
+                      verboseString += " Error: " + errorString;
+                    }
                   } else {
                     verboseString = "Success!";
                   }

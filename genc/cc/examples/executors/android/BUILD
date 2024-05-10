@@ -15,6 +15,7 @@ cc_library(
         "//genc/cc/interop/backends/java:mediapipe_llm_inference",
         "//genc/cc/interop/backends/java:open_ai",
         "//genc/cc/interop/backends/java:wolfram_alpha_handler",
+        "//genc/cc/interop/networking:cronet_based_android_http_client",
         "//genc/cc/intrinsics:handler_sets",
         "//genc/cc/intrinsics:model_inference",
         "//genc/cc/modules/agents:react",

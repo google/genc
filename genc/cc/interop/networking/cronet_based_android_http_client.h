@@ -13,26 +13,24 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#ifndef GENC_CC_EXAMPLES_EXECUTORS_ANDROID_ANDROID_EXECUTOR_STACKS_H_
-#define GENC_CC_EXAMPLES_EXECUTORS_ANDROID_ANDROID_EXECUTOR_STACKS_H_
+#ifndef GENC_CC_INTEROP_NETWORKING_CRONET_BASED_ANDROID_HTTP_CLIENT_H_
+#define GENC_CC_INTEROP_NETWORKING_CRONET_BASED_ANDROID_HTTP_CLIENT_H_
 
 #include <jni.h>
-
 #include <memory>
-
 #include "absl/status/statusor.h"
-#include "genc/cc/runtime/executor.h"
+#include "genc/cc/interop/networking/http_client_interface.h"
 
 namespace genc {
+namespace interop {
+namespace networking {
 
-absl::StatusOr<std::shared_ptr<Executor>> CreateAndroidExecutor(
-    JavaVM* jvm,
-    jobject open_ai_client,
-    jobject google_ai_client,
-    jobject mediapipe_text_generator_client,
-    jobject wolfram_alpha_client,
-    jobject simple_synchronous_http_client_interface);
+absl::StatusOr<std::shared_ptr<HttpClientInterface>>
+CreateCronetBasedAndroidHttpClient(
+     JavaVM* jvm, jobject simple_synchronous_http_client_interface);
 
+}  // namespace networking
+}  // namespace interop
 }  // namespace genc
 
-#endif  // GENC_CC_EXAMPLES_EXECUTORS_ANDROID_ANDROID_EXECUTOR_STACKS_H_
+#endif  // GENC_CC_INTEROP_NETWORKING_CRONET_BASED_ANDROID_HTTP_CLIENT_H_

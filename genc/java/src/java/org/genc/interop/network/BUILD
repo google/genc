@@ -32,6 +32,18 @@ android_library(
     ],
 )
 
+android_library(
+    name = "simple_synchronous_http_client_interface",
+    srcs = [
+        "SimpleSynchronousHttpClientInterface.java",
+    ],
+    deps = [
+        ":http_client_impl",
+        "//genc/java/src/java/org/genc/interop/network/api/proto:http_request_response_java_proto_lite",
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
 java_library(
     name = "http_client",
     srcs = [

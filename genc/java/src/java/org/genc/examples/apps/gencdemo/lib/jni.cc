@@ -28,14 +28,17 @@ static jobject open_ai_client_global_ref = nullptr;
 static jobject google_ai_client_global_ref = nullptr;
 static jobject llm_inference_client_global_ref = nullptr;
 static jobject wolfram_alpha_client_global_ref = nullptr;
+static jobject simple_synchronous_http_client_interface_global_ref = nullptr;
 
 }  // namespace
 
-GC_Executor* GC_create_android_executor(JavaVM* jvm, JNIEnv* env,
-                                        jobject open_ai_client,
-                                        jobject google_ai_client,
-                                        jobject llm_inference_client,
-                                        jobject wolfram_alpha_client) {
+GC_Executor* GC_create_android_executor(
+    JavaVM* jvm, JNIEnv* env,
+    jobject open_ai_client,
+    jobject google_ai_client,
+    jobject llm_inference_client,
+    jobject wolfram_alpha_client,
+    jobject simple_synchronous_http_client_interface) {
   // Create global references to refer from native threads.
   if (open_ai_client != nullptr) {
     open_ai_client_global_ref = env->NewGlobalRef(open_ai_client);
@@ -69,9 +72,21 @@ GC_Executor* GC_create_android_executor(JavaVM* jvm, JNIEnv* env,
       return nullptr;
     }
   }
+
+  if (simple_synchronous_http_client_interface != nullptr) {
+    simple_synchronous_http_client_interface_global_ref =
+        env->NewGlobalRef(simple_synchronous_http_client_interface);
+    if (simple_synchronous_http_client_interface_global_ref == nullptr) {
+      LOG(ERROR) << "Couldn't create global reference for "
+                    "SimpleSynchronousHttpClientInterface client";
+      return nullptr;
+    }
+  }
+
   auto lamda_executor = genc::CreateAndroidExecutor(
       jvm, open_ai_client_global_ref, google_ai_client_global_ref,
-      llm_inference_client_global_ref, wolfram_alpha_client_global_ref);
+      llm_inference_client_global_ref, wolfram_alpha_client_global_ref,
+      simple_synchronous_http_client_interface_global_ref);
   GC_Executor* e = new GC_Executor(lamda_executor.value());
   return e;
 }
@@ -79,12 +94,13 @@ GC_Executor* GC_create_android_executor(JavaVM* jvm, JNIEnv* env,
 extern "C" JNIEXPORT jlong JNICALL
 Java_org_genc_examples_apps_gencdemo_DefaultAndroidExecutor_createAndroidExecutor(  // NOLINT
     JNIEnv* env, jobject obj, jobject open_ai_client, jobject google_ai_client,
-    jobject llm_inference_client, jobject wolfram_alpha_client) {
+    jobject llm_inference_client, jobject wolfram_alpha_client,
+    jobject simple_synchronous_http_client_interface) {
   JavaVM* jvm;
   env->GetJavaVM(&jvm);
   return reinterpret_cast<jlong>(GC_create_android_executor(
       jvm, env, open_ai_client, google_ai_client, llm_inference_client,
-      wolfram_alpha_client));
+      wolfram_alpha_client, simple_synchronous_http_client_interface));
 }
 
 extern "C" JNIEXPORT void JNICALL
@@ -101,6 +117,9 @@ Java_org_genc_examples_apps_gencdemo_DefaultAndroidExecutor_cleanupAndroidExecut
   }
   if (wolfram_alpha_client_global_ref != nullptr) {
     env->DeleteGlobalRef(wolfram_alpha_client_global_ref);
+  }
+  if (simple_synchronous_http_client_interface_global_ref != nullptr) {
+    env->DeleteGlobalRef(simple_synchronous_http_client_interface_global_ref);
   }
 }
 

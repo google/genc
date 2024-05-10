@@ -28,6 +28,7 @@ limitations under the License
 #include "genc/cc/interop/backends/java/mediapipe_llm_inference.h"
 #include "genc/cc/interop/backends/java/open_ai.h"
 #include "genc/cc/interop/backends/java/wolfram_alpha_handler.h"
+#include "genc/cc/interop/networking/cronet_based_android_http_client.h"
 #include "genc/cc/interop/backends/llamacpp.h"
 #include "genc/cc/intrinsics/handler_sets.h"
 #include "genc/cc/modules/agents/react.h"
@@ -137,15 +138,26 @@ void SetWolframAlphaIntrinsicHandler(intrinsics::HandlerSetConfig* config,
 }  // namespace
 
 absl::StatusOr<std::shared_ptr<Executor>> CreateAndroidExecutor(
-    JavaVM* jvm, jobject open_ai_client, jobject google_ai_client,
-    jobject mediapipe_text_generator_client, jobject wolfram_alpha_client) {
+    JavaVM* jvm,
+    jobject open_ai_client,
+    jobject google_ai_client,
+    jobject mediapipe_text_generator_client,
+    jobject wolfram_alpha_client,
+    jobject simple_synchronous_http_client_interface) {
   // Initialize only once.
   absl::call_once(context_init_flag, InitExecutorStacksContext);
 
   intrinsics::HandlerSetConfig config;
+
+  config.http_client_interface = GENC_TRY(
+      interop::networking::CreateCronetBasedAndroidHttpClient(
+          jvm, simple_synchronous_http_client_interface));
+
   SetOpenAiModelInferenceHandler(&config, jvm, open_ai_client, kOpenAIModelUri);
+
   SetGoogleAiModelInferenceHandler(&config, jvm, google_ai_client,
                                    kGeminiModelUri);
+
   SetMediapipeModelInferenceHandler(&config, jvm,
                                     mediapipe_text_generator_client,
                                     kMediapipeModelUri);

@@ -25,6 +25,7 @@ import src.java.org.genc.interop.backends.openai.OpenAiClient;
 import src.java.org.genc.interop.backends.wolframalpha.WolframAlphaClient;
 import src.java.org.genc.interop.network.CronetEngineProvider;
 import src.java.org.genc.interop.network.HttpClientImpl;
+import src.java.org.genc.interop.network.SimpleSynchronousHttpClientInterface;
 
 /**
  * An executor used in GenC demos on Android. This contains clients and other
@@ -40,8 +41,14 @@ public final class DefaultAndroidExecutor {
     googleAiClient = new GoogleAiClient(httpClient);
     llmInferenceClient = new LlmInferenceClient(context);
     wolframAlphaClient = new WolframAlphaClient(httpClient);
+    simpleSynchronousHttpClientInterface = new SimpleSynchronousHttpClientInterface(httpClient);
     executorHandle =
-        createAndroidExecutor(openAiClient, googleAiClient, llmInferenceClient, wolframAlphaClient);
+        createAndroidExecutor(
+            openAiClient,
+            googleAiClient,
+            llmInferenceClient,
+            wolframAlphaClient,
+            simpleSynchronousHttpClientInterface);
   }
 
   public long getExecutorHandle() {
@@ -63,12 +70,14 @@ public final class DefaultAndroidExecutor {
   private final ExecutorService cronetCallbackExecutorService;
   private final HttpClientImpl httpClient;
   private final long executorHandle;
+  private final SimpleSynchronousHttpClientInterface simpleSynchronousHttpClientInterface;
 
   private native long createAndroidExecutor(
       OpenAiClient openAiClient,
       GoogleAiClient googleAiClient,
       LlmInferenceClient llmInferenceClient,
-      WolframAlphaClient wolframAlphaClient);
+      WolframAlphaClient wolframAlphaClient,
+      SimpleSynchronousHttpClientInterface simpleSynchronousHttpClientInterface);
 
   private native long cleanupAndroidExecutorState();
 

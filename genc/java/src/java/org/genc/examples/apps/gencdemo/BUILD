@@ -29,6 +29,7 @@ android_library(
         "//genc/java/src/java/org/genc/interop/backends/wolframalpha:wolfram_alpha_client_android",
         "//genc/java/src/java/org/genc/interop/network:cronet_engine_provider",
         "//genc/java/src/java/org/genc/interop/network:http_client_impl",
+        "//genc/java/src/java/org/genc/interop/network:simple_synchronous_http_client_interface",
         "//genc/java/src/java/org/genc/runtime:runner_android",
         "//genc/proto/v0:computation_java_proto_lite",
         "@com_google_protobuf//java/lite",

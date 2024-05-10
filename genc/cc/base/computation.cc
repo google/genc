@@ -17,14 +17,18 @@ limitations under the License
 
 #include <vector>
 
+#include "absl/status/statusor.h"
 #include "genc/cc/base/context.h"
+#include "genc/cc/runtime/status_macros.h"
 
 namespace genc {
 
 const v0::Value& Computation::portable_ir() { return portable_ir_; }
 
-Computation Computation::operator()(const std::vector<v0::Value>& args) {
-  return Computation(
-      GetContextStack()->CurrentContext()->Call(portable_ir_, args));
+absl::StatusOr<Computation> Computation::operator()(
+    const std::vector<v0::Value>& args) {
+  v0::Value result =
+      GENC_TRY(GetContextStack()->CurrentContext()->Call(portable_ir_, args));
+  return Computation(result);
 }
 }  // namespace genc

@@ -20,20 +20,21 @@ limitations under the License
 #include <vector>
 
 #include "absl/status/statusor.h"
+#include "genc/cc/base/context.h"
 #include "genc/cc/modules/retrieval/bi_map.h"
 #include "genc/proto/v0/computation.pb.h"
 
 namespace genc {
 
 // An authoring tracing context for invocations of the `Computation` class.`
-class TracingContext {
+class TracingContext : public Context {
  public:
   TracingContext() = default;
   ~TracingContext() = default;
 
   // Processed the call to `portable_ir` in this authoring context.
   absl::StatusOr<v0::Value> Call(const v0::Value& portable_ir,
-                                 const std::vector<v0::Value>& args);
+                                 const std::vector<v0::Value>& args) override;
   // Returns local variables.
   const BiMap<std::string, std::string>& locals() { return name_to_ir_; }
 

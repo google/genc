@@ -21,6 +21,7 @@ limitations under the License
 
 #include "absl/base/thread_annotations.h"
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/synchronization/mutex.h"
 #include "genc/proto/v0/computation.pb.h"
 
@@ -33,8 +34,8 @@ class Context {
   virtual ~Context() = default;
 
   // Synchronously process a call to portable_ir in this context.
-  virtual v0::Value Call(const v0::Value& portable_ir,
-                         const std::vector<v0::Value>& args) = 0;
+  virtual absl::StatusOr<v0::Value> Call(
+      const v0::Value& portable_ir, const std::vector<v0::Value>& args) = 0;
 };
 
 // The shared stack of contexts.

@@ -19,6 +19,7 @@ limitations under the License
 #include <vector>
 
 #include "googletest/include/gtest/gtest.h"
+#include "absl/status/statusor.h"
 #include "genc/proto/v0/computation.pb.h"
 
 namespace genc {
@@ -26,11 +27,9 @@ namespace {
 
 class TestContext : public Context {
  public:
-  v0::Value Call(const v0::Value& portable_ir,
-                 const std::vector<v0::Value>& args) override {
-    v0::Value resposne;
-    resposne.set_str("called(" + portable_ir.DebugString() + ")");
-    return resposne;
+  absl::StatusOr<v0::Value> Call(const v0::Value& portable_ir,
+                                 const std::vector<v0::Value>& args) override {
+    return v0::Value::default_instance();
   }
 
   ~TestContext() override {}

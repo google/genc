@@ -28,7 +28,9 @@ cc_library(
     hdrs = ["computation.h"],
     deps = [
         ":context",
+        "//genc/cc/runtime:status_macros",
         "//genc/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status:statusor",
     ],
 )
 
@@ -40,6 +42,7 @@ cc_library(
         "//genc/proto/v0:computation_cc_proto",
         "@com_google_absl//absl/base:core_headers",
         "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -50,6 +53,7 @@ cc_test(
     deps = [
         ":context",
         "//genc/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status:statusor",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -61,6 +65,7 @@ cc_test(
         ":computation",
         ":context",
         "//genc/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status:statusor",
         "@com_google_googletest//:gtest_main",
     ],
 )

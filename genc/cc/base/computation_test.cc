@@ -19,6 +19,7 @@ limitations under the License
 #include <vector>
 
 #include "googletest/include/gtest/gtest.h"
+#include "absl/status/statusor.h"
 #include "genc/cc/base/context.h"
 #include "genc/proto/v0/computation.pb.h"
 
@@ -27,8 +28,8 @@ namespace {
 
 class TestContext : public Context {
  public:
-  v0::Value Call(const v0::Value& portable_ir,
-                 const std::vector<v0::Value>& args) override {
+  absl::StatusOr<v0::Value> Call(const v0::Value& portable_ir,
+                                 const std::vector<v0::Value>& args) override {
     v0::Value resposne;
     resposne.set_str(portable_ir.str() +
                      (args.empty() ? "" : "(" + args[0].str() + ")"));
@@ -48,7 +49,7 @@ TEST(ComputationTest, IsCallable) {
   arg.set_str("argument");
 
   Computation computation(const_computation);
-  Computation result = computation({arg});
+  Computation result = computation({arg}).value();
   EXPECT_EQ(result.portable_ir().str(), "function(argument)");
 }
 }  // namespace

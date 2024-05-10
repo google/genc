@@ -17,6 +17,8 @@ limitations under the License
 #define GENC_CC_BASE_COMPUTATION_H_
 
 #include <vector>
+
+#include "absl/status/statusor.h"
 #include "genc/proto/v0/computation.pb.h"
 
 namespace genc {
@@ -32,7 +34,7 @@ class Computation {
 
   // Calls the computation with args.
   // Provides a more convenient Python like syntax for authoring.
-  Computation operator()(const std::vector<v0::Value>& args);
+  absl::StatusOr<Computation> operator()(const std::vector<v0::Value>& args);
 
  private:
   v0::Value portable_ir_;

@@ -34,6 +34,21 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "tracing_context",
+    srcs = ["tracing_context.cc"],
+    hdrs = ["tracing_context.h"],
+    deps = [
+        ":constructor",
+        "//genc/cc/modules/retrieval:bi_map",
+        "//genc/cc/runtime:status_macros",
+        "//genc/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
 cc_test(
     name = "constructor_test",
     srcs = ["constructor_test.cc"],

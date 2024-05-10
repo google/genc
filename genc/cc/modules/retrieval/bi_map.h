@@ -15,6 +15,7 @@ limitations under the License
 
 #ifndef GENC_CC_MODULES_RETRIEVAL_BI_MAP_H_
 #define GENC_CC_MODULES_RETRIEVAL_BI_MAP_H_
+#include <cstddef>
 #include <optional>
 
 #include "absl/base/thread_annotations.h"
@@ -102,6 +103,12 @@ class BiMap {
     absl::ReaderMutexLock lock(&mutex_);
     auto it = value_to_key_.find(value);
     return it != value_to_key_.end() ? std::optional(it->second) : std::nullopt;
+  }
+
+  // Returns the size of the map.
+  size_t size() const {
+    absl::ReaderMutexLock lock(&mutex_);
+    return key_to_value_.size();
   }
 
  private:

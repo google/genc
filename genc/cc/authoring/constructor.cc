@@ -433,6 +433,10 @@ v0::Value ToValue(Computation arg) {
 }
 
 v0::Value ToValue(std::vector<v0::Value>& arg) {
+  if (arg.size() == 1) {
+    return arg.front();
+  }
+
   v0::Value value_pb;
   auto mutable_element = value_pb.mutable_struct_()->mutable_element();
   for (const auto& value : arg) {

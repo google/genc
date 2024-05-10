@@ -231,11 +231,18 @@ TEST(ToValueTest, HandlesComputation) {
   ASSERT_EQ(result.DebugString(), test_pb.DebugString());
 }
 
-TEST(ToValueTest, HandlesVector) {
+TEST(ToValueTest, HandlesVectorWithMultipleElements) {
   std::vector<v0::Value> test_list = {ToValue(123), ToValue(1.23f)};
   v0::Value result = ToValue(test_list);
   ASSERT_EQ(result.DebugString(),
             CreateStruct(test_list).value().DebugString());
+}
+
+TEST(ToValueTest, HandlesVectorWithSingleElement) {
+  v0::Value test_value = ToValue(123);
+  std::vector<v0::Value> test_list = {test_value};
+  v0::Value result = ToValue(test_list);
+  ASSERT_EQ(result.DebugString(), test_value.DebugString());
 }
 
 TEST(ToValueTest, HandlesVariadicArgs) {

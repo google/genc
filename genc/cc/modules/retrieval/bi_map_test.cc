@@ -91,5 +91,16 @@ TEST(BiMapTest, FindByValueNotFoundReturnsNullopt) {
   EXPECT_EQ(int_str_map.FindByValue("one"), std::nullopt);
 }
 
+TEST(BiMapTest, SizeReturnsCorrectValue) {
+  BiMap<int, std::string> int_str_map;
+  EXPECT_EQ(int_str_map.size(), 0);
+  int_str_map.Insert(1, "one");
+  EXPECT_EQ(int_str_map.size(), 1);
+  int_str_map.Insert(2, "two");
+  EXPECT_EQ(int_str_map.size(), 2);
+  int_str_map.RemoveByKey(1);
+  EXPECT_EQ(int_str_map.size(), 1);
+}
+
 }  // namespace
 }  // namespace genc

@@ -53,13 +53,35 @@ Inside your running docker container instance, at the root of the repo, run:
 
 ```
 cd genc
-bash docs/tutorials/jupyter_setup/launch_jupyter.sh
+bash genc/docs/tutorials/jupyter_setup/launch_jupyter.sh
 ```
 
 Once fully initialized, the Jupyter server will print a link on the console
 that you can use to connect to it. Open the link in your local browser on the
 machine, on which you started the docker container (or tunnel port 8889 from
 a remote machine and open the browser there).
+
+## Android setup
+
+Note: **DISCLAIMER**: Before we continue with the setup details, we'd like to
+remind you that the GenC demo app is intended primarily for research and
+experimental purposes, and uses in a non-experimental setting are at your own
+risk. In particular, the model inference APIs used underneath may change any
+time, and models used do not have any built-in safety mechanisms,
+and may produce unsafe outputs in response to raw prompts.
+
+Note: If you're planning to build a production mobile app to run on Android,
+at this time we recommend that you review the [Gemini API](https://ai.google.dev/),
+and the
+[Gemini Nano on-device through Android AICore](https://android-developers.googleblog.com/2023/12/a-new-foundation-for-ai-on-android.html).
+AICore is the new system-level capability introduced in Android 14 to provide
+Gemini-powered solutions for high-end devices, including integrations with the
+latest ML accelerators, use-case optimized LoRA adapters, and safety filters.
+To start using Gemini Nano on-device with your app, apply to the
+[Early Access Preview](https://docs.google.com/forms/d/e/1FAIpQLSdDvg0eEzcUY_-CmtiMZLd68KD3F0usCnRzKKzWb4sAYwhFJg/viewform?usp=header_link).
+
+For running GenC on Android and GenC's Android demo app, see
+setup instructions at [android_setup.md](genc/docs/android_setup.md).
 
 Success: You have completed the setup of GenC.
 Create your dream generative AI project, and share your experience with us!

@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#include "genc/cc/authoring/context.h"
+#include "genc/cc/base/context.h"
 
 #include <memory>
 #include <vector>

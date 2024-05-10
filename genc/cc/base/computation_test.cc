@@ -19,7 +19,7 @@ limitations under the License
 #include <vector>
 
 #include "googletest/include/gtest/gtest.h"
-#include "genc/cc/authoring/context.h"
+#include "genc/cc/base/context.h"
 #include "genc/proto/v0/computation.pb.h"
 
 namespace genc {

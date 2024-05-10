@@ -27,8 +27,30 @@ cc_library(
     srcs = ["computation.cc"],
     hdrs = ["computation.h"],
     deps = [
-        "//genc/cc/authoring:context",
+        ":context",
         "//genc/proto/v0:computation_cc_proto",
+    ],
+)
+
+cc_library(
+    name = "context",
+    srcs = ["context.cc"],
+    hdrs = ["context.h"],
+    deps = [
+        "//genc/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/base:core_headers",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_test(
+    name = "context_test",
+    srcs = ["context_test.cc"],
+    deps = [
+        ":context",
+        "//genc/proto/v0:computation_cc_proto",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -37,7 +59,7 @@ cc_test(
     srcs = ["computation_test.cc"],
     deps = [
         ":computation",
-        "//genc/cc/authoring:context",
+        ":context",
         "//genc/proto/v0:computation_cc_proto",
         "@com_google_googletest//:gtest_main",
     ],

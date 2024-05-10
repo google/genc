@@ -17,7 +17,7 @@ limitations under the License
 
 #include <vector>
 
-#include "genc/cc/authoring/context.h"
+#include "genc/cc/base/context.h"
 
 namespace genc {
 

@@ -33,18 +33,6 @@ cc_library(
     ],
 )
 
-cc_library(
-    name = "context",
-    srcs = ["context.cc"],
-    hdrs = ["context.h"],
-    deps = [
-        "//genc/proto/v0:computation_cc_proto",
-        "@com_google_absl//absl/base:core_headers",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/synchronization",
-    ],
-)
-
 cc_test(
     name = "constructor_test",
     srcs = ["constructor_test.cc"],
@@ -65,16 +53,6 @@ cc_test(
         ":smart_chain",
         "//genc/proto/v0:computation_cc_proto",
         "@com_google_absl//absl/status:statusor",
-        "@com_google_googletest//:gtest_main",
-    ],
-)
-
-cc_test(
-    name = "context_test",
-    srcs = ["context_test.cc"],
-    deps = [
-        ":context",
-        "//genc/proto/v0:computation_cc_proto",
         "@com_google_googletest//:gtest_main",
     ],
 )

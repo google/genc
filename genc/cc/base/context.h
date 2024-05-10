@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License
 ==============================================================================*/
 
-#ifndef GENC_CC_AUTHORING_CONTEXT_H_
-#define GENC_CC_AUTHORING_CONTEXT_H_
+#ifndef GENC_CC_BASE_CONTEXT_H_
+#define GENC_CC_BASE_CONTEXT_H_
 
 #include <memory>
 #include <vector>
@@ -66,4 +66,4 @@ std::shared_ptr<ContextStack> GetContextStack();
 
 }  // namespace genc
 
-#endif  // GENC_CC_AUTHORING_CONTEXT_H_
+#endif  // GENC_CC_BASE_CONTEXT_H_

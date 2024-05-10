@@ -19,6 +19,7 @@ limitations under the License
 #include <memory>
 #include <vector>
 
+#include "genc/cc/interop/networking/http_client_interface.h"
 #include "genc/cc/intrinsics/custom_function.h"
 #include "genc/cc/intrinsics/delegate.h"
 #include "genc/cc/intrinsics/model_inference.h"
@@ -36,6 +37,14 @@ struct HandlerSetConfig {
   ModelInferenceWithConfig::InferenceMap model_inference_with_config_map;
   CustomFunction::FunctionMap custom_function_map;
   std::vector<const IntrinsicHandler*> custom_intrinsics_list;
+
+  // An optional HTTP client interface for use by handlers that need to issue
+  // network HTTP requests (NULL by default, leaving the handlers to use CURL
+  // by default).
+  // NOTE: At this time, most handlers are not modified to use this inrerface.
+  // New handlers should use this interface if possible.
+  std::shared_ptr<interop::networking::HttpClientInterface>
+      http_client_interface;
 };
 
 // Construct a new handler set.

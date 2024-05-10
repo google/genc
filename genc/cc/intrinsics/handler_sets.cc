@@ -49,7 +49,8 @@ std::shared_ptr<IntrinsicHandlerSet> CreateCompleteHandlerSet(
   handlers->AddHandler(new intrinsics::BreakableChain());
   handlers->AddHandler(new intrinsics::SerialChain());
   handlers->AddHandler(new intrinsics::Conditional());
-  handlers->AddHandler(new intrinsics::ConfidentialComputation());
+  handlers->AddHandler(new intrinsics::ConfidentialComputation(
+      config.http_client_interface));
   handlers->AddHandler(new intrinsics::Delegate(config.delegate_map));
   handlers->AddHandler(new intrinsics::Fallback());
   handlers->AddHandler(new intrinsics::Logger);

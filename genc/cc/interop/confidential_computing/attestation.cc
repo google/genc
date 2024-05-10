@@ -14,7 +14,6 @@ limitations under the License
 ==============================================================================*/
 
 #include <chrono>  // NOLINT
-#include <cstddef>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -27,9 +26,9 @@ limitations under the License
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "absl/strings/substitute.h"
-#include <curl/curl.h>
-#include <curl/easy.h>
 #include "genc/cc/interop/confidential_computing/attestation.h"
+#include "genc/cc/interop/networking/curl_based_http_client.h"
+#include "genc/cc/interop/networking/http_client_interface.h"
 #include "genc/cc/runtime/status_macros.h"
 #include <nlohmann/json.hpp>
 #include "proto/attestation/evidence.pb.h"
@@ -70,83 +69,6 @@ constexpr char kContainerImageDigestAttributeName[] = "image_digest";
 constexpr char kOsAttributeName[] = "swname";
 constexpr char kOsAttributeValue[] = "CONFIDENTIAL_SPACE";
 
-size_t WriteCallback(
-    void* contents, size_t size, size_t nmemb, std::string* output) {
-  size_t totalSize = size * nmemb;
-  output->append(static_cast<char*>(contents), totalSize);
-  return totalSize;
-}
-
-struct CurlClient {
-  static absl::StatusOr<std::unique_ptr<CurlClient>> Create(
-      bool debug = false) {
-    CURL* curl = curl_easy_init();
-    if (curl == nullptr) {
-      return absl::InternalError(
-          "Unable to init CURL.");
-    }
-    if (debug) {
-      curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
-    }
-    return absl::WrapUnique<CurlClient>(new CurlClient(curl));
-  }
-
-  absl::StatusOr<std::string> GetFromUrl(const std::string& url) {
-    curl_easy_setopt(curl_, CURLOPT_HEADER, 0);
-    curl_easy_setopt(curl_, CURLOPT_HTTPGET, 1);
-    return CallInternal(url);
-  }
-
-  absl::StatusOr<std::string> PostJsonToUrl(
-      const std::string& url,
-      const std::string& json_request) {
-    struct curl_slist* headers = nullptr;
-    headers = curl_slist_append(headers, "Content-Type: application/json");
-    curl_easy_setopt(curl_, CURLOPT_HTTPHEADER, headers);
-    curl_easy_setopt(curl_, CURLOPT_POSTFIELDS, json_request.c_str());
-    absl::StatusOr<std::string> result = CallInternal(url);
-    curl_slist_free_all(headers);
-    return result;
-  }
-
-  absl::StatusOr<std::string> GetFromUrlAndSocket(
-      const std::string& url,
-      const std::string& socket_path) {
-    curl_easy_setopt(curl_, CURLOPT_UNIX_SOCKET_PATH, socket_path.c_str());
-    return GetFromUrl(url);
-  }
-
-  absl::StatusOr<std::string> PostJsonToUrlAndSocket(
-      const std::string& url,
-      const std::string& socket_path,
-      const std::string& json_request) {
-    curl_easy_setopt(curl_, CURLOPT_UNIX_SOCKET_PATH, socket_path.c_str());
-    return PostJsonToUrl(url, json_request);
-  }
-
-  ~CurlClient() { curl_easy_cleanup(curl_); }
-
- protected:
-  explicit CurlClient(CURL* curl_arg) : curl_(curl_arg) {}
-
-  absl::StatusOr<std::string> CallInternal(const std::string& url) {
-    curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
-    std::string response;
-    curl_easy_setopt(curl_, CURLOPT_WRITEFUNCTION, WriteCallback);
-    curl_easy_setopt(curl_, CURLOPT_WRITEDATA, &response);
-    CURLcode curl_code = curl_easy_perform(curl_);
-    if (curl_code != CURLE_OK) {
-      return absl::InternalError(absl::StrCat(
-          "Received an error from \"", url, "\": \"",
-          curl_easy_strerror(curl_code), "\"."));
-    }
-    return response;
-  }
-
- private:
-  CURL* const curl_;
-};
-
 absl::StatusOr<std::string> GetStringAttributeFromJson(
     const nlohmann::json& json, const std::vector<absl::string_view>& path) {
   if (path.empty()) {
@@ -172,25 +94,38 @@ absl::StatusOr<std::string> GetStringAttributeFromJson(
 
 }  // namespace
 
-absl::StatusOr<std::string> GetAttestationToken() {
-  return GENC_TRY(CurlClient::Create())->GetFromUrlAndSocket(
+absl::StatusOr<std::string> GetAttestationToken(
+    std::shared_ptr<networking::HttpClientInterface> http_client) {
+  if (http_client == nullptr) {
+    http_client = GENC_TRY(networking::CreateCurlBasedHttpClient(false));
+  }
+  return http_client->GetFromUrlAndSocket(
       kLocalhostTokenUrl, kLauncherSocketPath);
 }
 
 absl::StatusOr<std::string> GetAttestationToken(
-    const std::string& audience, const std::string& nonce) {
+    const std::string& audience,
+    const std::string& nonce,
+    std::shared_ptr<networking::HttpClientInterface> http_client) {
+  if (http_client == nullptr) {
+    http_client = GENC_TRY(networking::CreateCurlBasedHttpClient(false));
+  }
   std::string json_request = absl::Substitute(
       kAttestationJsonRequestTemplate, audience, nonce);
-  return GENC_TRY(CurlClient::Create())->PostJsonToUrlAndSocket(
+  return http_client->PostJsonToUrlAndSocket(
       kLocalhostTokenUrl, kLauncherSocketPath, json_request);
 }
 
 absl::StatusOr<crypto::tink::VerifiedJwt> DecodeAttestationToken(
     const std::string& token,
     const std::string& audience,
-    const std::string& issuer) {
+    const std::string& issuer,
+    std::shared_ptr<networking::HttpClientInterface> http_client) {
+  if (http_client == nullptr) {
+    http_client = GENC_TRY(networking::CreateCurlBasedHttpClient(false));
+  }
   const std::string well_known_payload =
-      GENC_TRY(GENC_TRY(CurlClient::Create())->GetFromUrl(kWellKnownFileURI));
+      GENC_TRY(http_client->GetFromUrl(kWellKnownFileURI));
   auto well_known_json =
       nlohmann::json::parse(well_known_payload, nullptr, false);
   if (well_known_json.is_discarded()) {
@@ -199,7 +134,7 @@ absl::StatusOr<crypto::tink::VerifiedJwt> DecodeAttestationToken(
   }
   const std::string jwks_uri = well_known_json[kJwksUriFieldName];
   const std::string jwks_payload =
-      GENC_TRY(GENC_TRY(CurlClient::Create())->GetFromUrl(jwks_uri));
+      GENC_TRY(http_client->GetFromUrl(jwks_uri));
   absl::StatusOr<std::unique_ptr<crypto::tink::KeysetHandle>> keyset_handle =
       crypto::tink::JwkSetToPublicKeysetHandle(jwks_payload);
   if (!keyset_handle.ok()) {
@@ -242,13 +177,18 @@ namespace {
 
 class AttestationProviderImpl : public AttestationProvider {
  public:
-  explicit AttestationProviderImpl(bool debug) : debug_(debug) {}
+  explicit AttestationProviderImpl(
+      bool debug,
+      std::shared_ptr<networking::HttpClientInterface> http_client)
+      : debug_(debug),
+        http_client_(http_client) {}
 
   absl::StatusOr<::oak::session::v1::EndorsedEvidence>
       GetEndorsedEvidence(const std::string& serialized_public_key) override {
     // Supply the key as a nonce.
     const std::string nonce = absl::Base64Escape(serialized_public_key);
-    absl::StatusOr<std::string> token = GetAttestationToken(kAudience, nonce);
+    absl::StatusOr<std::string> token =
+        GetAttestationToken(kAudience, nonce, http_client_);
     if (!token.ok()) {
       return absl::InternalError(absl::StrCat(
           "AttestationProvider couldn't get attestation token for audience \"",
@@ -257,7 +197,8 @@ class AttestationProviderImpl : public AttestationProvider {
     }
     if (debug_) {
       absl::StatusOr<crypto::tink::VerifiedJwt> verified_token =
-          DecodeAttestationToken(token.value(), kAudience, kIssuer);
+          DecodeAttestationToken(
+              token.value(), kAudience, kIssuer, http_client_);
       if (verified_token.ok()) {
         std::cout << "Attestation token payload:\n"
                   << verified_token->GetJsonPayload() << "\n";
@@ -287,13 +228,18 @@ class AttestationProviderImpl : public AttestationProvider {
 
  private:
   const bool debug_;
+  const std::shared_ptr<networking::HttpClientInterface> http_client_;
 };
 
 class AttestationVerifierImpl : public AttestationVerifier {
  public:
   explicit AttestationVerifierImpl(
-      WorkloadProvenance workload_provenance, bool debug)
-      : workload_provenance_(workload_provenance), debug_(debug) {}
+      WorkloadProvenance workload_provenance,
+      bool debug,
+      std::shared_ptr<networking::HttpClientInterface> http_client)
+      : workload_provenance_(workload_provenance),
+        debug_(debug),
+        http_client_(http_client) {}
 
   absl::StatusOr<::oak::attestation::v1::AttestationResults> Verify(
       std::chrono::time_point<std::chrono::system_clock> now,
@@ -303,7 +249,8 @@ class AttestationVerifierImpl : public AttestationVerifier {
     const std::string& token =
         evidence.application_keys().encryption_public_key_certificate();
     crypto::tink::VerifiedJwt verified_token =
-        GENC_TRY(DecodeAttestationToken(token, kAudience, kIssuer));
+        GENC_TRY(DecodeAttestationToken(
+            token, kAudience, kIssuer, http_client_));
     const std::string token_json_string =
         GENC_TRY(verified_token.GetJsonPayload());
     if (debug_) {
@@ -366,18 +313,30 @@ class AttestationVerifierImpl : public AttestationVerifier {
  private:
   const WorkloadProvenance workload_provenance_;
   const bool debug_;
+  const std::shared_ptr<networking::HttpClientInterface> http_client_;
 };
 
 }  // namespace
 
 absl::StatusOr<std::shared_ptr<AttestationProvider>>
-CreateAttestationProvider(bool debug) {
-  return std::make_shared<AttestationProviderImpl>(debug);
+CreateAttestationProvider(
+    bool debug,
+    std::shared_ptr<networking::HttpClientInterface> http_client) {
+  if (http_client == nullptr) {
+    http_client = GENC_TRY(networking::CreateCurlBasedHttpClient(debug));
+  }
+  return std::make_shared<AttestationProviderImpl>(debug, http_client);
 }
 
 absl::StatusOr<std::shared_ptr<AttestationVerifier>> CreateAttestationVerifier(
-    WorkloadProvenance workload_provenance, bool debug) {
-  return std::make_shared<AttestationVerifierImpl>(workload_provenance, debug);
+    WorkloadProvenance workload_provenance,
+    bool debug,
+    std::shared_ptr<networking::HttpClientInterface> http_client) {
+  if (http_client == nullptr) {
+    http_client = GENC_TRY(networking::CreateCurlBasedHttpClient(debug));
+  }
+  return std::make_shared<AttestationVerifierImpl>(
+      workload_provenance, debug, http_client);
 }
 
 }  // namespace confidential_computing

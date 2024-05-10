@@ -20,10 +20,15 @@ limitations under the License
 #include <utility>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "genc/cc/interop/confidential_computing/attestation.h"
+#include "genc/cc/interop/networking/curl_based_http_client.h"
+#include "genc/cc/interop/networking/http_client_interface.h"
 #include "genc/cc/interop/oak/client.h"
+#include "genc/cc/intrinsics/intrinsic_uris.h"
 #include "genc/cc/runtime/executor.h"
+#include "genc/cc/runtime/intrinsic_handler.h"
 #include "genc/cc/runtime/remote_executor.h"
 #include "genc/cc/runtime/status_macros.h"
 #include "genc/proto/v0/computation.pb.h"
@@ -38,7 +43,24 @@ namespace {
 constexpr char kServerAddressLabel[] = "server_address";
 constexpr char kImageDigestLabel[] = "image_digest";
 
+absl::StatusOr<std::shared_ptr<interop::networking::HttpClientInterface>>
+PassOrCreateDefaultHttpClient(
+    std::shared_ptr<interop::networking::HttpClientInterface>
+    http_client_interface) {
+  if (http_client_interface != nullptr) {
+    return http_client_interface;
+  }
+  return interop::networking::CreateCurlBasedHttpClient(false);
+}
+
 }  // namespace
+
+ConfidentialComputation::ConfidentialComputation(
+    std::shared_ptr<interop::networking::HttpClientInterface>
+    http_client_interface)
+    : InlineIntrinsicHandlerBase(kConfidentialComputation),
+      http_client_interface_(
+      PassOrCreateDefaultHttpClient(http_client_interface)) { }
 
 absl::Status ConfidentialComputation::CheckWellFormed(
     const v0::Intrinsic& intrinsic_pb) const {
@@ -81,6 +103,11 @@ absl::Status ConfidentialComputation::CheckWellFormed(
 absl::Status ConfidentialComputation::ExecuteCall(
     const v0::Intrinsic& intrinsic_pb, const v0::Value& arg, v0::Value* result,
     Context* context) const {
+  if (!http_client_interface_.ok()) {
+    return absl::InternalError(absl::StrCat(
+        "Failed to initialize HTTP client: ",
+        http_client_interface_.status().ToString()));
+  }
   const v0::Value& comp = intrinsic_pb.static_parameter().struct_().element(0);
   auto config = intrinsic_pb.static_parameter().struct_().element(1).struct_();
   std::string server_address;
@@ -104,7 +131,9 @@ absl::Status ConfidentialComputation::ExecuteCall(
   }
   auto verifier =
       GENC_TRY(interop::confidential_computing::CreateAttestationVerifier(
-          provenance, /* debug */ false));
+          provenance,
+          /* debug */ false,
+          http_client_interface_.value()));
   auto executor_stub =
       GENC_TRY(interop::oak::CreateClient(
           channel, verifier, /* debug */ false));
@@ -119,4 +148,3 @@ absl::Status ConfidentialComputation::ExecuteCall(
 
 }  // namespace intrinsics
 }  // namespace genc
-

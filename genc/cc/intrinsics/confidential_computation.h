@@ -16,8 +16,10 @@ limitations under the License
 #ifndef GENC_CC_INTRINSICS_CONFIDENTIAL_COMPUTATION_H_
 #define GENC_CC_INTRINSICS_CONFIDENTIAL_COMPUTATION_H_
 
+#include <memory>
 #include "absl/status/status.h"
-#include "genc/cc/intrinsics/intrinsic_uris.h"
+#include "absl/status/statusor.h"
+#include "genc/cc/interop/networking/http_client_interface.h"
 #include "genc/cc/runtime/intrinsic_handler.h"
 #include "genc/proto/v0/computation.pb.h"
 
@@ -26,8 +28,9 @@ namespace intrinsics {
 
 class ConfidentialComputation : public InlineIntrinsicHandlerBase {
  public:
-  ConfidentialComputation()
-      : InlineIntrinsicHandlerBase(kConfidentialComputation) {}
+  explicit ConfidentialComputation(
+      std::shared_ptr<interop::networking::HttpClientInterface>
+          http_client_interface);
 
   virtual ~ConfidentialComputation() {}
 
@@ -35,6 +38,11 @@ class ConfidentialComputation : public InlineIntrinsicHandlerBase {
   absl::Status ExecuteCall(const v0::Intrinsic& intrinsic_pb,
                            const v0::Value& arg, v0::Value* result,
                            Context* context) const final;
+
+ private:
+  const absl::StatusOr<
+    std::shared_ptr<interop::networking::HttpClientInterface>>
+    http_client_interface_;
 };
 
 }  // namespace intrinsics

@@ -107,6 +107,7 @@ cc_library(
         ":rest_call",
         ":serial_chain",
         ":while",
+        "//genc/cc/interop/networking:http_client_interface",
         "//genc/cc/runtime:intrinsic_handler",
     ],
 )
@@ -344,6 +345,8 @@ cc_library(
     deps = [
         ":intrinsic_uris",
         "//genc/cc/interop/confidential_computing:attestation",
+        "//genc/cc/interop/networking:curl_based_http_client",
+        "//genc/cc/interop/networking:http_client_interface",
         "//genc/cc/interop/oak:client",
         "//genc/cc/runtime:executor",
         "//genc/cc/runtime:intrinsic_handler",
@@ -352,6 +355,7 @@ cc_library(
         "//genc/proto/v0:computation_cc_proto",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
     ],
 )

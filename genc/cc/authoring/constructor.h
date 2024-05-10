@@ -21,6 +21,7 @@ limitations under the License
 
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
+#include "genc/cc/base/computation.h"
 #include "genc/proto/v0/computation.pb.h"
 
 namespace genc {
@@ -70,13 +71,12 @@ absl::StatusOr<v0::Value> CreateModelInference(absl::string_view model_uri);
 // Returns a model config for models behind REST endpoint.
 // api_key is optional.
 absl::StatusOr<v0::Value> CreateRestModelConfig(std::string endpoint,
-                                               std::string api_key = "");
+                                                std::string api_key = "");
 
 // Returns a model config for models behind REST endpoint,
 // including a JSON request template.
 absl::StatusOr<v0::Value> CreateRestModelConfigWithJsonRequestTemplate(
-    std::string endpoint,
-    std::string api_key,
+    std::string endpoint, std::string api_key,
     std::string json_request_template);
 
 absl::StatusOr<v0::Value> CreateLlamaCppConfig(std::string model_path,
@@ -131,8 +131,8 @@ absl::StatusOr<v0::Value> CreateSerialChain(
 absl::StatusOr<v0::Value> CreateStruct(std::vector<v0::Value> value_list);
 
 // Adds a label (name) to a value.
-absl::StatusOr<v0::Value> CreateNamedValue(
-    absl::string_view label, v0::Value unlabeled_value);
+absl::StatusOr<v0::Value> CreateNamedValue(absl::string_view label,
+                                           v0::Value unlabeled_value);
 
 // Creates a while loop with the given condition_fn, body_fn.
 absl::StatusOr<v0::Value> CreateWhile(v0::Value condition_fn,
@@ -149,6 +149,35 @@ absl::StatusOr<v0::Value> CreateWolframAlpha(absl::string_view appid);
 // Populate the computation.proto in `intrinsics` to represent a model
 // inference call to a model `model_uri`.
 void SetModelInference(v0::Value& computation, absl::string_view model_uri);
+
+// Convenient methods to convert various input types to Value Proto.
+// Converts int to Value Proto.
+v0::Value ToValue(int arg);
+
+// Converts float to Value Proto.
+v0::Value ToValue(float arg);
+
+// Converts string to Value Proto.
+v0::Value ToValue(std::string arg);
+
+// Converts bool to Value Proto.
+v0::Value ToValue(bool arg);
+
+// Converts binary to Value Proto.
+v0::Value ToValue(absl::string_view arg);
+
+// Converts Computation to Value Proto.
+v0::Value ToValue(Computation arg);
+
+// Converts vector of Value to Value Proto.
+v0::Value ToValue(std::vector<v0::Value>& arg);
+
+template <typename... Args>
+v0::Value ToValue(Args&&... args) {
+  std::vector<v0::Value> values = {ToValue(std::forward<Args>(args))...};
+  return ToValue(values);
+}
+
 }  // namespace genc
 
 #endif  // GENC_CC_AUTHORING_CONSTRUCTOR_H_

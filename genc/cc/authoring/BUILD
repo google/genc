@@ -11,6 +11,7 @@ cc_library(
     srcs = ["constructor.cc"],
     hdrs = ["constructor.h"],
     deps = [
+        "//genc/cc/base:computation",
         "//genc/cc/intrinsics:intrinsic_uris",
         "//genc/cc/runtime:status_macros",
         "//genc/proto/v0:computation_cc_proto",
@@ -38,9 +39,11 @@ cc_test(
     srcs = ["constructor_test.cc"],
     deps = [
         ":constructor",
+        "//genc/cc/base:computation",
         "//genc/proto/v0:computation_cc_proto",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings:string_view",
         "@com_google_googletest//:gtest_main",
     ],
 )

@@ -16,11 +16,14 @@ limitations under the License
 #include "genc/cc/authoring/constructor.h"
 
 #include <string>
+#include <vector>
 
 #include "googlemock/include/gmock/gmock.h"
 #include "googletest/include/gtest/gtest.h"
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/string_view.h"
+#include "genc/cc/base/computation.h"
 #include "genc/proto/v0/computation.pb.h"
 
 namespace genc {
@@ -189,6 +192,73 @@ TEST(CreateRestModelConfig, WhenApiKeyAbsentReturnsCorrectConfigProto) {
 
   v0::Value model_config_pb = CreateRestModelConfig(test_endpoint).value();
   EXPECT_EQ(model_config_pb.str(), test_endpoint);
+}
+
+TEST(ToValueTest, HandlesInt) {
+  int test_int = 123;
+  v0::Value result = ToValue(test_int);
+  ASSERT_EQ(result.int_32(), test_int);
+}
+
+TEST(ToValueTest, HandlesFloat) {
+  float test_float = 1.23f;
+  v0::Value result = ToValue(test_float);
+  ASSERT_FLOAT_EQ(result.float_32(), test_float);
+}
+
+TEST(ToValueTest, HandlesString) {
+  std::string test_string = "test";
+  v0::Value result = ToValue(test_string);
+  ASSERT_EQ(result.str(), test_string);
+}
+
+TEST(ToValueTest, HandlesBoolean) {
+  bool test_bool = true;
+  v0::Value result = ToValue(test_bool);
+  ASSERT_EQ(result.boolean(), test_bool);
+}
+
+TEST(ToValueTest, HandlesBytes) {
+  absl::string_view test_bytes = "media";
+  v0::Value result = ToValue(test_bytes);
+  ASSERT_EQ(result.media(), test_bytes);
+}
+
+TEST(ToValueTest, HandlesComputation) {
+  v0::Value test_pb = CreateInjaTemplate("test_template").value();
+  Computation computation(test_pb);
+  v0::Value result = ToValue(computation);
+  ASSERT_EQ(result.DebugString(), test_pb.DebugString());
+}
+
+TEST(ToValueTest, HandlesVector) {
+  std::vector<v0::Value> test_list = {ToValue(123), ToValue(1.23f)};
+  v0::Value result = ToValue(test_list);
+  ASSERT_EQ(result.DebugString(),
+            CreateStruct(test_list).value().DebugString());
+}
+
+TEST(ToValueTest, HandlesVariadicArgs) {
+  int test_int = 123;
+  float test_float = 1.23f;
+  std::string test_string = "test";
+  std::string_view test_bytes = "media";
+  bool test_bool = true;
+  v0::Value test_pb = CreateInjaTemplate("test_template").value();
+  Computation test_computation(test_pb);
+  std::vector<v0::Value> test_list = {ToValue(test_int), ToValue(test_float)};
+
+  auto result = ToValue(test_int, test_float, test_string, test_bytes,
+                        test_bool, test_computation, test_list);
+
+  ASSERT_EQ(result.struct_().element(0).int_32(), test_int);
+  ASSERT_FLOAT_EQ(result.struct_().element(1).float_32(), test_float);
+  ASSERT_EQ(result.struct_().element(2).str(), test_string);
+  ASSERT_EQ(result.struct_().element(3).media(), test_bytes);
+  ASSERT_EQ(result.struct_().element(4).boolean(), test_bool);
+  ASSERT_EQ(result.struct_().element(5).DebugString(), test_pb.DebugString());
+  ASSERT_EQ(result.struct_().element(6).DebugString(),
+            CreateStruct(test_list).value().DebugString());
 }
 
 }  // namespace

@@ -23,6 +23,7 @@ limitations under the License
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
+#include "genc/cc/base/computation.h"
 #include "genc/cc/intrinsics/intrinsic_uris.h"
 #include "genc/cc/runtime/status_macros.h"
 #include "genc/proto/v0/computation.pb.h"
@@ -88,11 +89,10 @@ absl::StatusOr<v0::Value> CreateRestModelConfig(std::string endpoint,
 }
 
 absl::StatusOr<v0::Value> CreateRestModelConfigWithJsonRequestTemplate(
-    std::string endpoint,
-    std::string api_key,
+    std::string endpoint, std::string api_key,
     std::string json_request_template) {
-  v0::Value model_config_pb = GENC_TRY(
-      CreateRestModelConfig(endpoint, api_key));
+  v0::Value model_config_pb =
+      GENC_TRY(CreateRestModelConfig(endpoint, api_key));
   v0::Value* template_pb = model_config_pb.mutable_struct_()->add_element();
   template_pb->set_label("json_request_template");
   template_pb->set_str(json_request_template);
@@ -306,8 +306,8 @@ absl::StatusOr<v0::Value> CreateStruct(std::vector<v0::Value> value_list) {
   return value_pb;
 }
 
-absl::StatusOr<v0::Value> CreateNamedValue(
-    absl::string_view label, v0::Value unlabeled_value) {
+absl::StatusOr<v0::Value> CreateNamedValue(absl::string_view label,
+                                           v0::Value unlabeled_value) {
   v0::Value value_pb = unlabeled_value;
   value_pb.set_label(label);
   return value_pb;
@@ -397,4 +397,47 @@ absl::StatusOr<v0::Value> CreateWolframAlpha(absl::string_view appid) {
   return wolfram_alpha_pb;
 }
 
+v0::Value ToValue(int arg) {
+  v0::Value value;
+  value.set_int_32(arg);
+  return value;
+}
+
+v0::Value ToValue(float arg) {
+  v0::Value value;
+  value.set_float_32(arg);
+  return value;
+}
+
+v0::Value ToValue(std::string arg) {
+  v0::Value value;
+  value.set_str(arg);
+  return value;
+}
+
+v0::Value ToValue(bool arg) {
+  v0::Value value;
+  value.set_boolean(arg);
+  return value;
+}
+
+v0::Value ToValue(absl::string_view arg) {
+  v0::Value value;
+  value.set_media(arg);
+  return value;
+}
+
+v0::Value ToValue(Computation arg) {
+  v0::Value value;
+  return arg.portable_ir();
+}
+
+v0::Value ToValue(std::vector<v0::Value>& arg) {
+  v0::Value value_pb;
+  auto mutable_element = value_pb.mutable_struct_()->mutable_element();
+  for (const auto& value : arg) {
+    *mutable_element->Add() = value;
+  }
+  return value_pb;
+}
 }  // namespace genc

@@ -39,7 +39,9 @@ cc_library(
     hdrs = ["context.h"],
     deps = [
         "//genc/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/base:core_headers",
         "@com_google_absl//absl/status",
+        "@com_google_absl//absl/synchronization",
     ],
 )
 

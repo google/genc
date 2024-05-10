@@ -82,5 +82,14 @@ TEST(ContextStackTest, CannotRemoveFromEmpty) {
   ASSERT_EQ(status.message(), "No nested context on the stack.");
 }
 
+TEST(ContextStackProviderTest, ProvidesAccessToSingletonStack) {
+  auto base_context = std::make_shared<TestContext>();
+  GetContextStack()->SetDefaultContext(base_context);
+
+  auto second_context = std::make_shared<TestContext>();
+  GetContextStack()->AppendNestedContext(second_context);
+  ASSERT_EQ(second_context, GetContextStack()->CurrentContext());
+}
+
 }  // namespace
 }  // namespace genc

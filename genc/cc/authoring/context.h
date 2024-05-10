@@ -19,7 +19,9 @@ limitations under the License
 #include <memory>
 #include <vector>
 
+#include "absl/base/thread_annotations.h"
 #include "absl/status/status.h"
+#include "absl/synchronization/mutex.h"
 #include "genc/proto/v0/computation.pb.h"
 
 namespace genc {
@@ -54,9 +56,13 @@ class ContextStack {
   std::shared_ptr<Context> CurrentContext() const;
 
  private:
-  std::shared_ptr<Context> default_context_;
-  std::vector<std::shared_ptr<Context>> nested_contexts_;
+  mutable absl::Mutex mutex_;
+  std::shared_ptr<Context> default_context_ ABSL_GUARDED_BY(mutex_);
+  std::vector<std::shared_ptr<Context>> nested_contexts_
+      ABSL_GUARDED_BY(mutex_);
 };
+
+std::shared_ptr<ContextStack> GetContextStack();
 
 }  // namespace genc
 

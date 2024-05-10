@@ -18,18 +18,37 @@ limitations under the License
 #include <memory>
 
 #include "absl/status/status.h"
+#include "absl/synchronization/mutex.h"
 
 namespace genc {
+namespace {
+// A singleton instance of the context stack.
+class ContextStackProvider {
+ public:
+  static std::shared_ptr<ContextStack> Get() {
+    static std::shared_ptr<ContextStack> instance =
+        std::make_shared<ContextStack>();
+    return instance;
+  }
+};
+}  // namespace
+
+std::shared_ptr<ContextStack> GetContextStack() {
+  return ContextStackProvider::Get();
+}
 
 void ContextStack::SetDefaultContext(std::shared_ptr<Context> ctx) {
+  absl::MutexLock lock(&mutex_);
   default_context_ = ctx;
 }
 
 void ContextStack::AppendNestedContext(std::shared_ptr<Context> ctx) {
+  absl::MutexLock lock(&mutex_);
   nested_contexts_.push_back(ctx);
 }
 
 absl::Status ContextStack::RemoveNestedContext(std::shared_ptr<Context> ctx) {
+  absl::MutexLock lock(&mutex_);
   if (nested_contexts_.empty()) {
     return absl::FailedPreconditionError("No nested context on the stack.");
   }
@@ -42,6 +61,7 @@ absl::Status ContextStack::RemoveNestedContext(std::shared_ptr<Context> ctx) {
 }
 
 std::shared_ptr<Context> ContextStack::CurrentContext() const {
+  absl::ReaderMutexLock lock(&mutex_);
   if (!nested_contexts_.empty()) {
     return nested_contexts_.back();
   }

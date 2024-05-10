@@ -21,3 +21,24 @@ cc_library(
         "@com_google_absl//absl/strings",
     ],
 )
+
+cc_library(
+    name = "computation",
+    srcs = ["computation.cc"],
+    hdrs = ["computation.h"],
+    deps = [
+        "//genc/cc/authoring:context",
+        "//genc/proto/v0:computation_cc_proto",
+    ],
+)
+
+cc_test(
+    name = "computation_test",
+    srcs = ["computation_test.cc"],
+    deps = [
+        ":computation",
+        "//genc/cc/authoring:context",
+        "//genc/proto/v0:computation_cc_proto",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

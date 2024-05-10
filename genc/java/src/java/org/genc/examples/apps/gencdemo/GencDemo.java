@@ -29,6 +29,7 @@ import org.genc.runtime.Runner;
 /** Main activity for the GencDemo app. */
 public class GencDemo extends Activity {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+  private static final AtomicBoolean loggingInitialized = new AtomicBoolean(false);
   private DefaultAndroidExecutor executor;
   private Runner runner;
 

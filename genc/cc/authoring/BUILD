@@ -40,6 +40,7 @@ cc_library(
     hdrs = ["tracing_context.h"],
     deps = [
         ":constructor",
+        "//genc/cc/base:context",
         "//genc/cc/modules/retrieval:bi_map",
         "//genc/cc/runtime:status_macros",
         "//genc/proto/v0:computation_cc_proto",

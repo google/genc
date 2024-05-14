@@ -42,6 +42,19 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "executor_stacks_test",
+    srcs = ["executor_stacks_test.cc"],
+    deps = [
+        ":executor_stacks",
+        "//genc/cc/runtime:executor",
+        "//genc/cc/runtime:status_macros",
+        "//genc/proto/v0:computation_cc_proto",
+        "@com_google_absl//absl/status",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
 cc_library(
     name = "java_executor_stacks",
     srcs = ["java_executor_stacks.cc"],

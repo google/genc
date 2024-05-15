@@ -11,6 +11,7 @@ py_binary(
         "//genc/docs/tutorials:tutorial_4_math_tool_agent.ipynb",
         "//genc/docs/tutorials:tutorial_5_langchain_agent.ipynb",
         "//genc/docs/tutorials:tutorial_6_confidential_computing.ipynb",
+        "//genc/docs/tutorials:tutorial_7_authoring.ipynb",
     ],
     tags = [
         "nobuilder",

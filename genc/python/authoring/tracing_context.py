@@ -53,6 +53,8 @@ class TracingContext(base.Context):
     return self._name_to_ir
 
   def _replace_with_reference(self, ir):
+    if not isinstance(ir, pb.Value):
+      ir = base.to_value_proto(ir)
     if ir.WhichOneof('value') == 'reference':
       return ir
     ir_str = str(ir)

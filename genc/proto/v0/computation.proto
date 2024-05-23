@@ -134,8 +134,26 @@ message Value {
   // keyword arguments that could be reused in the template.
   string label = 15;
 
+  // Mime type of the data. See
+  // https://www.iana.org/assignments/media-types/media-types.xhtml for the full
+  // list. Commonly used types that our models are expected to understand:
+  //   text/plain: Generic text, e.g. user's input for an LLM.
+  //   text/*: Models should default to treating any text/ type as text/plain if
+  //     they don't have a custom handler for it.
+  //   image/webp: Prefer webp format for encoding images.
+  // Programming/markup languages. Use the following types to emphasize that the
+  // text is a program in a certain language or should be rendered in a
+  // particular way. Models should default to ingesting these as text if they
+  // don't have custom handlers for them.
+  //   text/x-python: Python
+  //   application/x-latex: LaTEX
+  //   text/markdown: Markdown
+  // mimetype should be used altogether with `str` or `media` to provide
+  // additonal context for these types.
+  string mimetype = 16;
+
   reserved 2;
-  // NEXT ID: 16
+  // NEXT ID: 17
 }
 
 // A representation of a function call.

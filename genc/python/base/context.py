@@ -31,7 +31,19 @@ class Context(metaclass=abc.ABCMeta):
       **kwargs: Keyword args.
 
     Returns:
-      The type fo the result is context-dependent.
+      The type of the result is context-dependent.
+    """
+    raise NotImplementedError
+
+  @abc.abstractmethod
+  def embed(self, arg):
+    """Embeds `arg` for use in this context.
+
+    Args:
+      arg: The object (e.g., portable IR) to be embedded.
+
+    Returns:
+      The type of the result is context-dependent.
     """
     raise NotImplementedError
 

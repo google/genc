@@ -22,6 +22,9 @@ class TestContext(context.Context):
   def call(self, call_target, *args, **kwargs):
     pass
 
+  def embed(self, arg):
+    pass
+
 
 class ContextTest(absltest.TestCase):
 

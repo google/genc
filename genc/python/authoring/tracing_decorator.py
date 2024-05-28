@@ -46,9 +46,12 @@ def traced_computation(fn):
       arg_list = []
       for index, _ in enumerate(params):
         arg_list.append(constructor_bindings.create_selection(arg, index))
+    else:
+      arg_list = [arg]
+    if callable(fn):
       result = fn(*arg_list)
     else:
-      result = fn(arg)
+      result = my_context.call(fn, *arg_list)
   finally:
     base.context_stack.remove_nested_context(my_context)
   my_locals = my_context.locals

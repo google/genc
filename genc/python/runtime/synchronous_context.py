@@ -37,6 +37,9 @@ class SynchronousContext(base.Context):
     """
     return runner.Runner(portable_ir, self._executor)(*args, **kwargs)
 
+  def embed(self, arg):
+    raise NotImplementedError('Not currently supported in a runtime context.')
+
 
 def set_default_executor(executor=None):
   base.context_stack.set_default_context(SynchronousContext(executor))

@@ -24,6 +24,9 @@ class TestContext(context.Context):
   def call(self, call_target, *args, **kwargs):
     return 'called({})'.format(str(call_target).strip())
 
+  def embed(self, arg):
+    pass
+
 
 class ComputationTest(absltest.TestCase):
 

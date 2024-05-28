@@ -48,6 +48,9 @@ class TracingContext(base.Context):
     processed_func = self._replace_with_reference(portable_ir)
     return constructor_bindings.create_call(processed_func, input_val)
 
+  def embed(self, arg):
+    return base.Computation(self._replace_with_reference(arg))
+
   @property
   def locals(self):
     return self._name_to_ir

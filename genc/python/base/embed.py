@@ -11,11 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""API for this Python package."""
+"""Support for embed."""
 
-from genc.python.base.computation import Computation
-from genc.python.base.context import Context
-from genc.python.base.context import context_stack
-from genc.python.base.embed import embed
-from genc.python.base.to_from_value_proto import from_value_proto
-from genc.python.base.to_from_value_proto import to_value_proto
+from genc.python.base import context
+
+
+def embed(arg):
+  """Embeds `arg` for use in the current context."""
+  ctx = context.context_stack.current_context
+  if not ctx:
+    raise RuntimeError('There is no current context to handle the call.')
+  return ctx.embed(arg)

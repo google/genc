@@ -42,6 +42,15 @@
     a remote client to securely run in the Cloud, with formal cryptographic
     assurances that your data and results will remain confidential.
 
+*   [**Tutorial 7.** Authoring APIs](tutorial_7_authoring.ipynb).
+    This tutorial walks through the basics of authoring APIs, focusing primarily
+    on the tracing API offered in Python as the easiest and most natural for the
+    majority of users.
+
+*   [**Tutorial 8.** Support for Android](tutorial_8_android.ipynb).
+    This tutorial deep-dives on the basics of working with the Android platform,
+    including deployment, authoring, and runtime options.
+
 ## Running Tutorials in a Jupyter Notebook
 ### Using the GenC Docker Container
 If you are using the GenC Docker container, then the prerequesites for running

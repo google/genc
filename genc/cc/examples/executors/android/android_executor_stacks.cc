@@ -51,7 +51,9 @@ struct ExecutorStacksContext {
 namespace {
 constexpr absl::string_view kOpenAIModelUri = "/openai/chatgpt";
 constexpr absl::string_view kGeminiModelUri = "/cloud/gemini";
-constexpr absl::string_view kMediapipeModelUri = "/device/llm_inference";
+constexpr absl::string_view kGemmaModelUri = "/device/gemma";
+constexpr absl::string_view kLlmInferenceModelUri = "/device/llm_inference";
+constexpr absl::string_view kMediapipeModelUri = "/device/mediapipe";
 constexpr absl::string_view kLlamaCppModelUri = "/device/llamacpp";
 
 static absl::once_flag context_init_flag;
@@ -162,7 +164,12 @@ absl::StatusOr<std::shared_ptr<Executor>> CreateAndroidExecutor(
                                     mediapipe_text_generator_client,
                                     kMediapipeModelUri);
 
+  SetMediapipeModelInferenceHandler(&config, jvm,
+                                    mediapipe_text_generator_client,
+                                    kLlmInferenceModelUri);
+
   SetLlamaCppModelInferenceHandler(&config, kLlamaCppModelUri);
+  SetLlamaCppModelInferenceHandler(&config, kGemmaModelUri);
 
   SetWolframAlphaIntrinsicHandler(&config, jvm, wolfram_alpha_client);
 

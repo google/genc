@@ -8,4 +8,5 @@ exports_files([
     "tutorial_5_langchain_agent.ipynb",
     "tutorial_6_confidential_computing.ipynb",
     "tutorial_7_authoring.ipynb",
+    "tutorial_8_android.ipynb",
 ])

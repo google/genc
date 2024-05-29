@@ -445,6 +445,13 @@ public final class Constructor {
     return Constructor.createModelConfig(map);
   }
 
+  public static Value createLlamaCppModelConfig(String modelPath, int numThreads, int maxTokens) {
+    ImmutableMap<String, Object> map =
+        ImmutableMap.of(
+            "model_path", modelPath, "num_threads", numThreads, "max_tokens", maxTokens);
+    return Constructor.createModelConfig(map);
+  }
+
   public static Value createOpenAiModelConfig(
       String apiKey, String endpoint, String requestJsonTemplate) {
     ImmutableMap<String, Object> map =

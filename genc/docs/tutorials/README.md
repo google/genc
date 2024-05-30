@@ -51,6 +51,11 @@
     This tutorial deep-dives on the basics of working with the Android platform,
     including deployment, authoring, and runtime options.
 
+*   [**Tutorial 9.** Private GenAI](tutorial_9_private_genai.ipynb).
+    This tutorial synthesizes and combines concepts introduced in several of
+    the preceding tutorials to support scenarios that focus on processing data
+    that's private and/or confidential.
+
 ## Running Tutorials in a Jupyter Notebook
 ### Using the GenC Docker Container
 If you are using the GenC Docker container, then the prerequesites for running

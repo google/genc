@@ -13,6 +13,7 @@ py_binary(
         "//genc/docs/tutorials:tutorial_6_confidential_computing.ipynb",
         "//genc/docs/tutorials:tutorial_7_authoring.ipynb",
         "//genc/docs/tutorials:tutorial_8_android.ipynb",
+        "//genc/docs/tutorials:tutorial_9_private_genai.ipynb",
     ],
     tags = [
         "nobuilder",

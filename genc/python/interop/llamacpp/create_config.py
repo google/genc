@@ -1,4 +1,4 @@
-# Copyright 2023, The GenC Authors.
+# Copyright 2024, The GenC Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,8 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Interop libraries."""
+"""Utility functions used in LlamaCpp interop."""
 
-from genc.python.interop import gemini
-from genc.python.interop import langchain
-from genc.python.interop import llamacpp
+
+def create_config(model_path, **kwargs):
+  """Creates a config for LlamaCpp.
+
+  Args:
+    model_path: The path to the model.
+    **kwargs: Optional keyword arguments to pass to LlamaCpp, such as the
+      number of threads or max number of tokens.
+
+  Returns:
+    An instance of the `dict` object.
+  """
+  config = {"model_path": model_path}
+  config.update(kwargs)
+  return config

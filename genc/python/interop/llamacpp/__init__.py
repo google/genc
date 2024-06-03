@@ -11,8 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Interop libraries."""
+"""Interop libraries for LlamCpp."""
 
-from genc.python.interop import gemini
-from genc.python.interop import langchain
-from genc.python.interop import llamacpp
+from genc.python.interop.llamacpp.create_config import create_config
+from genc.python.interop.llamacpp.model_inference import model_inference

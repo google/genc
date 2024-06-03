@@ -45,7 +45,8 @@ struct ExecutorStacksContext {
 };
 
 namespace {
-constexpr absl::string_view kLlamaCppModelUri = "/device/gemma";
+constexpr absl::string_view kGemmaModelUri = "/device/gemma";
+constexpr absl::string_view kLlamaCppModelUri = "/device/llamacpp";
 
 static absl::once_flag context_init_flag;
 static ExecutorStacksContext* executor_stacks_context = nullptr;
@@ -108,6 +109,7 @@ CreateDefaultExecutorWithConcurrencyInterface(
   // Set model inference for Gemini backends.
   GENC_TRY(GoogleAI::SetInferenceMap(config.model_inference_with_config_map));
 
+  SetLlamaCppModelInferenceHandler(&config, kGemmaModelUri);
   SetLlamaCppModelInferenceHandler(&config, kLlamaCppModelUri);
 
   // Set access to local cache or other types of memory.

@@ -9,5 +9,6 @@ py_library(
     deps = [
         "//genc/python/interop/gemini",
         "//genc/python/interop/langchain",
+        "//genc/python/interop/llamacpp",
     ],
 )

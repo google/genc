@@ -49,7 +49,8 @@ struct ExecutorStacksContext {
 namespace {
 constexpr absl::string_view kOpenAIModelUri = "/openai/chatgpt";
 constexpr absl::string_view kGeminiModelUri = "/cloud/gemini";
-constexpr absl::string_view kLlamaCppModelUri = "/device/gemma";
+constexpr absl::string_view kGemmaModelUri = "/device/gemma";
+constexpr absl::string_view kLlamaCppModelUri = "/device/llamacpp";
 
 static absl::once_flag context_init_flag;
 static ExecutorStacksContext* executor_stacks_context = nullptr;
@@ -133,6 +134,7 @@ absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultExecutor(
 
   SetOpenAiModelInferenceHandler(&config, jvm, open_ai_client, kOpenAIModelUri);
 
+  SetLlamaCppModelInferenceHandler(&config, kGemmaModelUri);
   SetLlamaCppModelInferenceHandler(&config, kLlamaCppModelUri);
 
   SetWolframAlphaIntrinsicHandler(&config, jvm, wolfram_alpha_client);

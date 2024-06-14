@@ -17,11 +17,12 @@ from typing import Any, Dict, List, Optional, TypeAlias, Union
 
 from langchain import chains
 from langchain.callbacks import manager
+from langchain.chains import base as chains_base
 
 from genc.proto.v0 import computation_pb2 as pb
 
 ChainedOpType: TypeAlias = Union[
-    int, pb.Value, chains.base.Chain, chains.LLMChain, Any
+    int, pb.Value, chains_base.Chain, chains.LLMChain, Any
 ]
 
 

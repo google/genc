@@ -122,6 +122,10 @@ message Value {
     // simple scalars.
     // NOTE: This must be `Any` in order to avoid a dependency on TensorFlow.
     google.protobuf.Any tensor = 1;
+
+    // genc:google3-begin(internal)
+    google.protobuf.Any custom_value = 19;
+    // genc:google3-end
   }
 
   // The type of this value (currently optional; eventually required where it
@@ -153,7 +157,7 @@ message Value {
   string mimetype = 16;
 
   reserved 2;
-  // NEXT ID: 17
+  // NEXT ID: 20
 }
 
 // A representation of a function call.

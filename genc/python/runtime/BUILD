@@ -31,6 +31,7 @@ py_test(
     srcs = ["runner_test.py"],
     deps = [
         ":runner",
+        "//genc/cc/runtime:executor_bindings",
         "//genc/python/authoring",
         "//genc/python/runtime",
     ],
@@ -51,6 +52,7 @@ py_test(
     srcs = ["synchronous_context_test.py"],
     deps = [
         ":synchronous_context",
+        "//genc/cc/runtime:executor_bindings",
         "//genc/python/authoring:tracing_context",
         "//genc/python/authoring:tracing_decorator",
     ],

@@ -24,7 +24,10 @@ py_library(
 py_test(
     name = "authoring_demo",
     srcs = ["authoring_demo.py"],
-    deps = ["//genc"],
+    deps = [
+        "//genc",
+        "//genc/cc/runtime:executor_bindings",
+    ],
 )
 
 py_binary(

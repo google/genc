@@ -14,6 +14,7 @@
 """Test for runner.py."""
 
 from absl.testing import absltest
+from genc.cc.runtime import executor_bindings
 from genc.python import authoring
 from genc.python import runtime
 from genc.python.runtime import runner
@@ -22,31 +23,34 @@ from genc.python.runtime import runner
 class RunnerTest(absltest.TestCase):
 
   def test_model(self):
+    executor = executor_bindings.create_default_local_executor()
     comp_pb = authoring.create_model('test_model')
-    comp = runner.Runner(comp_pb)
+    comp = runner.Runner(comp_pb, executor)
     result = comp('Boo!')
     self.assertEqual(
         result, 'This is an output from a test model in response to "Boo!".'
     )
 
   def test_prompt_template(self):
+    executor = executor_bindings.create_default_local_executor()
     comp_pb = authoring.create_prompt_template(
         'Q: What should I pack for a trip to {location}? A: '
     )
-    comp = runner.Runner(comp_pb)
+    comp = runner.Runner(comp_pb, executor)
     result = comp('a grocery store')
     self.assertEqual(
         result, 'Q: What should I pack for a trip to a grocery store? A: '
     )
 
   def test_chain(self):
+    executor = executor_bindings.create_default_local_executor()
     comp_pb = authoring.create_serial_chain([
         authoring.create_prompt_template(
             'Q: What should I pack for a trip to {location}? A: '
         ),
         authoring.create_model('test_model'),
     ])
-    comp = runner.Runner(comp_pb)
+    comp = runner.Runner(comp_pb, executor)
     result = comp('a grocery store')
     self.assertEqual(
         result,
@@ -55,6 +59,7 @@ class RunnerTest(absltest.TestCase):
     )
 
   def test_fallback(self):
+    executor = executor_bindings.create_default_local_executor()
     arg = 'a grocery store'
     good_model = authoring.create_model('test_model')
     good_model_output = (
@@ -89,7 +94,7 @@ class RunnerTest(absltest.TestCase):
         (authoring.create_fallback([bad_model, good_chain]), good_chain_output),
     ]
     for comp_pb, expected_result in test_cases:
-      comp = runner.Runner(comp_pb)
+      comp = runner.Runner(comp_pb, executor)
       if expected_result:
         result = comp(arg)
         self.assertEqual(result, expected_result)
@@ -98,6 +103,7 @@ class RunnerTest(absltest.TestCase):
           comp(arg)
 
   def test_conditional_with_valid_inputs(self):
+    executor = executor_bindings.create_default_local_executor()
     arg = authoring.create_reference('x')
     model = authoring.create_model('test_model')
     comp_pb = authoring.create_lambda(
@@ -108,7 +114,7 @@ class RunnerTest(absltest.TestCase):
             authoring.create_call(model, authoring.create_selection(arg, 2)),
         ),
     )
-    comp = runner.Runner(comp_pb)
+    comp = runner.Runner(comp_pb, executor)
     result1 = comp(True, 'kiki', 'bubba')
     self.assertEqual(
         result1, 'This is an output from a test model in response to "kiki".'
@@ -119,6 +125,7 @@ class RunnerTest(absltest.TestCase):
     )
 
   def test_conditional_is_lazy(self):
+    executor = executor_bindings.create_default_local_executor()
     arg = authoring.create_reference('x')
     comp_pb = authoring.create_lambda(
         arg.reference.name,
@@ -131,7 +138,7 @@ class RunnerTest(absltest.TestCase):
             authoring.create_reference('broken_undefined_variable_will_fail'),
         ),
     )
-    comp = runner.Runner(comp_pb)
+    comp = runner.Runner(comp_pb, executor)
     result1 = comp(True, 'kiki')
     self.assertEqual(
         result1, 'This is an output from a test model in response to "kiki".'
@@ -140,8 +147,9 @@ class RunnerTest(absltest.TestCase):
       comp(False, 'kiki')
 
   def test_regex_partial_match(self):
+    executor = executor_bindings.create_default_local_executor()
     comp_pb = authoring.create_regex_partial_match('A: True|true')
-    comp = runner.Runner(comp_pb)
+    comp = runner.Runner(comp_pb, executor)
     result = comp('A: True. Explanation for true.')
     self.assertTrue(result)
     result2 = comp('The statement appears to be true.')
@@ -150,6 +158,7 @@ class RunnerTest(absltest.TestCase):
     self.assertFalse(result3)
 
   def test_partial_match_with_conditional(self):
+    executor = executor_bindings.create_default_local_executor()
     arg = authoring.create_reference('x')
     scorer_chain = authoring.create_serial_chain([
         authoring.create_prompt_template(
@@ -170,7 +179,7 @@ class RunnerTest(absltest.TestCase):
             authoring.create_call(model, authoring.create_selection(arg, 2)),
         ),
     )
-    comp = runner.Runner(comp_pb)
+    comp = runner.Runner(comp_pb, executor)
     result1 = comp('True', 'kiki', 'bubba')
     self.assertEqual(
         result1, 'This is an output from a test model in response to "kiki".'
@@ -181,19 +190,21 @@ class RunnerTest(absltest.TestCase):
     )
 
   def test_multivariate_prompt_template(self):
+    executor = executor_bindings.create_default_local_executor()
     comp_pb = authoring.create_prompt_template_with_parameters(
         'A template in which a foo is {foo} and a bar is {bar}.',
         ['foo', 'bar'])
-    comp = runner.Runner(comp_pb)
+    comp = runner.Runner(comp_pb, executor)
     result = comp('XXX', 'YYY')
     self.assertEqual(
         str(result), 'A template in which a foo is XXX and a bar is YYY.')
 
   def test_more_fancy_multivariate_prompt_template(self):
+    executor = executor_bindings.create_default_local_executor()
     comp_pb = authoring.create_prompt_template_with_parameters(
         'First {foo} then {bar} then some more {bar} and {foo} and {foo}.',
         ['foo', 'bar'])
-    comp = runner.Runner(comp_pb)
+    comp = runner.Runner(comp_pb, executor)
     result = comp('XXX', 'YYY')
     self.assertEqual(
         str(result),
@@ -206,7 +217,8 @@ class RunnerTest(absltest.TestCase):
           'First {foo} then {bar} then some more {bar} and {foo} and {foo}.',
           ['foo', 'bar']](arg)
 
-    runtime.set_default_executor()
+    executor = executor_bindings.create_default_local_executor()
+    runtime.set_default_executor(executor)
     result = comp('XXX', 'YYY')
     self.assertEqual(
         str(result),
@@ -220,7 +232,8 @@ class RunnerTest(absltest.TestCase):
           ['foo', 'bar'])
       return authoring.create_call(prompt_template, arg)
 
-    runtime.set_default_executor()
+    executor = executor_bindings.create_default_local_executor()
+    runtime.set_default_executor(executor)
     result = comp('XXX', 'YYY')
     self.assertEqual(
         str(result),
@@ -237,7 +250,8 @@ class RunnerTest(absltest.TestCase):
           ['noun', 'verb']]
       return template_1(aspect, template_2(noun, verb))
 
-    runtime.set_default_executor()
+    executor = executor_bindings.create_default_local_executor()
+    runtime.set_default_executor(executor)
     result = comp('financial', 'diving', 'scuba')
     self.assertEqual(
         str(result),
@@ -258,7 +272,8 @@ class RunnerTest(absltest.TestCase):
       second_result = model_1(template_2(first_result, additional_aspect))
       return second_result
 
-    runtime.set_default_executor()
+    executor = executor_bindings.create_default_local_executor()
+    runtime.set_default_executor(executor)
     result = comp('financial', 'scuba diving', 'fun')
     self.assertEqual(
         str(result),

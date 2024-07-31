@@ -14,6 +14,7 @@
 """Test for synchronous_context.py."""
 
 from absl.testing import absltest
+from genc.cc.runtime import executor_bindings
 from genc.python.authoring import tracing_decorator
 from genc.python.runtime import synchronous_context
 
@@ -21,7 +22,8 @@ from genc.python.runtime import synchronous_context
 class TracingTest(absltest.TestCase):
 
   def test_something(self):
-    synchronous_context.set_default_executor()
+    executor = executor_bindings.create_default_local_executor()
+    synchronous_context.set_default_executor(executor)
 
     @tracing_decorator.traced_computation
     def foo(x, y):

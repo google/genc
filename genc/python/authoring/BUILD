@@ -109,6 +109,7 @@ py_test(
         ":tracing_context",
         ":tracing_decorator",
         ":tracing_intrinsics",
+        "//genc/cc/runtime:executor_bindings",
         "//genc/python/runtime",
     ],
 )

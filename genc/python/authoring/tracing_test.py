@@ -14,6 +14,7 @@
 """Tests for tracing classes."""
 
 from absl.testing import absltest
+from genc.cc.runtime import executor_bindings
 from genc.python import runtime
 from genc.python.authoring import constructors
 from genc.python.authoring import tracing_decorator
@@ -23,7 +24,6 @@ from genc.python.authoring import tracing_intrinsics
 class TracingTest(absltest.TestCase):
 
   def test_something(self):
-
     @tracing_decorator.traced_computation
     def foo(x, y):
       del x
@@ -33,7 +33,8 @@ class TracingTest(absltest.TestCase):
     def bar(x, y, z):
       return foo(foo(x, y), z)
 
-    bar_runner = runtime.Runner(bar.portable_ir)
+    executor = executor_bindings.create_default_local_executor()
+    bar_runner = runtime.Runner(bar.portable_ir, executor)
     result = bar_runner('a', 'b', 'c')
     self.assertEqual(result, 'c')
 

@@ -13,7 +13,6 @@
 # limitations under the License.
 """Libraries fo constructing runners for executing GenC computations."""
 
-from genc.cc.runtime import executor_bindings
 from genc.proto.v0 import computation_pb2 as pb
 from genc.python.base import to_from_value_proto
 
@@ -22,18 +21,19 @@ from genc.python.base import to_from_value_proto
 class Runner(object):
   """Represents a runner."""
 
-  def __init__(
-      self, comp_pb: pb.Value, executor: executor_bindings.Executor = None
-  ):
+  def __init__(self, comp_pb: pb.Value, executor=None):
     """Construct a runner for the given computation proto.
 
     Args:
       comp_pb: The computation proto to contruct the runner for.
       executor: The executor to use for the computation. If not set, a new
         default local executor will be created.
+
+    Raises:
+      ValueError: If the executor is not provided.
     """
     if executor is None:
-      self._executor = executor_bindings.create_default_local_executor()
+      raise ValueError('Executor must be provided.')
     else:
       self._executor = executor
     self._comp_pb = comp_pb

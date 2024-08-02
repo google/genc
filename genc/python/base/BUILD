@@ -78,6 +78,8 @@ py_library(
     deps = [
         ":computation",
         "//genc/proto/v0:computation_py_pb2",
+        "//google/protobuf:any_py_pb2",
+        "//net/proto2/python/public",
     ],
 )
 
@@ -87,5 +89,6 @@ py_test(
     deps = [
         ":to_from_value_proto",
         "//genc/proto/v0:computation_py_pb2",
+        "//google/protobuf:timestamp_py_pb2",
     ],
 )

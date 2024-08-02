@@ -14,6 +14,7 @@
 """Tests for to_from_value_proto.py."""
 
 from absl.testing import absltest
+from google3.google.protobuf import timestamp_pb2
 from genc.proto.v0 import computation_pb2 as pb
 from genc.python.base import to_from_value_proto
 
@@ -32,6 +33,16 @@ class ToFromValueProtoTest(absltest.TestCase):
     self._roundtrip_test(True)
     self._roundtrip_test(0.5)
     self._roundtrip_test(["foo", 99])
+
+    # Test custom_value
+    timestamp_message = timestamp_pb2.Timestamp()
+    timestamp_message.FromJsonString("1970-01-01T00:00:00Z")
+    val_pb = to_from_value_proto.to_value_proto(timestamp_message)
+    self.assertIsInstance(val_pb, pb.Value)
+    any_val = to_from_value_proto.from_value_proto(val_pb)
+    reconstructed_timestamp_message = timestamp_pb2.Timestamp()
+    any_val.Unpack(reconstructed_timestamp_message)
+    self.assertEqual(timestamp_message, reconstructed_timestamp_message)
 
   def test_dict_to_value_proto(self):
     arg = {

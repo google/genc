@@ -13,6 +13,8 @@
 # limitations under the License.
 """Libraries fo packing and unpacking to/from `Value` proto."""
 
+from google3.google.protobuf import any_pb2
+from google3.net.proto2.python.public import message
 from genc.proto.v0 import computation_pb2 as pb
 from genc.python.base import computation
 
@@ -50,6 +52,14 @@ def to_value_proto(arg):
       element.label = key
       struct.element.append(element)
     return pb.Value(struct=struct)
+  elif isinstance(arg, message.Message):
+    # Create a new Any message
+    any_message = any_pb2.Any()
+    # Pack the input message into the Any message
+    any_message.Pack(arg)
+    # Create a Value message and set its any_val field
+    value_message = pb.Value(custom_value=any_message)
+    return value_message
   else:
     raise TypeError('Unsupported Python argument type {}.'.format(type(arg)))
 
@@ -77,6 +87,8 @@ def from_value_proto(result_pb):
     return result_pb.int_32
   elif which_result == 'float_32':
     return result_pb.float_32
+  elif which_result == 'custom_value':
+    return result_pb.custom_value
   elif which_result == 'struct':
     return [from_value_proto(x) for x in result_pb.struct.element]
   else:

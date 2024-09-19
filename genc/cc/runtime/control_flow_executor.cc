@@ -771,8 +771,9 @@ absl::StatusOr<std::shared_ptr<Executor>> CreateControlFlowExecutor(
     std::shared_ptr<IntrinsicHandlerSet> handler_set,
     std::shared_ptr<Executor> child_executor,
     std::shared_ptr<ConcurrencyInterface> concurrency_interface) {
-  return std::make_shared<ControlFlowExecutor>(handler_set, child_executor,
-                                               concurrency_interface);
+  return std::shared_ptr<Executor>(
+      new ControlFlowExecutor(
+          handler_set, child_executor, concurrency_interface));
 }
 
 }  // namespace genc

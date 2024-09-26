@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import android.content.Context;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.google.mediapipe.tasks.genai.llminference.LlmInference.LlmInferenceOptions;
+import com.google.mediapipe.tasks.genai.llminference.LlmInferenceSession.LlmInferenceSessionOptions;
 import java.util.HashMap;
 import java.util.Map;
 import org.genc.Struct;
@@ -33,11 +34,13 @@ import src.java.org.genc.interop.backends.mediapipe.LlmInferenceClient;
 public final class LlmInferenceClientTest {
   private static final String KEY_MODEL_PATH = "model_path";
   private static final String KEY_MAX_TOKENS = "max_tokens";
+  private static final String KEY_MAX_TOP_K = "max_top_k";
   private static final String KEY_TOP_K = "top_k";
   private static final String KEY_TEMPERATURE = "temperature";
   private static final String KEY_RANDOM_SEED = "random_seed";
   private static final String TEST_MODEL_PATH = "/tmp/local/model/model_file.tflite";
   private static final int TEST_MAX_TOKENS = 1024;
+  private static final int TEST_MAX_TOP_K = 50;
   private static final int TEST_TOP_K = 50;
   private static final float TEST_TEMPERATURE = 0.9f;
   private static final int TEST_RANDOM_SEED = 1;
@@ -54,20 +57,24 @@ public final class LlmInferenceClientTest {
     return configSettings;
   }
 
-  private static void verifyLlmInferenceOptions(
-      LlmInferenceOptions.Builder llmInferenceOptionsBuilder) {
-    LlmInferenceOptions llmInferenceOptions = llmInferenceOptionsBuilder.build();
+  private static void verifyLlmInferenceOptions(LlmInferenceOptions llmInferenceOptions) {
     assertThat(llmInferenceOptions.modelPath()).isEqualTo(TEST_MODEL_PATH);
     assertThat(llmInferenceOptions.maxTokens()).isEqualTo(TEST_MAX_TOKENS);
-    assertThat(llmInferenceOptions.topK()).isEqualTo(TEST_TOP_K);
-    assertThat(llmInferenceOptions.temperature()).isEqualTo(TEST_TEMPERATURE);
-    assertThat(llmInferenceOptions.randomSeed()).isEqualTo(TEST_RANDOM_SEED);
+    assertThat(llmInferenceOptions.maxTopK()).isEqualTo(TEST_MAX_TOP_K);
+  }
+
+  private static void verifyLlmInferenceSessionOptions(
+      LlmInferenceSessionOptions llmInferenceSessionOptions) {
+    assertThat(llmInferenceSessionOptions.topK()).isEqualTo(TEST_TOP_K);
+    assertThat(llmInferenceSessionOptions.temperature()).isEqualTo(TEST_TEMPERATURE);
+    assertThat(llmInferenceSessionOptions.randomSeed()).isEqualTo(TEST_RANDOM_SEED);
   }
 
   private static Struct getTestModelConfig() {
     return Struct.newBuilder()
         .addElement(Value.newBuilder().setLabel(KEY_MODEL_PATH).setStr(TEST_MODEL_PATH))
         .addElement(Value.newBuilder().setLabel(KEY_MAX_TOKENS).setInt32(TEST_MAX_TOKENS))
+        .addElement(Value.newBuilder().setLabel(KEY_MAX_TOP_K).setInt32(TEST_MAX_TOP_K))
         .addElement(Value.newBuilder().setLabel(KEY_TOP_K).setInt32(TEST_TOP_K))
         .addElement(Value.newBuilder().setLabel(KEY_TEMPERATURE).setFloat32(TEST_TEMPERATURE))
         .addElement(Value.newBuilder().setLabel(KEY_RANDOM_SEED).setInt32(TEST_RANDOM_SEED))
@@ -84,8 +91,18 @@ public final class LlmInferenceClientTest {
     Struct modelConfig = getTestModelConfig();
     Map<String, Value> configSettings =
         getConfigSettings(Value.newBuilder().setStruct(modelConfig).build());
-    LlmInferenceOptions.Builder llmInferenceOptionsBuilder =
-        llmInferenceClient.getLlmInferenceOptions(configSettings);
+    LlmInferenceOptions llmInferenceOptionsBuilder =
+        llmInferenceClient.createLlmInferenceOptions(configSettings);
     verifyLlmInferenceOptions(llmInferenceOptionsBuilder);
+  }
+
+  @Test
+  public void llmInferenceClient_correctSessionConfigIsCreated() {
+    Struct modelConfig = getTestModelConfig();
+    Map<String, Value> configSettings =
+        getConfigSettings(Value.newBuilder().setStruct(modelConfig).build());
+    LlmInferenceSessionOptions llmInferenceSessionOptionsBuilder =
+        llmInferenceClient.createLlmInferenceSessionOptions(configSettings);
+    verifyLlmInferenceSessionOptions(llmInferenceSessionOptionsBuilder);
   }
 }

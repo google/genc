@@ -20,6 +20,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.flogger.FluentLogger;
 import com.google.mediapipe.tasks.genai.llminference.LlmInference;
 import com.google.mediapipe.tasks.genai.llminference.LlmInference.LlmInferenceOptions;
+import com.google.mediapipe.tasks.genai.llminference.LlmInferenceSession;
+import com.google.mediapipe.tasks.genai.llminference.LlmInferenceSession.LlmInferenceSessionOptions;
 import com.google.protobuf.ExtensionRegistryLite;
 import com.google.protobuf.InvalidProtocolBufferException;
 import java.util.Arrays;
@@ -36,6 +38,7 @@ public final class LlmInferenceClient {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final String KEY_MODEL_PATH = "model_path";
   private static final String KEY_MAX_TOKENS = "max_tokens";
+  private static final String KEY_MAX_TOP_K = "max_top_k";
   private static final String KEY_TOP_K = "top_k";
   private static final String KEY_TEMPERATURE = "temperature";
   private static final String KEY_RANDOM_SEED = "random_seed";
@@ -60,9 +63,7 @@ public final class LlmInferenceClient {
       LlmInferenceOptions llmInferenceOptions, LlmInferenceOptions latestLlmInferenceOptions) {
     return (!llmInferenceOptions.modelPath().equals(latestLlmInferenceOptions.modelPath())
         || llmInferenceOptions.maxTokens() != latestLlmInferenceOptions.maxTokens()
-        || llmInferenceOptions.topK() != latestLlmInferenceOptions.topK()
-        || llmInferenceOptions.temperature() != latestLlmInferenceOptions.temperature()
-        || llmInferenceOptions.randomSeed() != latestLlmInferenceOptions.randomSeed());
+        || llmInferenceOptions.maxTopK() != latestLlmInferenceOptions.maxTopK());
   }
 
   private LlmInference getLlmInference(LlmInferenceOptions latestLlmInferenceOptions) {
@@ -75,8 +76,13 @@ public final class LlmInferenceClient {
     return llmInference;
   }
 
+  private LlmInferenceSession getLlmInferenceSession(
+      LlmInferenceSessionOptions llmInferenceSessionOptions) {
+    return LlmInferenceSession.createFromOptions(llmInference, llmInferenceSessionOptions);
+  }
+
   @VisibleForTesting
-  public LlmInferenceOptions.Builder getLlmInferenceOptions(Map<String, Value> configSettings) {
+  public LlmInferenceOptions createLlmInferenceOptions(Map<String, Value> configSettings) {
     LlmInferenceOptions.Builder llmInferenceOptionsBuilder = LlmInferenceOptions.builder();
     if (configSettings.containsKey(KEY_MODEL_PATH)) {
       llmInferenceOptionsBuilder.setModelPath(configSettings.get(KEY_MODEL_PATH).getStr());
@@ -85,16 +91,29 @@ public final class LlmInferenceClient {
       llmInferenceOptionsBuilder.setMaxTokens(
           configSettings.get(KEY_MAX_TOKENS).getInt32());
     }
+    if (configSettings.containsKey(KEY_MAX_TOP_K)) {
+      llmInferenceOptionsBuilder.setMaxTopK(configSettings.get(KEY_MAX_TOP_K).getInt32());
+    }
+    return llmInferenceOptionsBuilder.build();
+  }
+
+  @VisibleForTesting
+  public LlmInferenceSessionOptions createLlmInferenceSessionOptions(
+      Map<String, Value> configSettings) {
+    LlmInferenceSessionOptions.Builder llmInferenceSessionOptionsBuilder =
+        LlmInferenceSessionOptions.builder();
     if (configSettings.containsKey(KEY_TOP_K)) {
-      llmInferenceOptionsBuilder.setTopK(configSettings.get(KEY_TOP_K).getInt32());
+      llmInferenceSessionOptionsBuilder.setTopK(configSettings.get(KEY_TOP_K).getInt32());
     }
     if (configSettings.containsKey(KEY_TEMPERATURE)) {
-      llmInferenceOptionsBuilder.setTemperature(configSettings.get(KEY_TEMPERATURE).getFloat32());
+      llmInferenceSessionOptionsBuilder.setTemperature(
+          configSettings.get(KEY_TEMPERATURE).getFloat32());
     }
     if (configSettings.containsKey(KEY_RANDOM_SEED)) {
-      llmInferenceOptionsBuilder.setRandomSeed(configSettings.get(KEY_RANDOM_SEED).getInt32());
+      llmInferenceSessionOptionsBuilder.setRandomSeed(
+          configSettings.get(KEY_RANDOM_SEED).getInt32());
     }
-    return llmInferenceOptionsBuilder;
+    return llmInferenceSessionOptionsBuilder.build();
   }
 
   private static Map<String, Value> getConfigSettings(Value config) {
@@ -148,15 +167,22 @@ public final class LlmInferenceClient {
       return response;
     }
 
-    LlmInferenceOptions.Builder llmInferenceOptionsBuilder = getLlmInferenceOptions(configSettings);
+    LlmInferenceOptions llmInferenceOptionsBuilder = createLlmInferenceOptions(configSettings);
+    LlmInferenceSessionOptions llmInferenceSessionOptionsBuilder =
+        createLlmInferenceSessionOptions(configSettings);
+
+    LlmInferenceSession llmInferenceSession = null;
+
     try {
-      LlmInference llmInference = getLlmInference(llmInferenceOptionsBuilder.build());
+      llmInference = getLlmInference(llmInferenceOptionsBuilder);
+      llmInferenceSession = getLlmInferenceSession(llmInferenceSessionOptionsBuilder);
 
       String requestString = new String(request);
       logger.atInfo().log(
           "For model uri: %s, calling MediaPipe LlmInference with input: %s",
           modelUri.getStr(), requestString);
-      response = llmInference.generateResponse(requestString);
+      llmInferenceSession.addQueryChunk(requestString);
+      response = llmInferenceSession.generateResponse();
       logger.atInfo().log(
           "For model uri: %s, received response from MediaPipe LlmInference: %s",
           modelUri.getStr(), response);
@@ -166,6 +192,10 @@ public final class LlmInferenceClient {
       }
       logger.atWarning().withCause(e).log(
           "MediaPipe LlmInference returned error: %s", e.getMessage());
+    } finally {
+      if (llmInferenceSession != null) {
+        llmInferenceSession.close();
+      }
     }
     return response;
   }

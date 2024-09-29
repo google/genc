@@ -341,6 +341,7 @@ ControlFlowExecutor::ConstCreateExecutorValue(const v0::Value& value_pb) const {
     case v0::Value::kTensor:
     case v0::Value::kInt32:
     case v0::Value::kFloat32:
+    case v0::Value::kCustomValue:
     case v0::Value::kMedia: {
       return std::make_shared<ExecutorValue>(
           GENC_TRY(child_executor_->CreateValue(value_pb)));

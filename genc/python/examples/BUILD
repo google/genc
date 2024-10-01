@@ -25,8 +25,11 @@ py_test(
     name = "authoring_demo",
     srcs = ["authoring_demo.py"],
     deps = [
+        ":executor",
         "//genc",
+        "//genc/cc/examples/executors:executor_bindings",
         "//genc/cc/runtime:executor_bindings",
+        "//genc/python/runtime",
     ],
 )
 
@@ -35,6 +38,8 @@ py_binary(
     srcs = ["langchain_demo.py"],
     deps = [
         ":executor",
+        "//genc/cc/examples/executors:executor_bindings",
+        "//genc/cc/runtime:executor_bindings",
         "//genc/proto/v0:computation_py_pb2",
         "//genc/python/interop",
         "//genc/python/runtime",

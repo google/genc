@@ -44,6 +44,18 @@ class TracingTest(absltest.TestCase):
         str(comp.portable_ir), str(constructors.create_model('/device/ulm1b'))
     )
 
+  def test_no_repeat(self):
+    @tracing_decorator.traced_computation
+    def comp(x):
+      foo = tracing_intrinsics.model_inference['foo']
+      y = foo(x)
+      return constructors.create_struct([y, y])
+
+    result = getattr(comp.portable_ir, 'lambda').result.block.result
+    el0, el1 = result.struct.element
+    self.assertEqual(el0, el1)
+    self.assertEqual(el0.WhichOneof('value'), 'reference')
+
 
 if __name__ == '__main__':
   absltest.main()

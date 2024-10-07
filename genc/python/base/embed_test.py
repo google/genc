@@ -33,19 +33,32 @@ class EmbedTest(absltest.TestCase):
 
     expected_bar = constructors.create_lambda(
         'arg',
-        pb.Value(block=pb.Block(
-            local=[
-                pb.Block.Local(
-                    name='v_0',
-                    value=constructors.create_custom_function('foo')),
-                pb.Block.Local(
-                    name='v_1',
-                    value=constructors.create_call(
-                        constructors.create_reference('v_0'),
-                        constructors.create_reference('arg')))],
-            result=constructors.create_call(
-                constructors.create_reference('v_0'),
-                constructors.create_reference('v_1')))))
+        pb.Value(
+            block=pb.Block(
+                local=[
+                    pb.Block.Local(
+                        name='v_0',
+                        value=constructors.create_custom_function('foo'),
+                    ),
+                    pb.Block.Local(
+                        name='v_1',
+                        value=constructors.create_call(
+                            constructors.create_reference('v_0'),
+                            constructors.create_reference('arg'),
+                        ),
+                    ),
+                    pb.Block.Local(
+                        name='v_2',
+                        value=constructors.create_call(
+                            constructors.create_reference('v_0'),
+                            constructors.create_reference('v_1'),
+                        ),
+                    ),
+                ],
+                result=constructors.create_reference('v_2'),
+            )
+        ),
+    )
 
     self.assertEqual(str(bar.portable_ir), str(expected_bar))
 

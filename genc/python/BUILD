@@ -4,6 +4,7 @@ package_group(
     name = "python_packages",
     packages = [
         "//genc/...",
+        "//shopping/personalization/tastebuddy/...",
     ],
 )
 

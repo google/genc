@@ -17,6 +17,7 @@ limitations under the License
 
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
+#include "absl/strings/str_cat.h"
 #include "genc/proto/v0/computation.pb.h"
 #include "re2/re2.h"
 
@@ -26,7 +27,9 @@ namespace intrinsics {
 absl::Status RegexPartialMatch::CheckWellFormed(
     const v0::Intrinsic& intrinsic_pb) const {
   if (!intrinsic_pb.static_parameter().has_str()) {
-    return absl::InvalidArgumentError("Expect regex str, got none.");
+    return absl::InvalidArgumentError(
+        absl::StrCat("Static parameter is not a string:",
+                     intrinsic_pb.static_parameter().DebugString()));
   }
   return absl::OkStatus();
 }
@@ -35,6 +38,10 @@ absl::Status RegexPartialMatch::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
                                             const v0::Value& arg,
                                             v0::Value* result,
                                             Context* context) const {
+  if (!arg.has_str()) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Argument is not a string: ", arg.DebugString()));
+  }
   result->set_boolean(
       RE2::PartialMatch(arg.str(), intrinsic_pb.static_parameter().str()));
   return absl::OkStatus();

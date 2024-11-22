@@ -33,6 +33,12 @@ class FutureInterface {
   virtual ~FutureInterface() {}
 };
 
+class WaitableInterface {
+ public:
+  virtual absl::Status Wait() = 0;
+  virtual ~WaitableInterface() {}
+};
+
 class ConcurrencyInterface {
  public:
   template <typename Func,
@@ -47,12 +53,6 @@ class ConcurrencyInterface {
   virtual ~ConcurrencyInterface() {}
 
  protected:
-  class WaitableInterface {
-   public:
-    virtual absl::Status Wait() = 0;
-    virtual ~WaitableInterface() {}
-  };
-
   virtual absl::StatusOr<std::shared_ptr<WaitableInterface>> Schedule(
       std::function<void()> callback) = 0;
 
@@ -90,6 +90,20 @@ class ConcurrencyInterface {
     ReturnValue result_;
     absl::StatusOr<std::shared_ptr<WaitableInterface>> waitable_;
   };
+};
+
+class ConcurrencyInterfaceWithWaitMethod : public ConcurrencyInterface {
+ public:
+  // Wait until al processing that has been initiated so far is completed.
+  // This is a blocking call.
+  // REQUIRES: All callbacks-scheduling calls that may have been invoked in
+  // parallel must have completed. An error may be returned otherwise,
+  // indicating that the wait was unsuccessful, and the wait call should be
+  // invoked again. Similarly, i any processing is triggered after this call,
+  // you may want to call this method again. Multiple calls are permitted.
+  virtual absl::Status WaitUntilAllCompleted() = 0;
+
+  virtual ~ConcurrencyInterfaceWithWaitMethod() {}
 };
 
 }  // namespace genc

@@ -77,7 +77,7 @@ git_repository(
 git_repository(
     name = "com_google_protobuf",
     remote = "https://github.com/protocolbuffers/protobuf.git",
-    tag = "v26.1",
+    tag = "v28.3",
 )
 
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")

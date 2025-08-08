@@ -1,3 +1,6 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
 # Testing libraries that are shared across modules.
 package(
     default_visibility = ["//visibility:public"],

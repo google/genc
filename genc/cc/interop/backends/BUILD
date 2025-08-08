@@ -1,3 +1,5 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
 # Libraries to access various LLM Backends. So user can stay backend agnostic.
 package(
     default_visibility = ["//visibility:public"],

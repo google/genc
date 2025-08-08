@@ -1,5 +1,8 @@
 # Libraries for parsing input and output of ops.
 
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
 package(
     default_visibility = [
         #"//genc/google:__subpackages__",

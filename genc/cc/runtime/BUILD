@@ -91,6 +91,7 @@ pybind_extension(
     srcs = ["executor_bindings.cc"],
     tags = ["generated_py_module=genc.runtime"],
     deps = [
+        ":control_flow_executor",
         ":executor",
         ":executor_stacks",
         "//genc/proto/v0:computation_cc_proto",

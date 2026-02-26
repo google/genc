@@ -46,7 +46,6 @@ android_library(
 android_binary(
     name = "app",
     manifest = "AndroidManifest.xml",
-    multidex = "native",
     deps = [
         ":lib",
     ],

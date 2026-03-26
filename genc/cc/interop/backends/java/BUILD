@@ -31,10 +31,6 @@ cc_library(
     name = "open_ai_client_jni",
     srcs = ["open_ai_client_jni.cc"],
     hdrs = ["open_ai_client_jni.h"],
-    copts = [
-        "-Wno-write-strings",  # The generated JNI header fails this.
-        "-Wno-writable-strings",  # The generated JNI header fails this.
-    ],
     deps = [
         "//genc/java/src/jni:copy_jni_hdr_lib",
         "//genc/java/src/jni:jni_utils",
@@ -70,10 +66,6 @@ cc_library(
     name = "google_ai_client_jni",
     srcs = ["google_ai_client_jni.cc"],
     hdrs = ["google_ai_client_jni.h"],
-    copts = [
-        "-Wno-write-strings",  # The generated JNI header fails this.
-        "-Wno-writable-strings",  # The generated JNI header fails this.
-    ],
     deps = [
         "//genc/java/src/jni:copy_jni_hdr_lib",
         "//genc/java/src/jni:jni_utils",
@@ -109,10 +101,6 @@ cc_library(
     name = "mediapipe_llm_inference_client_jni",
     srcs = ["mediapipe_llm_inference_client_jni.cc"],
     hdrs = ["mediapipe_llm_inference_client_jni.h"],
-    copts = [
-        "-Wno-write-strings",  # The generated JNI header fails this.
-        "-Wno-writable-strings",  # The generated JNI header fails this.
-    ],
     deps = [
         "//genc/java/src/jni:copy_jni_hdr_lib",
         "//genc/java/src/jni:jni_utils",
@@ -147,10 +135,6 @@ cc_library(
     name = "wolfram_alpha_client_jni",
     srcs = ["wolfram_alpha_client_jni.cc"],
     hdrs = ["wolfram_alpha_client_jni.h"],
-    copts = [
-        "-Wno-write-strings",  # The generated JNI header fails this.
-        "-Wno-writable-strings",  # The generated JNI header fails this.
-    ],
     deps = [
         "//genc/java/src/jni:copy_jni_hdr_lib",
         "//genc/java/src/jni:jni_utils",

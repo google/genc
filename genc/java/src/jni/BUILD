@@ -22,10 +22,6 @@ cc_library(
     name = "jni_utils",
     srcs = ["jni_utils.cc"],
     hdrs = ["jni_utils.h"],
-    copts = [
-        "-Wno-write-strings",  # The generated JNI header fails this.
-        "-Wno-writable-strings",  # The generated JNI header fails this.
-    ],
     visibility = ["//visibility:public"],
     deps = [
         "//genc/java/src/jni:copy_jni_hdr_lib",

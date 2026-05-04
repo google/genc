@@ -1,5 +1,7 @@
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
 
+licenses(["notice"])
+
 package_group(
     name = "llamacpp_interop",
     packages = [

@@ -1,5 +1,7 @@
 load("@rules_python//python:defs.bzl", "py_library")
 
+licenses(["notice"])
+
 py_library(
     name = "interop",
     srcs = ["__init__.py"],

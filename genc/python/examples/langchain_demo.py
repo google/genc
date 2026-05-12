@@ -35,7 +35,8 @@ def main(argv: Sequence[str]) -> None:
   )
 
   comp_pb = interop.langchain.create_computation(my_chain)
-  comp = runtime.Runner(comp_pb, executor.create_default_executor())
+  my_executor = executor.create_default_executor()
+  comp = runtime.Runner(comp_pb, my_executor)
   result = comp("a grocery store")
   print(result)
 

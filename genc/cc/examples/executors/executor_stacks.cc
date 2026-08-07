@@ -27,6 +27,7 @@ limitations under the License
 #include "genc/cc/modules/retrieval/local_cache.h"
 #include "genc/cc/modules/tools/wolfram_alpha.h"
 #include "genc/cc/runtime/concurrency.h"
+#include "genc/cc/runtime/control_flow_executor.h"
 #include "genc/cc/runtime/executor.h"
 #include "genc/cc/runtime/executor_stacks.h"
 #include "genc/cc/runtime/status_macros.h"
@@ -86,8 +87,10 @@ void SetLlamaCppModelInferenceHandler(intrinsics::HandlerSetConfig* config,
 }  // namespace
 
 absl::StatusOr<std::shared_ptr<Executor>> CreateDefaultExecutor() {
-  return CreateDefaultExecutorWithConcurrencyInterface(
-      CreateThreadBasedConcurrencyManager());
+  absl::StatusOr<std::shared_ptr<Executor>> result =
+      CreateDefaultExecutorWithConcurrencyInterface(
+          CreateThreadBasedConcurrencyManager());
+  return result;
 }
 
 absl::StatusOr<std::shared_ptr<Executor>>

@@ -32,6 +32,7 @@ limitations under the License
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
+#include "genc/cc/runtime/control_flow_executor.h"
 #include "genc/cc/runtime/executor.h"
 #include "genc/cc/runtime/executor_stacks.h"
 #include "genc/proto/v0/computation.pb.h"

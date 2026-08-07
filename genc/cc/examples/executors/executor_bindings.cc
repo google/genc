@@ -20,7 +20,11 @@ limitations under the License
 //   - Python methods defined here (e.g. `.def_*()`) should not contain
 //     "business logic". That should be implemented on the underlying C++ class.
 
+#include <memory>
+
+#include "absl/status/statusor.h"
 #include "genc/cc/examples/executors/executor_stacks.h"
+#include "genc/cc/runtime/control_flow_executor.h"
 #include "genc/cc/runtime/executor.h"
 #include "genc/proto/v0/computation.pb.h"
 #include "include/pybind11/cast.h"
@@ -48,7 +52,66 @@ namespace {
 PYBIND11_MODULE(executor_bindings, m) {
   py::google::ImportStatusModule();
 
-  m.def("create_default_executor", &CreateDefaultExecutor,
+    // Provide an `OwnedValueId` class to handle return values from the
+  // `Executor` interface.
+  //
+  // Note: no `init<>()` method defined, this object is only constructor from
+  // Executor instances.
+  py::class_<OwnedValueId>(m, "OwnedValueId")
+      .def_property_readonly("ref", &OwnedValueId::ref)
+      .def("__str__",
+           [](const OwnedValueId& self) { return absl::StrCat(self.ref()); })
+      .def("__repr__", [](const OwnedValueId& self) {
+        return absl::StrCat("<OwnedValueId: ", self.ref(), ">");
+      });
+
+  // Provide the `Executor` interface.
+  //
+  // A `dispose` method is purposely not exposed. Though `Executor::Dispose`
+  // exists in C++, Python should call `Dispose` via the `OwnedValueId`
+  // destructor during garbage collection.
+  //
+  // Note: no `init<>()` method defined, must be constructed useing the create_*
+  // methods defined below.
+  py::class_<Executor, std::shared_ptr<Executor>>(m, "Executor")
+      .def("create_value", &Executor::CreateValue, py::arg("value_pb"),
+           py::return_value_policy::move,
+           py::call_guard<py::gil_scoped_release>())
+      .def("create_struct", &Executor::CreateStruct,
+           py::return_value_policy::move,
+           py::call_guard<py::gil_scoped_release>())
+      .def("create_selection", &Executor::CreateSelection,
+           py::return_value_policy::move,
+           py::call_guard<py::gil_scoped_release>())
+      .def("create_call", &Executor::CreateCall, py::arg("function"),
+           // Allow `argument` to be `None`.
+           py::arg("argument").none(true), py::return_value_policy::move,
+           py::call_guard<py::gil_scoped_release>())
+      .def(
+          "materialize",
+          [](Executor& e,
+             const ValueId& value_id) -> absl::StatusOr<v0::Value> {
+            // Construct a new `v0::Value` to write to and return it to Python.
+            v0::Value value_pb;
+            absl::Status result = e.Materialize(value_id, &value_pb);
+            if (!result.ok()) {
+              return result;
+            }
+            return value_pb;
+          },
+          py::call_guard<py::gil_scoped_release>());
+
+  m.def("create_default_executor",
+        []() -> absl::StatusOr<std::shared_ptr<
+            ::genc::Executor>> {
+          absl::StatusOr<std::shared_ptr<::genc::Executor>> ex =
+              ::genc::CreateDefaultExecutor();
+          if (!ex.ok()) {
+            return ex.status();
+          }
+          return ex.value();
+        },
+        py::call_guard<py::gil_scoped_release>(),
         "Creates a default executor with predefined components used in "
         "GenC demos.");
 }

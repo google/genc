@@ -48,7 +48,7 @@ public class GencDemo extends Activity {
       runner = Runner.create(computation, executor.getExecutorHandle());
     } catch (RuntimeException e) {
       logger.atSevere().withCause(e).log(
-          "Error occured in creating the computation: %s", e.getMessage());
+          "Error occurred in creating the computation: %s", e.getMessage());
     }
 
     // User input
@@ -81,7 +81,7 @@ public class GencDemo extends Activity {
                   } catch (RuntimeException e) {
                     errorString = e.getMessage();
                     logger.atSevere().withCause(e).log(
-                        "Error occured in running the computation: %s", errorString);
+                        "Error occurred in running the computation: %s", errorString);
                   }
                   response.setText(responseString);
                   String verboseString;

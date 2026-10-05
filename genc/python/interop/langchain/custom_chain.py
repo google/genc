@@ -35,7 +35,7 @@ class CustomChain(chains.base.Chain):
   chained_ops: List[ChainedOpType] = []
   num_iteration: int = 0
 
-  def __or__(self, op: ChainedOpType):
+  def __or__(self, op: ChainedOpType):  # pyrefly: ignore[bad-override]
     if isinstance(op, int):
       self.num_iteration = op
     else:

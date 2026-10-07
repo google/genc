@@ -26,14 +26,14 @@ limitations under the License
 namespace genc {
 
 IntrinsicHandlerSet::~IntrinsicHandlerSet() {
-  absl::MutexLock l(&handlers_lock_);
+  absl::MutexLock l(handlers_lock_);
   for (auto& pair : handlers_) {
     delete pair.second;
   }
 }
 
 void IntrinsicHandlerSet::AddHandler(const IntrinsicHandler* handler) {
-  absl::MutexLock l(&handlers_lock_);
+  absl::MutexLock l(handlers_lock_);
   handlers_[handler->uri()] = handler;
 }
 
@@ -41,7 +41,7 @@ absl::StatusOr<const IntrinsicHandler*> IntrinsicHandlerSet::GetHandler(
     absl::string_view uri) const {
   const IntrinsicHandler* handler = nullptr;
   {
-    absl::ReaderMutexLock l(&handlers_lock_);
+    absl::ReaderMutexLock l(handlers_lock_);
     auto it = handlers_.find(uri);
     if (it != handlers_.end()) {
       handler = it->second;

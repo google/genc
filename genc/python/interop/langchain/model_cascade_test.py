@@ -14,7 +14,7 @@
 """Test for model_cascade.py."""
 
 from absl.testing import absltest
-from langchain.llms.base import LLM  # pylint:disable=g-importing-member
+from langchain_core.language_models.llms import LLM  # pylint:disable=g-importing-member
 from genc.python.interop.langchain import custom_model
 from genc.python.interop.langchain import model_cascade
 

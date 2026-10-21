@@ -14,8 +14,8 @@
 """A class that represents a model cascade for use with LangChain APIs."""
 
 from typing import Any, List, Mapping, Optional
-from langchain.callbacks.manager import CallbackManagerForLLMRun  # pylint:disable=g-importing-member
-from langchain.llms.base import LLM  # pylint:disable=g-importing-member
+from langchain_core.callbacks.manager import CallbackManagerForLLMRun  # pylint:disable=g-importing-member
+from langchain_core.language_models.llms import LLM  # pylint:disable=g-importing-member
 
 
 class ModelCascade(LLM):

@@ -15,11 +15,17 @@
 
 from collections.abc import Sequence
 from absl import app
-from langchain import chains
-from langchain import prompts
+from langchain_core import prompts
 from genc.python import interop
 from genc.python import runtime
 from genc.python.examples import executor
+
+# pylint: disable=g-import-not-at-top
+try:
+  from langchain_classic import chains
+except ImportError:  # langchain<1.0: OSS requirements.txt pins 0.1.0
+  from langchain import chains  # pyrefly: ignore[missing-import]
+# pylint: enable=g-import-not-at-top
 
 
 def main(argv: Sequence[str]) -> None:

@@ -14,8 +14,14 @@
 """Test for custom_chain.py."""
 
 from absl.testing import absltest
-from langchain.chains import base
 from genc.python.interop.langchain import custom_chain
+
+# pylint: disable=g-import-not-at-top
+try:
+  from langchain_classic.chains import base
+except ImportError:  # langchain<1.0: OSS requirements.txt pins 0.1.0
+  from langchain.chains import base  # pyrefly: ignore[missing-import]
+# pylint: enable=g-import-not-at-top
 
 
 class CustomModelTest(absltest.TestCase):

@@ -14,13 +14,20 @@
 """Test for custom_agent.py."""
 
 from absl.testing import absltest
-from langchain import agents
-from langchain import chains
-from langchain import prompts
+from langchain_core import prompts
 from genc.python.interop.langchain import custom_agent
 from genc.python.interop.langchain import custom_chain
 from genc.python.interop.langchain import custom_model
 from genc.python.interop.langchain import custom_tool
+
+# pylint: disable=g-import-not-at-top
+try:
+  from langchain_classic import agents
+  from langchain_classic import chains
+except ImportError:  # langchain<1.0: OSS requirements.txt pins 0.1.0
+  from langchain import agents  # pyrefly: ignore[missing-import]
+  from langchain import chains  # pyrefly: ignore[missing-import]
+# pylint: enable=g-import-not-at-top
 
 
 class CustomAgentTest(absltest.TestCase):

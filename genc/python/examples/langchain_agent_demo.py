@@ -18,10 +18,16 @@ from collections.abc import Sequence
 import textwrap
 from absl import app
 from absl import flags
-import langchain
-from langchain import prompts
+from langchain_core import prompts
 import genc as genc
 from genc.python.examples import executor
+
+# pylint: disable=g-import-not-at-top
+try:
+  from langchain_classic import chains
+except ImportError:  # langchain<1.0: OSS requirements.txt pins 0.1.0
+  from langchain import chains  # pyrefly: ignore[missing-import]
+# pylint: enable=g-import-not-at-top
 
 _APPID = flags.DEFINE_string(
     "appid", None, "appid of WolframAlpha", required=True
@@ -93,7 +99,7 @@ class MathToolAgent(genc.interop.langchain.CustomAgent):
     )
     # Init langchain.agents.agent.Agent with components backed by C++ runtime.
     super().__init__(
-        llm_chain=langchain.chains.LLMChain(llm=llm, prompt=prompt),
+        llm_chain=chains.LLMChain(llm=llm, prompt=prompt),
         allowed_tools=[tool.name for tool in tools],
         tools_list=tools,
         max_iterations=8,

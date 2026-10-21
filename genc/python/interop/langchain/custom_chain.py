@@ -15,18 +15,25 @@
 
 from typing import Any, Dict, List, Optional, TypeAlias, Union
 
-from langchain import chains
-from langchain.callbacks import manager
-from langchain.chains import base as chains_base
+from langchain_core.callbacks import manager
 
 from genc.proto.v0 import computation_pb2 as pb
+
+# pylint: disable=g-import-not-at-top
+try:
+  from langchain_classic import chains
+  from langchain_classic.chains import base as chains_base
+except ImportError:  # langchain<1.0: OSS requirements.txt pins 0.1.0
+  from langchain import chains  # pyrefly: ignore[missing-import]
+  from langchain.chains import base as chains_base  # pyrefly: ignore[missing-import]
+# pylint: enable=g-import-not-at-top
 
 ChainedOpType: TypeAlias = Union[
     int, pb.Value, chains_base.Chain, chains.LLMChain, Any
 ]
 
 
-class CustomChain(chains.base.Chain):
+class CustomChain(chains.base.Chain):  # pyrefly: ignore[invalid-inheritance]
   """Represents an arbitrary custom chain for use with LangChain APIs."""
 
   # Enables mix-n-match to extend the versatility of chain.

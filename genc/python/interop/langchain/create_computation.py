@@ -13,14 +13,25 @@
 # limitations under the License.
 """Utility function for creating `Computation` protos from LangChain objects."""
 
-import langchain
-from langchain import agents
+from langchain_core import prompts
+from langchain_core.language_models import llms
 
 from genc.python import authoring
 from genc.python.base import to_from_value_proto
 from genc.python.interop.langchain import custom_chain
 from genc.python.interop.langchain import custom_model
 from genc.python.interop.langchain import model_cascade
+
+# pylint: disable=g-import-not-at-top
+try:
+  from langchain_classic import agents
+  from langchain_classic.chains import base as chains_base
+  from langchain_classic.chains import llm as chains_llm
+except ImportError:  # langchain<1.0: OSS requirements.txt pins 0.1.0
+  from langchain import agents  # pyrefly: ignore[missing-import]
+  from langchain.chains import base as chains_base  # pyrefly: ignore[missing-import]
+  from langchain.chains import llm as chains_llm  # pyrefly: ignore[missing-import]
+# pylint: enable=g-import-not-at-top
 
 
 def create_computation_from_llm(llm):
@@ -65,7 +76,7 @@ def create_computation_from_prompt_template(prompt_template):
   Raises:
     TypeError: on an unrecognized type of argument.
   """
-  if not isinstance(prompt_template, langchain.PromptTemplate):
+  if not isinstance(prompt_template, prompts.PromptTemplate):
     raise TypeError(
         "Unrecognized type of argument {}.".format(type(prompt_template))
     )
@@ -170,7 +181,7 @@ def create_computation_from_custom_chain(chain):
   for op in chain.chained_ops:
     comp = op
     if isinstance(op, custom_chain.CustomChain) or isinstance(
-        op, langchain.chains.llm.LLMChain
+        op, chains_llm.LLMChain
     ):
       comp = create_computation(comp)
     computation_list.append(comp)
@@ -194,15 +205,15 @@ def create_computation(langchain_object):
   Raises:
     TypeError: on an unrecognied type of object.
   """
-  if isinstance(langchain_object, langchain.llms.base.LLM):
+  if isinstance(langchain_object, llms.LLM):
     return create_computation_from_llm(langchain_object)
-  if isinstance(langchain_object, langchain.PromptTemplate):
+  if isinstance(langchain_object, prompts.PromptTemplate):
     return create_computation_from_prompt_template(langchain_object)
-  if isinstance(langchain_object, langchain.chains.llm.LLMChain):
+  if isinstance(langchain_object, chains_llm.LLMChain):
     return create_computation_from_chain(langchain_object)
   if isinstance(langchain_object, agents.agent.Agent):
     return create_computation_from_agent(langchain_object)
-  if isinstance(langchain_object, langchain.chains.base.Chain):
+  if isinstance(langchain_object, chains_base.Chain):
     return create_computation_from_custom_chain(langchain_object)
   raise TypeError(
       "Unrecognized type of LangChain object {}.".format(

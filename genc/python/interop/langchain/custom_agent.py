@@ -16,18 +16,26 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Sequence
 
-import langchain
-from langchain import pydantic_v1
+from pydantic import v1 as pydantic_v1
 
 from genc.python.interop.langchain import custom_tool
 
+# pylint: disable=g-import-not-at-top
+try:
+  from langchain_classic import agents
+  from langchain_classic import chains
+except ImportError:  # langchain<1.0: OSS requirements.txt pins 0.1.0
+  from langchain import agents  # pyrefly: ignore[missing-import]
+  from langchain import chains  # pyrefly: ignore[missing-import]
+# pylint: enable=g-import-not-at-top
 
-class CustomAgent(langchain.agents.agent.Agent):
+
+class CustomAgent(agents.Agent):  # pyrefly: ignore[invalid-inheritance]
   """Represents an arbitrary agent for use with LangChain APIs."""
 
   # Part of Langchain's Agent API. Langchain validates that this is correctly
   # constructed.
-  llm_chain: langchain.chains.LLMChain
+  llm_chain: chains.LLMChain
   """The LLM chain to use in the agent."""
 
   # Part of Langchain's Agent API. Make it optional in GenC interop.

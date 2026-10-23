@@ -24,7 +24,7 @@ try:
   from langchain_classic import chains
   from langchain_classic.chains import base as chains_base
 except ImportError:  # langchain<1.0: OSS requirements.txt pins 0.1.0
-  from langchain import chains  # pyrefly: ignore[missing-import]
+  from langchain import chains  # pyrefly: ignore[missing-import, missing-module-attribute]
   from langchain.chains import base as chains_base  # pyrefly: ignore[missing-import]
 # pylint: enable=g-import-not-at-top
 

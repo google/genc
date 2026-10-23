@@ -26,11 +26,11 @@ try:
   from langchain_classic import chains
 except ImportError:  # langchain<1.0: OSS requirements.txt pins 0.1.0
   from langchain import agents  # pyrefly: ignore[missing-import]
-  from langchain import chains  # pyrefly: ignore[missing-import]
+  from langchain import chains  # pyrefly: ignore[missing-import, missing-module-attribute]
 # pylint: enable=g-import-not-at-top
 
 
-class CustomAgent(agents.Agent):  # pyrefly: ignore[invalid-inheritance]
+class CustomAgent(agents.Agent):  # pyrefly: ignore[invalid-inheritance, missing-attribute]
   """Represents an arbitrary agent for use with LangChain APIs."""
 
   # Part of Langchain's Agent API. Langchain validates that this is correctly

@@ -22,10 +22,8 @@ limitations under the License
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
-#include "genc/cc/interop/confidential_computing/attestation.h"
 #include "genc/cc/interop/networking/curl_based_http_client.h"
 #include "genc/cc/interop/networking/http_client_interface.h"
-#include "genc/cc/interop/oak/client.h"
 #include "genc/cc/intrinsics/intrinsic_uris.h"
 #include "genc/cc/runtime/executor.h"
 #include "genc/cc/runtime/intrinsic_handler.h"
@@ -103,47 +101,9 @@ absl::Status ConfidentialComputation::CheckWellFormed(
 absl::Status ConfidentialComputation::ExecuteCall(
     const v0::Intrinsic& intrinsic_pb, const v0::Value& arg, v0::Value* result,
     Context* context) const {
-  if (!http_client_interface_.ok()) {
-    return absl::InternalError(absl::StrCat(
-        "Failed to initialize HTTP client: ",
-        http_client_interface_.status().ToString()));
-  }
-  const v0::Value& comp = intrinsic_pb.static_parameter().struct_().element(0);
-  auto config = intrinsic_pb.static_parameter().struct_().element(1).struct_();
-  std::string server_address;
-  std::string image_digest;
-  for (const auto& element : config.element()) {
-    if (element.label() == kServerAddressLabel) {
-      server_address = element.str();
-    } else if (element.label() == kImageDigestLabel) {
-      image_digest = element.str();
-    }
-  }
-  if (server_address.empty()) {
-    return absl::InvalidArgumentError(
-        "Expected a non-empty server address.");
-  }
-  std::shared_ptr<grpc::Channel> channel = grpc::CreateChannel(
-      server_address, grpc::InsecureChannelCredentials());
-  interop::confidential_computing::WorkloadProvenance provenance;
-  if (!image_digest.empty()) {
-    provenance.container_image_digest = image_digest;
-  }
-  auto verifier =
-      GENC_TRY(interop::confidential_computing::CreateAttestationVerifier(
-          provenance,
-          /* debug */ false,
-          http_client_interface_.value()));
-  auto executor_stub =
-      GENC_TRY(interop::oak::CreateClient(
-          channel, verifier, /* debug */ false));
-  std::shared_ptr<Executor> executor = GENC_TRY(CreateRemoteExecutor(
-      std::move(executor_stub), context->concurrency_interface()));
-  OwnedValueId embedded_comp = GENC_TRY(executor->CreateValue(comp));
-  OwnedValueId embedded_arg = GENC_TRY(executor->CreateValue(arg));
-  OwnedValueId embedded_result = GENC_TRY(
-      executor->CreateCall(embedded_comp.ref(), embedded_arg.ref()));
-  return executor->Materialize(embedded_result.ref(), result);
+  return absl::UnimplementedError(
+      "ConfidentialComputation with Oak UnarySession is deprecated "
+      "(b/426366723).");
 }
 
 }  // namespace intrinsics

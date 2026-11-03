@@ -346,10 +346,8 @@ cc_library(
     hdrs = ["confidential_computation.h"],
     deps = [
         ":intrinsic_uris",
-        "//genc/cc/interop/confidential_computing:attestation",
         "//genc/cc/interop/networking:curl_based_http_client",
         "//genc/cc/interop/networking:http_client_interface",
-        "//genc/cc/interop/oak:client",
         "//genc/cc/runtime:executor",
         "//genc/cc/runtime:intrinsic_handler",
         "//genc/cc/runtime:remote_executor",

@@ -15,7 +15,7 @@
 
 from absl.testing import absltest
 import genc as genc
-from genc.cc.runtime import executor_bindings
+from genc.python.examples import executor
 
 # pylint:disable=missing-class-docstring
 # pylint:disable=missing-function-docstring]
@@ -24,8 +24,8 @@ from genc.cc.runtime import executor_bindings
 class AuthoringTest(absltest.TestCase):
 
   def test_something(self):
-    genc.runtime.set_default_executor(
-        executor_bindings.create_default_local_executor())
+    my_executor = executor.create_default_executor()
+    genc.runtime.set_default_executor(my_executor)
 
     @genc.authoring.traced_computation
     def comp(x):

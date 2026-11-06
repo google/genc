@@ -11,8 +11,6 @@ cc_binary(
     srcs = ["client.cc"],
     deps = [
         "//genc/cc/base:read_file",
-        "//genc/cc/interop/confidential_computing:attestation",
-        "//genc/cc/interop/oak:client",
         "//genc/cc/runtime:executor",
         "//genc/cc/runtime:remote_executor",
         "//genc/cc/runtime:runner",

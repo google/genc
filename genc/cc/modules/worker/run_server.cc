@@ -20,8 +20,6 @@ limitations under the License
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "genc/cc/base/read_file.h"
-#include "genc/cc/interop/confidential_computing/attestation.h"
-#include "genc/cc/interop/oak/server.h"
 #include "genc/cc/modules/worker/run_server.h"
 #include "genc/cc/runtime/executor.h"
 #include "genc/cc/runtime/executor_service.h"
@@ -31,7 +29,6 @@ limitations under the License
 #include "include/grpcpp/security/server_credentials.h"
 #include "include/grpcpp/server.h"
 #include "include/grpcpp/server_builder.h"
-#include "proto/session/service_unary.grpc.pb.h"
 
 namespace genc {
 namespace modules {
@@ -63,24 +60,10 @@ absl::Status RunServer(
       GENC_TRY(CreateExecutorService(executor));
   grpc::ServerBuilder builder;
   builder.AddListeningPort(options.server_address, creds);
-  std::shared_ptr<oak::session::v1::UnarySession::Service> oak_service;
-  if (options.use_oak) {
-    if (options.debug) {
-      std::cout << "Exposing Oak's UnarySession service.\n";
-    }
-    oak_service = GENC_TRY(interop::oak::CreateService(
-        executor_service,
-        GENC_TRY(
-            interop::confidential_computing::CreateAttestationProvider(
-                options.debug)),
-        options.debug));
-    builder.RegisterService(oak_service.get());
-  } else {
-    if (options.debug) {
-      std::cout << "Exposing the regular Executor service.\n";
-    }
-    builder.RegisterService(executor_service.get());
+  if (options.debug) {
+    std::cout << "Exposing the regular Executor service.\n";
   }
+  builder.RegisterService(executor_service.get());
   std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
   if (options.debug) {
     std::cout << "Server listening on: " << options.server_address << "\n";

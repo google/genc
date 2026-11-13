@@ -183,15 +183,16 @@ class AttestationProviderImpl : public AttestationProvider {
       : debug_(debug),
         http_client_(http_client) {}
 
-  absl::StatusOr<::oak::session::v1::EndorsedEvidence>
-      GetEndorsedEvidence(const std::string& serialized_public_key) override {
+  absl::StatusOr<::oak::session::v1::EndorsedEvidence> GetEndorsedEvidence(
+      const std::string& serialized_public_key) override {
     // Supply the key as a nonce.
     const std::string nonce = absl::Base64Escape(serialized_public_key);
     absl::StatusOr<std::string> token =
         GetAttestationToken(kAudience, nonce, http_client_);
     if (!token.ok()) {
       return absl::InternalError(absl::StrCat(
-          "AttestationProvider couldn't get attestation token for audience \"",
+          "AttestationProvider couldn't get attestation token for "
+          "audience \"",
           kAudience, "\" and nonce \"", nonce, "\": ",
           token.status().ToString()));
     }
@@ -244,7 +245,8 @@ class AttestationVerifierImpl : public AttestationVerifier {
   absl::StatusOr<::oak::attestation::v1::AttestationResults> Verify(
       std::chrono::time_point<std::chrono::system_clock> now,
       const ::oak::attestation::v1::Evidence& evidence,
-      const ::oak::attestation::v1::Endorsements& endorsements) const override {
+      const ::oak::attestation::v1::Endorsements& endorsements)
+      const override {
     // The server-side inserts JWT token here, to be unpacked on the client.
     const std::string& token =
         evidence.application_keys().encryption_public_key_certificate();
@@ -254,7 +256,8 @@ class AttestationVerifierImpl : public AttestationVerifier {
     const std::string token_json_string =
         GENC_TRY(verified_token.GetJsonPayload());
     if (debug_) {
-      std::cout << "Attestation token payload:\n" << token_json_string << "\n";
+      std::cout << "Attestation token payload:\n"
+                << token_json_string << "\n";
     }
     nlohmann::json token_json =
         nlohmann::json::parse(token_json_string, nullptr, false);
@@ -269,12 +272,13 @@ class AttestationVerifierImpl : public AttestationVerifier {
           "OS name mismatch: ", os_name, " vs. ", kOsAttributeValue));
     }
     if (!workload_provenance_.container_image_reference.empty()) {
-      const std::string& image_reference = GENC_TRY(GetStringAttributeFromJson(
-        token_json, {
-          kSubmodsAttributeName,
-          kContainerAttributeName,
-          kContainerImageReferenceAttributeName}));
-      if (image_reference != workload_provenance_.container_image_reference) {
+      const std::string& image_reference =
+          GENC_TRY(GetStringAttributeFromJson(
+              token_json,
+              {kSubmodsAttributeName, kContainerAttributeName,
+               kContainerImageReferenceAttributeName}));
+      if (image_reference !=
+          workload_provenance_.container_image_reference) {
         return absl::InternalError(absl::StrCat(
             "Container image digest mismatch: ", image_reference,
             " vs. ", workload_provenance_.container_image_reference));
@@ -328,7 +332,8 @@ CreateAttestationProvider(
   return std::make_shared<AttestationProviderImpl>(debug, http_client);
 }
 
-absl::StatusOr<std::shared_ptr<AttestationVerifier>> CreateAttestationVerifier(
+absl::StatusOr<std::shared_ptr<AttestationVerifier>>
+CreateAttestationVerifier(
     WorkloadProvenance workload_provenance,
     bool debug,
     std::shared_ptr<networking::HttpClientInterface> http_client) {

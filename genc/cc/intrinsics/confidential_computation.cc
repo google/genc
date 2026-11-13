@@ -108,8 +108,10 @@ absl::Status ConfidentialComputation::ExecuteCall(
         "Failed to initialize HTTP client: ",
         http_client_interface_.status().ToString()));
   }
-  const v0::Value& comp = intrinsic_pb.static_parameter().struct_().element(0);
-  auto config = intrinsic_pb.static_parameter().struct_().element(1).struct_();
+  const v0::Value& comp =
+      intrinsic_pb.static_parameter().struct_().element(0);
+  auto config =
+      intrinsic_pb.static_parameter().struct_().element(1).struct_();
   std::string server_address;
   std::string image_digest;
   for (const auto& element : config.element()) {

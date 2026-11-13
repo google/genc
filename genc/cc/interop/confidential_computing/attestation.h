@@ -49,7 +49,8 @@ class AttestationProvider : public oak::AttestationProvider {};
 class AttestationVerifier
     : public ::oak::attestation::verification::AttestationVerifier {};
 
-absl::StatusOr<std::shared_ptr<AttestationProvider>> CreateAttestationProvider(
+absl::StatusOr<std::shared_ptr<AttestationProvider>>
+CreateAttestationProvider(
     bool debug,
     std::shared_ptr<networking::HttpClientInterface> http_client = nullptr);
 
@@ -58,7 +59,8 @@ struct WorkloadProvenance {
   std::string container_image_digest;
 };
 
-absl::StatusOr<std::shared_ptr<AttestationVerifier>> CreateAttestationVerifier(
+absl::StatusOr<std::shared_ptr<AttestationVerifier>>
+CreateAttestationVerifier(
     WorkloadProvenance workload_provenance,
     bool debug,
     std::shared_ptr<networking::HttpClientInterface> http_client = nullptr);

@@ -329,7 +329,7 @@ git_repository(
 git_repository(
     name = "oak",
     remote = "https://github.com/project-oak/oak.git",
-    branch = "main",
+    commit = "f763693d8d1540b37b245f05585e4be712de6e0f",
 )
 
 http_archive(

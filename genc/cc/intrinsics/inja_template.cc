@@ -48,6 +48,7 @@ absl::Status InjaTemplate::ExecuteCall(const v0::Intrinsic& intrinsic_pb,
 
   // TODO(b/315223622): externalize env, and enable the custom callback fns.
   inja_status_or::Environment env;
+  env.set_search_included_templates_in_files(false);
   std::string result_str = GENC_TRY(env.render(template_str, parsed_json));
   result->set_str(result_str);
   return absl::OkStatus();

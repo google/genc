@@ -58,5 +58,20 @@ TEST(InjaTemplateTest, ProcessesInputTemplateSuccessfully) {
   v0::Value result = runner.Run(template_pb, arg_pb).value();
   EXPECT_EQ(result.str(), "SFO to LAX:1\nSFO to JFK:2\n");
 }
+
+TEST(InjaTemplateTest, DisablesFilesystemInclude) {
+  std::shared_ptr<Executor> executor =
+      CreateInlineExecutor(intrinsics::CreateCompleteHandlerSet({}),
+                           CreateThreadBasedConcurrencyManager())
+          .value();
+  Runner runner = Runner::Create(executor).value();
+
+  v0::Value template_pb =
+      CreateInjaTemplate("{% include \"/etc/passwd\" %}").value();
+  v0::Value arg_pb;
+  arg_pb.set_str("{}");
+
+  EXPECT_FALSE(runner.Run(template_pb, arg_pb).ok());
+}
 }  // namespace
 }  // namespace genc
